@@ -1,0 +1,9 @@
+{
+  "source_directories": [
+    "d:/SSS/SnapMoment/backend"
+  ],
+  "search_path": [
+    "d:/SSS/SnapMoment/backend",
+    "d:/SSS/SnapMoment/backend/venv/Lib/site-packages"
+  ]
+}
