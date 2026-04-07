@@ -27,10 +27,11 @@ def extract_embedding(image_path: str) -> list:
             model_name="ArcFace",
             detector_backend="retinaface",
             enforce_detection=False,
+            align=True,
         )
-        if not results:
+        if not results or len(results) == 0:
             raise ValueError("No face detected")
-        return results[0]["embedding"]
+        return results[0].get("embedding", [])
     except Exception as e:
         logger.error(f"extract_embedding error: {e}")
         if "Face could not be detected" in str(e) or "No face" in str(e):
@@ -50,6 +51,7 @@ def extract_all_embeddings(image_path: str) -> list:
             model_name="ArcFace",
             detector_backend="retinaface",
             enforce_detection=False,
+            align=True,
         )
         output = []
         for r in results:

@@ -17,45 +17,19 @@ const TEAM = [
 ]
 
 const TIMELINE = [
-  { 
-    year: '2023', label: 'Founded in Bhilai', desc: 'Started with a simple idea: guests deserve better photo delivery.' 
-  },
-  { 
-    year: '2023 Q3', label: 'First ArcFace Integration', desc: 'Integrated DeepFace ArcFace model, achieving 99.2% matching accuracy.' 
-  },
-  { 
-    year: '2024 Q1', label: '100 Photographers', desc: 'Reached 100 active photographers across 12 cities.' 
-  },
-  { 
-    year: '2024 Q3', label: '200+ & Growing', desc: 'Now serving over 200 photographers with 50,000+ photo deliveries.' 
-  },
-  { 
-    year: '2024 Q4', label: 'Real-Time Delivery Launch', desc: 'Introduced instant photo delivery with QR-based access for guests.' 
-  },
-  { 
-    year: '2025 Q1', label: 'AI Accuracy Boost', desc: 'Enhanced face recognition pipeline, achieving up to 99.8% accuracy.' 
-  },
-  { 
-    year: '2025 Q2', label: 'Pan-India Expansion', desc: 'Expanded to 30+ cities with a rapidly growing photographer network.' 
-  },
-  { 
-    year: '2025 Q3', label: '1 Lakh+ Deliveries', desc: 'Surpassed 100,000+ successful photo deliveries across events.' 
-  },
-  { 
-    year: '2025 Q4', label: 'Studio Plan Launch', desc: 'Launched Studio plan with unlimited uploads and permanent hosting.' 
-  },
-  { 
-    year: '2026 Q1', label: 'Smart Dashboard', desc: 'Introduced advanced analytics and event tracking for photographers.' 
-  },
-  { 
-    year: '2026 Q2', label: 'Multi-Photographer Support', desc: 'Enabled seamless collaboration for multiple photographers per event.' 
-  },
-  { 
-    year: '2026 Q3', label: 'Guest Experience Upgrade', desc: 'Improved selfie capture with real-time face alignment guidance.' 
-  },
-  { 
-    year: '2026 Q4', label: 'Global Expansion Begins', desc: 'Started onboarding international users and expanding globally.' 
-  },
+  { year: '2023', label: 'Founded in Bhilai', desc: 'Started with a simple idea: guests deserve better photo delivery.' },
+  { year: '2023 Q3', label: 'First ArcFace Integration', desc: 'Integrated DeepFace ArcFace model, achieving 99.2% matching accuracy.' },
+  { year: '2024 Q1', label: '100 Photographers', desc: 'Reached 100 active photographers across 12 cities.' },
+  { year: '2024 Q3', label: '200+ & Growing', desc: 'Now serving over 200 photographers with 50,000+ photo deliveries.' },
+  { year: '2024 Q4', label: 'Real-Time Delivery Launch', desc: 'Introduced instant photo delivery with QR-based access for guests.' },
+  { year: '2025 Q1', label: 'AI Accuracy Boost', desc: 'Enhanced face recognition pipeline, achieving up to 99.8% accuracy.' },
+  { year: '2025 Q2', label: 'Pan-India Expansion', desc: 'Expanded to 30+ cities with a rapidly growing photographer network.' },
+  { year: '2025 Q3', label: '1 Lakh+ Deliveries', desc: 'Surpassed 100,000+ successful photo deliveries across events.' },
+  { year: '2025 Q4', label: 'Studio Plan Launch', desc: 'Launched Studio plan with unlimited uploads and permanent hosting.' },
+  { year: '2026 Q1', label: 'Smart Dashboard', desc: 'Introduced advanced analytics and event tracking for photographers.' },
+  { year: '2026 Q2', label: 'Multi-Photographer Support', desc: 'Enabled seamless collaboration for multiple photographers per event.' },
+  { year: '2026 Q3', label: 'Guest Experience Upgrade', desc: 'Improved selfie capture with real-time face alignment guidance.' },
+  { year: '2026 Q4', label: 'Global Expansion Begins', desc: 'Started onboarding international users and expanding globally.' },
 ];
 
 
