@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { Camera, CheckCircle, AlertCircle } from 'lucide-react'
+import { Camera, CheckCircle, AlertCircle, Brain } from 'lucide-react'
 import { guestApiEndpoints } from '../../lib/api'
 import SplashTag from '../../components/shared/SplashTag'
 
@@ -146,19 +146,53 @@ export default function SelfiePage() {
           <button
             onClick={handleCapture}
             disabled={uploading}
-            className="w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-60 hover:shadow-coral-lg"
+            className="w-full py-4 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-60 hover:shadow-coral-lg flex items-center justify-center gap-2"
             style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}
           >
-            {uploading ? 'Searching through event photos...' : 'Upload & Find My Photos'}
+            {uploading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Camera size={18} />
+                Upload & Search My Photos
+              </>
+            )}
           </button>
+          
           {uploading && (
-            <div className="text-center text-xs" style={{ color: '#A394A8' }}>
-              <div className="w-6 h-6 border-2 border-[#FF6E6C] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              Matching your face against all event photos...
+            <div className="mt-4 p-5 rounded-2xl border border-dashed border-opacity-50 text-center animate-in fade-in slide-in-from-bottom-4 duration-500" 
+                 style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,110,108,0.3)' }}>
+              <div className="relative w-16 h-16 mx-auto mb-4 bg-[#FF6E6C] bg-opacity-10 rounded-full flex items-center justify-center overflow-hidden">
+                <Brain size={32} className="text-[#FF6E6C] animate-pulse" />
+                {/* Horizontal scan line */}
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-[#FF6E6C] shadow-[0_0_10px_#FF6E6C] animate-[scan_2s_infinite_ease-in-out]" />
+              </div>
+              
+              <h3 className="text-white font-bold text-sm mb-1">AI Engine Analysis...</h3>
+              <p className="text-[#A394A8] text-xs leading-relaxed max-w-[240px] mx-auto">
+                Comparing your face against thousands of event photos using <span className="text-white font-mono text-[10px]">pgvector</span> acceleration.
+              </p>
+              
+              <div className="mt-4 flex justify-center gap-1">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#FF6E6C] animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                ))}
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes scan {
+          0% { top: 0%; opacity: 0.2; }
+          50% { top: 100%; opacity: 1; }
+          100% { top: 0%; opacity: 0.2; }
+        }
+      `}} />
     </div>
   )
 }

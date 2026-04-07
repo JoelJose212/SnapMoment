@@ -71,6 +71,11 @@ async def upload_photos(
         uploaded.append(photo)
 
     await db.commit()
+    
+    # Auto-trigger AI processing in the background
+    from app.tasks.face_indexing import index_event_photos
+    index_event_photos.delay(event_id)
+    
     return {"uploaded": len(uploaded), "photos": [str(p.id) for p in uploaded]}
 
 

@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     restart: always
     environment:
       POSTGRES_USER: snapmoment
@@ -36,16 +36,26 @@ services:
     restart: always
     ports:
       - "8000:8000"
+    environment:
+      - TF_ENABLE_ONEDNN_OPTS=0
     env_file:
       - .env
     volumes:
       - ./backend:/app
       - uploads_data:/app/uploads
+      - deepface_weights:/root/.deepface
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   celery_worker:
@@ -53,16 +63,26 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: always
+    environment:
+      - TF_ENABLE_ONEDNN_OPTS=0
     env_file:
       - .env
     volumes:
       - ./backend:/app
       - uploads_data:/app/uploads
+      - deepface_weights:/root/.deepface
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=2
 
   frontend:
@@ -84,3 +104,4 @@ services:
 volumes:
   postgres_data:
   uploads_data:
+  deepface_weights:

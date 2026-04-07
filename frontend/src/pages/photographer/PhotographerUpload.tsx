@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -20,6 +20,27 @@ export default function PhotographerUpload() {
     queryKey: ['event-photos', eventId],
     queryFn: () => photosApi.list(eventId!).then((r) => r.data),
   })
+
+  // Auto-poll status on mount and during processing
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    
+    const checkStatus = async () => {
+      try {
+        const res = await photosApi.processStatus(eventId!)
+        setProcessStatus(res.data)
+        if (res.data.status === 'processing' || res.data.status === 'queued') {
+          setProcessing(true)
+        } else {
+          setProcessing(false)
+        }
+      } catch {}
+    }
+
+    checkStatus()
+    interval = setInterval(checkStatus, 3000)
+    return () => { if (interval) clearInterval(interval) }
+  }, [eventId])
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!acceptedFiles.length) return
@@ -52,23 +73,11 @@ export default function PhotographerUpload() {
   })
 
   const handleProcess = async () => {
+    // This is now automatic on the backend, but we keep this for manual re-indexing if needed
     setProcessing(true)
     try {
       await photosApi.process(eventId!)
-      toast.success('AI processing started...')
-      const interval = setInterval(async () => {
-        try {
-          const res = await photosApi.processStatus(eventId!)
-          setProcessStatus(res.data)
-          if (res.data.status === 'complete') {
-            clearInterval(interval)
-            setPollInterval(null)
-            setProcessing(false)
-            toast.success('Face indexing complete! ✨')
-          }
-        } catch { }
-      }, 3000)
-      setPollInterval(interval)
+      toast.success('AI is re-indexing your photos...')
     } catch {
       toast.error('Failed to start processing')
       setProcessing(false)
@@ -102,35 +111,43 @@ export default function PhotographerUpload() {
         )}
       </div>
 
-      {/* Process button */}
+      {/* AI Status Banner */}
       {photos.length > 0 && (
-        <div className="flex gap-3 mb-6">
-          <button
-            onClick={handleProcess}
-            disabled={processing}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-coral disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}
-          >
-            <Brain size={16} />
-            {processing
-              ? processStatus
-                ? `Indexing faces... (${processStatus.processed}/${processStatus.total})`
-                : 'Processing...'
-              : 'Process with AI'}
-          </button>
-          {processStatus?.status === 'complete' && (
-            <div className="flex items-center gap-2 text-sm text-[#00C48C] font-semibold">
-              <CheckCircle size={16} />
-              {processStatus.unique_faces} faces indexed
+        <div className="flex flex-wrap items-center gap-4 mb-6 p-4 rounded-2xl border border-dashed border-opacity-50" style={{ background: 'var(--card)', borderColor: processing ? '#FFB800' : '#00C48C' }}>
+          <div className="flex items-center gap-3 flex-1">
+            <div className={`p-2 rounded-xl ${processing ? 'bg-amber-100 animate-pulse' : 'bg-emerald-100'}`}>
+              {processing ? <Brain size={20} color="#FFB800" /> : <CheckCircle size={20} color="#00C48C" />}
             </div>
-          )}
-          <button
-            onClick={() => { if (confirm('Delete ALL photos?')) deleteAllMutation.mutate() }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:bg-red-200"
-            style={{ background: '#FFF5F5', color: '#FF4B4B' }}
-          >
-            <Trash2 size={16} />Delete All
-          </button>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                {processing 
+                  ? `AI is sorting your photos... (${processStatus?.processed || 0}/${processStatus?.total || 1})`
+                  : 'AI Sorting Complete'
+                }
+              </p>
+              <p className="text-xs text-text-subtle">
+                {processing 
+                  ? 'Guests will see their photos as soon as the processing finishes.' 
+                  : `Successfully indexed ${processStatus?.unique_faces || 0} faces across your gallery.`
+                }
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            {processing && (
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-amber-50 text-amber-600 border border-amber-200">
+                Live Indexing
+              </span>
+            )}
+            <button
+              onClick={() => { if (confirm('Delete ALL photos?')) deleteAllMutation.mutate() }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all hover:bg-red-200"
+              style={{ background: '#FFF5F5', color: '#FF4B4B' }}
+            >
+              <Trash2 size={14} />Clear Gallery
+            </button>
+          </div>
         </div>
       )}
 

@@ -2,10 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# System deps for OpenCV + DeepFace
+# System deps for OpenCV + DeepFace + Build tools
 RUN apt-get update && apt-get install -y \
     libglib2.0-0 libsm6 libxrender1 libxext6 libgl1 \
-    ffmpeg libgomp1 \
+    ffmpeg libgomp1 build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

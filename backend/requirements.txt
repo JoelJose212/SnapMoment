@@ -19,3 +19,5 @@ deepface>=0.0.93
 opencv-python-headless>=4.9.0.80
 tf-keras>=2.16.0
 email-validator>=2.1.1
+pgvector>=0.2.5
+onnxruntime-gpu>=1.17.0
