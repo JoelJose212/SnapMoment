@@ -164,3 +164,24 @@ body {
 /* Page transitions */
 .page-enter { opacity: 0; transform: translateY(12px); }
 .page-enter-active { opacity: 1; transform: translateY(0); transition: all 0.35s ease; }
+
+/* Print Utilities */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; cursor: default !important; }
+  .print-only { display: block !important; }
+  .print-center { display: flex !important; justify-content: center !important; align-items: center !important; height: 100vh !important; }
+}
+.print-only { display: none; }
+
+/* Acrylic Mockup Effect */
+.acrylic-box {
+  transform: perspective(1000px) rotateY(-15deg) rotateX(10deg);
+  box-shadow: 
+    -20px 20px 50px rgba(0,0,0,0.1),
+    1px 1px 0px rgba(255,255,255,0.4) inset;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.acrylic-box:hover {
+  transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
+}

@@ -120,8 +120,8 @@ async def seed():
         await session.commit()
         print("Created 5 events × 20 photos for each photographer")
         print("\n✅ Seed complete!")
-        print("   Admin:         admin@snapmoment.app / Admin@123")
-        print("   Photographers: rohan@snapmoment.app ... (Password@123)")
+        print(f"   Admin:         {settings.ADMIN_EMAIL} (See settings/env)")
+        print("   Photographers: (Password verified via hashing system)")
 
     await engine.dispose()
 

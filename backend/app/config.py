@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://snapmoment:snapmoment123@localhost:5432/snapmoment"
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    JWT_SECRET_KEY: str = "snapmoment-secret"
+    JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_HOURS: int = 24
 
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     DEV_MODE: bool = True
 
     ADMIN_EMAIL: str = "admin@snapmoment.app"
-    ADMIN_PASSWORD: str = "Admin@123"
+    ADMIN_PASSWORD_HASH: str
 
     FRONTEND_URL: str = "http://localhost:3000"
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
