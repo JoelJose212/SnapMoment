@@ -113,26 +113,42 @@ async def upload_selfie(
             guest.selfie_s3_key = selfie_key
             guest.face_embedding = {"embedding": selfie_embedding}
 
-        # Get all indexed photos for this event
-        photos_result = await db.execute(
-            select(Photo).where(Photo.event_id == uuid.UUID(event_id), Photo.face_indexed == True)
+        # Match using pgvector (L2 distance or Cosine distance)
+        # We find the top matched photos for this guest in this event
+        from app.models.face_index import FaceIndex
+        from sqlalchemy import delete, insert
+        
+        # 1. Direct SQL Vector Search (Instant even with 100k faces)
+        # embedding <=> vector performs cosine similarity search using the index
+        search_query = (
+            select(FaceIndex.photo_id, FaceIndex.embedding.cosine_distance(selfie_embedding).label("distance"))
+            .where(FaceIndex.event_id == uuid.UUID(event_id))
+            .order_by("distance")
+            .limit(100) # Only consider top 100 matches
         )
-        photos = photos_result.scalars().all()
+        
+        results = await db.execute(search_query)
+        matches_raw = results.all()
+        
+        # 2. Filter by threshold and group by photo
+        THRESHOLD = 0.65 # Stricter threshold for higher precision
+        matches = []
+        seen_photos = set()
+        
+        for photo_id, distance in matches_raw:
+            if distance <= THRESHOLD and photo_id not in seen_photos:
+                # Better more intuitive confidence score calculation
+                # distance of 0.0 -> 100% confidence
+                # distance of THRESHOLD -> 0% confidence (relative to search)
+                confidence_score = max(0.0, (1.0 - distance / 0.75) * 100)
+                matches.append({
+                    "photo_id": str(photo_id),
+                    "distance": float(distance),
+                    "confidence_score": round(float(confidence_score), 2)
+                })
+                seen_photos.add(photo_id)
 
-        # Build event_photos list for matching
-        event_photos = []
-        for photo in photos:
-            embeddings = []
-            if photo.face_embeddings and "faces" in photo.face_embeddings:
-                embeddings = photo.face_embeddings["faces"]
-            event_photos.append({"photo_id": str(photo.id), "embeddings": embeddings})
-
-        # Match
-        matches = match_selfie_to_event(selfie_embedding, event_photos)
-
-        # Save matches to DB
-        # Remove old matches for this guest
-        from sqlalchemy import delete
+        # 3. Save matches to DB for the gallery view
         await db.execute(delete(PhotoMatch).where(PhotoMatch.guest_id == uuid.UUID(guest_id)))
 
         for match in matches:
