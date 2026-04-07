@@ -252,7 +252,7 @@ SnapMoment/
 
 ---
 
-## 🚧 Limitations & Roadmap
+## 🚧 Limitations and Roadmap
 - **Limitations**: Requires clear lighting for selfies; Group photos (10+ people) take slightly longer to index.
 - **Roadmap 2026**:
     - [ ] Real-time face alignment guidance for guests.
