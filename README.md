@@ -279,7 +279,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 👥 Team
 - **Joel Jose Varghese** - CTO ([@JoelJose212](https://github.com/JoelJose212))
-- **Nandini Sinha** - CPO
+- **Nandini Sinha** - CPO ([Nandini-sinha]https://github.com/Nandini-sinha)
 
 
 ---
