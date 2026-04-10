@@ -52,9 +52,17 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/admin/login", response_model=TokenResponse)
 async def admin_login(data: LoginRequest):
-    if data.email != settings.ADMIN_EMAIL or not verify_password(data.password, settings.ADMIN_PASSWORD_HASH):
+    # Trim whitespace and lowercase email for robust comparison
+    input_email = data.email.strip().lower()
+    input_password = data.password.strip()
+    
+    admin_email = settings.ADMIN_EMAIL.strip().lower()
+    admin_password = settings.ADMIN_PASSWORD.strip()
+
+    if input_email != admin_email or input_password != admin_password:
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
-    token = create_token({"sub": "admin", "role": "admin", "email": data.email})
+        
+    token = create_token({"sub": "admin", "role": "admin", "email": input_email})
     return TokenResponse(access_token=token, role="admin", user_id="admin", full_name="Admin")
 
 

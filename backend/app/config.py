@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     DEV_MODE: bool = True
 
     ADMIN_EMAIL: str = "admin@snapmoment.app"
-    ADMIN_PASSWORD_HASH: str
+    ADMIN_PASSWORD: str
 
     FRONTEND_URL: str = "http://localhost:3000"
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"

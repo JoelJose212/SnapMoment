@@ -113,55 +113,31 @@ async def upload_selfie(
             guest.selfie_s3_key = selfie_key
             guest.face_embedding = {"embedding": selfie_embedding}
 
-        # ── Stage 1: Cluster-based matching (fast, O(k)) ─────────────────────
+        # ── Comprehensive matching via pgvector (O(log N)) ──────────────────
         from app.models.face_index import FaceIndex
-        from app.models.face_cluster import FaceCluster
         from sqlalchemy import delete
-
-        cluster_result = await db.execute(
-            select(FaceCluster).where(FaceCluster.event_id == uuid.UUID(event_id))
+        
+        THRESHOLD = 0.34
+        logger.info(f"Performing comprehensive match for event {event_id} (threshold: {THRESHOLD})")
+        
+        # Search every indexed face in the event, including non-clustered faces
+        search_query = (
+            select(FaceIndex.photo_id, FaceIndex.embedding.cosine_distance(selfie_embedding).label("distance"))
+            .where(FaceIndex.event_id == uuid.UUID(event_id))
+            .order_by("distance")
+            .limit(200) # Increased limit to ensure coverage in large events
         )
-        clusters_db = cluster_result.scalars().all()
-
+        
+        results = await db.execute(search_query)
+        matches_raw = results.all()
+        
         matches = []
-
-        if clusters_db:
-            logger.info(f"Using cluster matching: {len(clusters_db)} clusters for event {event_id}")
-            cluster_data = [
-                {
-                    "centroid": list(c.centroid),
-                    "photo_ids": c.photo_ids,
-                    "face_count": c.face_count,
-                }
-                for c in clusters_db
-            ]
-            cluster_matches = match_selfie_to_clusters(selfie_embedding, cluster_data)
-            seen_photos: set = set()
-            for cm in cluster_matches:
-                for pid in cm["photo_ids"]:
-                    if pid not in seen_photos:
-                        matches.append({
-                            "photo_id": pid,
-                            "distance": cm["distance"],
-                            "confidence_score": cm["confidence_score"],
-                        })
-                        seen_photos.add(pid)
-
-        else:
-            # ── Stage 2: pgvector linear scan fallback ─────────────────────
-            logger.info(f"No clusters found — falling back to pgvector scan for event {event_id}")
-            THRESHOLD = 0.30
-            search_query = (
-                select(FaceIndex.photo_id, FaceIndex.embedding.cosine_distance(selfie_embedding).label("distance"))
-                .where(FaceIndex.event_id == uuid.UUID(event_id))
-                .order_by("distance")
-                .limit(100)
-            )
-            results = await db.execute(search_query)
-            matches_raw = results.all()
-            seen_photos = set()
-            for photo_id, distance in matches_raw:
-                if distance <= THRESHOLD and photo_id not in seen_photos:
+        seen_photos = set()
+        
+        for photo_id, distance in matches_raw:
+            if distance <= THRESHOLD:
+                # Deduplicate: if multiple faces match in one photo, take the best one
+                if photo_id not in seen_photos:
                     confidence_score = max(0.0, (1.0 - distance / THRESHOLD) * 100)
                     matches.append({
                         "photo_id": str(photo_id),
