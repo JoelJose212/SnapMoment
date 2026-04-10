@@ -389,6 +389,44 @@ AWS_SECRET_ACCESS_KEY=your-aws-secret
 
 ---
 
+## 🔌 Database Connectivity
+The project uses **SQLAlchemy 2.0** with **asyncpg** for high-performance, asynchronous database interactions.
+
+### Connectivity Procedure:
+1. **Engine Creation**: Initializes the connection pool using the `DATABASE_URL`.
+2. **Session Factory**: Configures an `async_sessionmaker` to generate individual session instances.
+3. **Dependency Injection**: The `get_db` generator ensures sessions are automatically opened and closed per request.
+
+### Implementation:
+```python
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from app.config import settings
+
+# 1. Initialize the Async Engine
+engine = create_async_engine(
+    settings.DATABASE_URL, 
+    echo=False, 
+    future=True
+)
+
+# 2. Setup the Session Factory
+AsyncSessionLocal = async_sessionmaker(
+    engine, 
+    expire_on_commit=False, 
+    class_=AsyncSession
+)
+
+# 3. Dependency to be used in FastAPI routes
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+```
+
+---
+
 ## 📂 Folder Structure
 
 ```text
