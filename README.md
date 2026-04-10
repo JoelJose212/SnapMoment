@@ -113,30 +113,39 @@ erDiagram
     }
 ```
 
-### 2. Application Logic (Class Structure)
+### 2. Object Diagram (Hierarchy & Interaction)
 ```mermaid
-classDiagram
-    class FaceEngine {
-        +extract_embedding(image) list
-        +cluster_event_faces(data) list
-        +match_selfie_to_event(selfie, photos) list
-        +match_selfie_to_clusters(selfie, clusters) list
-    }
-    class AuthService {
-        +hash_password(pw) string
-        +verify_password(pw, hash) bool
-        +create_token(data) string
-    }
-    class RedisService {
-        +generate_otp() string
-        +verify_otp(phone, otp) bool
-        +check_rate_limit(phone) bool
-    }
+graph TD
+    %% Base Platform
+    SM[SnapMoment Platform]
     
-    FaceEngine ..> FaceIndex : queries
-    FaceEngine ..> FaceCluster : groups
-    AuthService ..> Photographer : authorizes
-    RedisService ..> Guest : verifies
+    %% Main Branches
+    SM --> Admin[Administrator / Photographer]
+    SM --> Guest[Event Guest]
+
+    %% Admin Branch
+    Admin --> Adm_Ev[Event Management]
+    Admin --> Adm_Ph[Photo Repository]
+    Admin --> Adm_AI[AI Clustering Engine]
+    Admin --> Adm_Msg[Support Inquiries]
+    Admin --> Adm_Anl[Performance Stats]
+
+    %% Guest Branch
+    Guest --> Gst_OTP[OTP Verification]
+    Guest --> Gst_Sfl[Selfie Biometrics]
+    Guest --> Gst_Mtc[Vector Matching]
+    Guest --> Gst_Gal[Personal Gallery]
+    Guest --> Gst_Dld[Photo Downloads]
+
+    %% Sub-Associations
+    Adm_Ev --- Adm_Ph
+    Adm_Ph --- Adm_AI
+    Gst_Sfl --- Gst_Mtc
+    Gst_Mtc --- Gst_Gal
+    
+    style SM fill:#f9f,stroke:#333,stroke-width:4px
+    style Admin fill:#69f,stroke:#333,stroke-width:2px
+    style Guest fill:#6f9,stroke:#333,stroke-width:2px
 ```
 
 ### 3. Event Lifecycle (Sequence Diagram)
