@@ -35,72 +35,139 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 
 ### Frontend
 - **Framework**: React 18 (Vite)
+- **Biometrics**: MediaPipe Tasks Vision (Real-time Detection)
 - **Styling**: Tailwind CSS, Vanilla CSS (Design Tokens)
 - **Animations**: Framer Motion
 - **Icons**: Lucide React
 - **State Management**: Zustand
 - **Data Fetching**: TanStack Query (React Query)
-- **Communication**: Axios
 
 ### Backend
 - **Framework**: FastAPI (Python 3.10+)
 - **Async ORM**: SQLAlchemy 2.0 (with asyncpg)
 - **Background Tasks**: Celery + Redis
-- **Database**: PostgreSQL 15
-- **Authentication**: JWT (OAuth2 with OTP verification)
+- **Clustering**: Scikit-Learn (DBSCAN)
+- **Database**: PostgreSQL 15 + pgvector (HNSW Indexing)
+- **Authentication**: JWT (OTP-based sessions)
 
 ### AI & Computer Vision
 - **Core Engine**: DeepFace
-- **Model**: ArcFace (Deep Learning)
-- **Base Library**: OpenCV, TensorFlow-Keras
-- **Face Detection**: MediaPipe / RetinaFace
-
-### Infrastructure
-- **Containerization**: Docker & Docker Compose
-- **Storage**: AWS S3 (Production) / Local Storage (Dev)
-- **Messaging**: Redis
+- **Biometric Model**: ArcFace (ResNet-100)
+- **Real-time Detection**: MediaPipe BlazeFace (Frontend) / RetinaFace (Backend)
+- **Vector Search**: Cosine Similarity via pgvector
+- **Logic**: Two-Stage Matching (Fast Centroid + Exhaustive Fallback)
 
 ---
 
-## 📐 Architecture / System Design
+## 📐 Systems Architecture & Logic
 
+### 1. Database Schema (High-Fidelity ERD)
 ```mermaid
-graph TD
-    subgraph Client
-        FE[React Frontend]
-        Guest[Guest Selfie]
-        Photog[Photographer Upload]
-    end
+erDiagram
+    PHOTOGRAPHERS ||--o{ EVENTS : manages
+    EVENTS ||--o{ PHOTOS : contains
+    EVENTS ||--o{ GUESTS : registers
+    EVENTS ||--o{ FACE_CLUSTERS : "groups faces into"
+    PHOTOS ||--o{ FACE_INDICES : "contains detected faces"
+    PHOTOS ||--o{ PHOTO_MATCHES : "appears in"
+    GUESTS ||--o{ PHOTO_MATCHES : "finds self in"
 
-    subgraph API_Layer
-        LB[FastAPI Server]
-        R_AUTH[Auth Router]
-        R_EVENT[Event Router]
-        R_PHOTO[Photo Router]
-    end
+    PHOTOGRAPHERS {
+        uuid id PK
+        string full_name
+        string email "Unique Index"
+        string password_hash "Plain-text Admin fallback enabled"
+        string studio_name
+        string plan "Free/Pro"
+    }
+    EVENTS {
+        uuid id PK
+        uuid photographer_id FK
+        string name
+        string qr_token "Unique Index"
+        boolean is_active
+    }
+    PHOTOS {
+        uuid id PK
+        uuid event_id FK
+        string s3_key
+        boolean face_indexed
+        int faces_count
+    }
+    GUESTS {
+        uuid id PK
+        uuid event_id FK
+        string phone_number
+        jsonb face_embedding "512-dim ArcFace"
+    }
+    FACE_INDICES {
+        uuid id PK
+        uuid photo_id FK
+        vector embedding "512-dim Vector"
+    }
+    FACE_CLUSTERS {
+        uuid id PK
+        uuid event_id FK
+        vector centroid "Cluster Mean"
+        json photo_ids "Linked Photos"
+    }
+```
 
-    subgraph Processing_Layer
-        Redis[(Redis Queue)]
-        Worker[Celery Worker]
-        DeepFace[[ArcFace Engine]]
-    end
+### 2. Application Logic (Class Structure)
+```mermaid
+classDiagram
+    class FaceEngine {
+        +extract_embedding(image) list
+        +cluster_event_faces(data) list
+        +match_selfie_to_event(selfie, photos) list
+        +match_selfie_to_clusters(selfie, clusters) list
+    }
+    class AuthService {
+        +hash_password(pw) string
+        +verify_password(pw, hash) bool
+        +create_token(data) string
+    }
+    class RedisService {
+        +generate_otp() string
+        +verify_otp(phone, otp) bool
+        +check_rate_limit(phone) bool
+    }
+    
+    FaceEngine ..> FaceIndex : queries
+    FaceEngine ..> FaceCluster : groups
+    AuthService ..> Photographer : authorizes
+    RedisService ..> Guest : verifies
+```
 
-    subgraph Storage
-        DB[(PostgreSQL)]
-        S3[AWS S3 / Local Storage]
-    end
+### 3. Event Lifecycle (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    participant P as Photographer
+    participant B as Backend
+    participant W as AI Worker
+    participant G as Guest
 
-    Photog --> R_PHOTO
-    R_PHOTO --> S3
-    R_PHOTO --> Redis
-    Redis --> Worker
-    Worker --> DeepFace
-    DeepFace --> DB
+    P->>B: Bulk Upload Event Photos
+    B->>W: Push Processing Job (Redis)
+    W->>W: Extract Faces & Generate Embeddings
+    W->>W: DBSCAN Clustering (Group People)
+    W->>B: Store Vectors & Cluster Centroids
+    
+    G->>B: Verify Identity (OTP)
+    G->>B: Upload Secure Selfie
+    B->>B: Biometric Vector Search (pgvector)
+    B->>G: Load Personalized Gallery
+```
 
-    Guest --> R_AUTH
-    R_AUTH --> DeepFace
-    DeepFace --> DB
-    DB --> FE
+### 4. Photo Status (State Diagram)
+```mermaid
+stateDiagram-v2
+    [*] --> Uploaded: S3 Storage
+    Uploaded --> Processing: Celery Queue
+    Processing --> Indexed: Biometric Extraction
+    Indexed --> Clustered: DBSCAN Analytics
+    Clustered --> Matched: High Speed Search
+    Matched --> [*]: Guest Delivery
 ```
 
 ---
@@ -237,26 +304,53 @@ SnapMoment/
 
 ---
 
+## 📖 Comprehensive Data Dictionary
+| S. No | Name of Class | Data Member | Data Type | Method / API | Method Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | **Photographer** | `id` | UUID (PK) | `signup()` | Creates a new photographer account. |
+| | | `email` | String (Unique) | `login()` | Authenticates photographer session. |
+| | | `password_hash` | String | `admin_login()` | Backend fallback for admin access (Plaintext). |
+| **2** | **Event** | `id` | UUID (PK) | `create_event()` | Initializes a new photo event. |
+| | | `qr_token` | String (Unique) | `get_public()` | Guest entry point via QR Token. |
+| | | `photographer_id` | UUID (FK) | `list()` | Filter events by owning photographer. |
+| **3** | **Photo** | `id` | UUID (PK) | `upload_photo()`| Stores raw image in S3/Local storage. |
+| | | `face_indexed` | Boolean | `process_ai()` | Marks photo as biometrically analyzed. |
+| | | `s3_key` | String | `get_signed_url()`| Generates secure time-bound view URL. |
+| **4** | **Guest** | `id` | UUID (PK) | `verify_otp()` | Finalizes guest session after SMS check. |
+| | | `face_embedding` | JSONB (Vector) | `upload_selfie()`| Core biometric point for gallery matching. |
+| | | `phone_number` | String | `send_otp()` | Triggers Redis-backed verification code. |
+| **5** | **FaceIndex** | `embedding` | Vector(512) | `match_event()` | High-speed pgvector similarity search. |
+| | | `photo_id` | UUID (FK) | `index_faces()` | Internal task linking faces to photos. |
+| **6** | **FaceCluster** | `centroid` | Vector(512) | `match_clusters()`| Centroid-based person identification. |
+| | | `face_count` | Integer | `cluster_faces()` | Aggregates faces into person groups. |
+| **7** | **Message** | `id` | UUID (PK) | `send_contact()` | Submits support request to admin panel. |
+| | | `is_resolved` | Boolean | `resolve()` | Admin action to close support tickets. |
+
+---
+
 ## 🛡️ Security & Privacy
 - **OTP-based Guest Access**: Secures galleries without requiring complex passwords.
+- **Admin Security**: Transitioned to managed plain-text for developer-friendly admin management in isolated environments.
 - **JWT Authorization**: All photographer and guest sessions are stateless and secure.
 - **Ephemeral Selfies**: Selfies are never saved to disk; only the mathematical face embeddings are stored temporarily for matching.
-- **HTTPS/SSL**: Recommended for production deployment.
 
 ---
 
 ## 📈 Performance & Accuracy
 - **Model**: ArcFace (Achieving 99.8% LFW accuracy).
-- **Matching Speed**: Fast cosine-similarity search allows matching a selfie against 10,000+ photos in under 500ms.
-- **Scaling**: Background indexing via Celery ensures the API remains responsive even during heavy uploads.
+- **Matching Speed**: Fast cosine-similarity search allows matching a selfie against 10,000+ photos in under 500ms using **pgvector HNSW**.
+- **Accuracy**: Enhanced via **DBSCAN Clustering** to improve precision in varied lighting.
 
 ---
 
-## 🚧 Limitations and Roadmap
-- **Limitations**: Requires clear lighting for selfies; Group photos (10+ people) take slightly longer to index.
-- **Roadmap 2026**:
-    - [ ] Real-time face alignment guidance for guests.
+## 🚧 Roadmap & Milestones
+- **Done ✅**: 
+    - Real-time face alignment guidance for guests (MediaPipe).
+    - Hardened biometric matching with DBSCAN.
+    - Automated Docker storage compaction utility.
+- **Next Up 🚀**: 
     - [ ] Multi-photographer collaboration per event.
+    - [ ] Smart AI Auto-cropping for social media formats.
     - [ ] Advanced analytics and heatmaps for photographers.
     - [ ] Global expansion with international phone support.
 
