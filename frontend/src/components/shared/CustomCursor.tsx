@@ -37,7 +37,7 @@ export default function CustomCursor() {
 
     let raf: number
     const animate = () => {
-      const LERP = 0.12
+      const LERP = 0.35
       current.current.x += (pos.current.x - current.current.x) * LERP
       current.current.y += (pos.current.y - current.current.y) * LERP
       if (cursorRef.current) {

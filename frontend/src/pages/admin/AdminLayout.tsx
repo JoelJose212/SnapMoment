@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Camera, LayoutDashboard, Users, CalendarDays, BarChart2, Settings, LogOut } from 'lucide-react'
+import { Camera, LayoutDashboard, Users, CalendarDays, BarChart2, Settings, LogOut, MessageSquare } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 
 const NAV = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/admin/photographers', icon: Users, label: 'Photographers' },
   { to: '/admin/events', icon: CalendarDays, label: 'Events' },
+  { to: '/admin/messages', icon: MessageSquare, label: 'Messages' },
   { to: '/admin/analytics', icon: BarChart2, label: 'Analytics' },
   { to: '/admin/settings', icon: Settings, label: 'Settings' },
 ]

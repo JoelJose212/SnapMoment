@@ -32,6 +32,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminPhotographers from './pages/admin/AdminPhotographers'
 import AdminEvents from './pages/admin/AdminEvents'
 import AdminAnalytics from './pages/admin/AdminAnalytics'
+import AdminMessages from './pages/admin/AdminMessages'
 import AdminSettings from './pages/admin/AdminSettings'
 import { ThemeProvider } from './components/shared/ThemeProvider'
 
@@ -71,6 +72,7 @@ export default function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="photographers" element={<AdminPhotographers />} />
           <Route path="events" element={<AdminEvents />} />
+          <Route path="messages" element={<AdminMessages />} />
           <Route path="analytics" element={<AdminAnalytics />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>

@@ -24,7 +24,7 @@ async def list_photographers(
     current_user: dict = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    q = select(Photographer)
+    q = select(Photographer).where(Photographer.is_deleted == False)
     if search:
         q = q.where(Photographer.full_name.ilike(f"%{search}%") | Photographer.email.ilike(f"%{search}%"))
     if plan:
@@ -53,6 +53,23 @@ async def update_photographer(
     await db.commit()
     await db.refresh(photographer)
     return photographer
+
+
+@router.delete("/photographers/{photographer_id}")
+async def delete_photographer(
+    photographer_id: str,
+    current_user: dict = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(photographer_id)))
+    photographer = result.scalar_one_or_none()
+    if not photographer:
+        raise HTTPException(status_code=404, detail="Photographer not found")
+
+    photographer.is_deleted = True
+    photographer.is_active = False
+    await db.commit()
+    return {"message": "Photographer deleted"}
 
 
 @router.get("/events")
@@ -107,7 +124,7 @@ async def force_delete_event(event_id: str, current_user: dict = Depends(require
 
 @router.get("/stats")
 async def get_stats(current_user: dict = Depends(require_admin), db: AsyncSession = Depends(get_db)):
-    total_photographers = (await db.execute(select(func.count(Photographer.id)))).scalar()
+    total_photographers = (await db.execute(select(func.count(Photographer.id)).where(Photographer.is_deleted == False))).scalar()
     active_events = (await db.execute(select(func.count(Event.id)).where(Event.is_active == True))).scalar()
     total_photos = (await db.execute(select(func.count(Photo.id)))).scalar()
 
@@ -132,6 +149,7 @@ async def get_stats(current_user: dict = Depends(require_admin), db: AsyncSessio
         select(Photographer.full_name, func.count(Photo.id).label("photo_count"))
         .join(Event, Event.photographer_id == Photographer.id)
         .join(Photo, Photo.event_id == Event.id)
+        .where(Photographer.is_deleted == False)
         .group_by(Photographer.id, Photographer.full_name)
         .order_by(desc("photo_count"))
         .limit(5)
@@ -146,3 +164,31 @@ async def get_stats(current_user: dict = Depends(require_admin), db: AsyncSessio
         "event_type_distribution": event_type_distribution,
         "top_photographers": top_photographers,
     }
+
+@router.get("/messages")
+async def get_messages(current_user: dict = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    from app.models.message import Message
+    result = await db.execute(select(Message).order_by(Message.created_at.desc()))
+    return result.scalars().all()
+
+@router.patch("/messages/{message_id}/resolve")
+async def resolve_message(message_id: str, current_user: dict = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    from app.models.message import Message
+    result = await db.execute(select(Message).where(Message.id == uuid.UUID(message_id)))
+    msg = result.scalar_one_or_none()
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+    msg.is_resolved = True
+    await db.commit()
+    return {"message": "Successfully marked as resolved"}
+
+@router.delete("/messages/{message_id}")
+async def delete_message(message_id: str, current_user: dict = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    from app.models.message import Message
+    result = await db.execute(select(Message).where(Message.id == uuid.UUID(message_id)))
+    msg = result.scalar_one_or_none()
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+    await db.delete(msg)
+    await db.commit()
+    return {"message": "Successfully deleted message"}

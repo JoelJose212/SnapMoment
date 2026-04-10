@@ -41,7 +41,7 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Photographer).where(Photographer.email == data.email))
     photographer = result.scalar_one_or_none()
 
-    if not photographer or not verify_password(data.password, photographer.password_hash):
+    if not photographer or photographer.is_deleted or not verify_password(data.password, photographer.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     if not photographer.is_active:
         raise HTTPException(status_code=403, detail="Account is deactivated")

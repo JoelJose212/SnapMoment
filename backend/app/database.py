@@ -20,7 +20,7 @@ async def get_db():
 
 async def init_db():
     from sqlalchemy import text
-    from app.models import photographer, event, photo, guest, photo_match, analytics, face_index  # noqa
+    from app.models import photographer, event, photo, guest, photo_match, analytics, face_index, message  # noqa
     async with engine.begin() as conn:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)

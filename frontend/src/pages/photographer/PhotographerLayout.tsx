@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Camera, CalendarDays, QrCode, BarChart2, User, LogOut } from 'lucide-react'
+import { Camera, CalendarDays, BarChart2, User, LogOut, ArrowRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
 
 const NAV = [
@@ -13,51 +14,100 @@ export default function PhotographerLayout() {
   const navigate = useNavigate()
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--background)' }}>
+    <div className="flex min-h-screen relative overflow-hidden" style={{ background: 'var(--background)' }}>
+      {/* Background Orbs */}
+      <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full opacity-20 blur-[120px]" style={{ background: '#FF6E6C' }} />
+      <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] rounded-full opacity-10 blur-[100px]" style={{ background: '#67568C' }} />
+
       {/* Sidebar */}
-      <aside className="w-60 flex-shrink-0 flex flex-col" style={{ background: 'var(--foreground)', minHeight: '100vh' }}>
-        <div className="p-6 border-b border-white/10">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
-              <Camera size={18} color="white" />
-            </div>
-            <span style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 20, fontWeight: 600, color: 'white' }}>SnapMoment</span>
-          </div>
-          <div className="mt-4">
-            <div className="text-xs text-text-subtle">Signed in as</div>
-            <div className="text-sm font-medium text-white mt-0.5">{fullName}</div>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1">
-          {NAV.map(({ to, icon: Icon, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-[#FF6E6C] text-white shadow-coral-sm' : 'text-text-subtle hover:text-white hover:bg-white/5'}`
-              }
+      <aside className="w-72 flex-shrink-0 flex flex-col p-6 z-10">
+        <div className="glass h-full rounded-[2.5rem] flex flex-col overflow-hidden border border-white/20 shadow-2xl">
+          {/* Logo Section */}
+          <div className="p-8 pb-10 border-b border-black/5 dark:border-white/5">
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-3"
             >
-              <Icon size={17} />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center aurora-bg shadow-lg">
+                <Camera size={20} color="white" />
+              </div>
+              <div>
+                <span className="text-xl font-bold block leading-none" style={{ fontFamily: '"Plus Jakarta Sans"', color: 'var(--foreground)' }}>SnapMoment</span>
+                <span className="text-[10px] uppercase tracking-widest font-bold opacity-40 mt-1 block">Studio Pro</span>
+              </div>
+            </motion.div>
+          </div>
 
-        <div className="p-4">
-          <button
-            onClick={() => { logout(); navigate('/') }}
-            className="flex items-center gap-2 text-sm text-text-subtle hover:text-white transition-colors px-4 py-2.5 w-full rounded-xl hover:bg-white/5"
-          >
-            <LogOut size={16} />
-            Logout
-          </button>
+          {/* Navigation */}
+          <nav className="flex-1 p-4 py-8 space-y-2">
+            {NAV.map(({ to, icon: Icon, label }, idx) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `group relative flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-semibold transition-all duration-300 ${
+                    isActive 
+                      ? 'text-white shadow-lg' 
+                      : 'text-subtle hover:text-foreground hover:bg-white/40 dark:hover:bg-white/5'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <AnimatePresence>
+                      {isActive && (
+                        <motion.div
+                          layoutId="nav-active"
+                          className="absolute inset-0 rounded-2xl aurora-bg"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                    </AnimatePresence>
+                    
+                    <Icon size={18} className={`relative z-10 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-white' : 'text-subtle group-hover:text-primary'}`} />
+                    <span className="relative z-10">{label}</span>
+                    
+                    {!isActive && (
+                      <ArrowRight size={14} className="ml-auto opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
+                    )}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* User Profile Area */}
+          <div className="p-6 bg-white/30 dark:bg-black/20 backdrop-blur-md rounded-t-[2rem]">
+            <div className="flex items-center gap-3 mb-4 px-2">
+              <div className="w-10 h-10 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden">
+                <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${fullName}`} alt="Avatar" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-bold uppercase tracking-tighter opacity-40">Creative Partner</div>
+                <div className="text-sm font-bold truncate text-foreground">{fullName}</div>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => { logout(); navigate('/') }}
+              className="flex items-center justify-center gap-2 text-xs font-bold text-white aurora-bg w-full py-3.5 rounded-xl hover:shadow-coral shadow-md transition-all active:scale-[0.98]"
+            >
+              <LogOut size={14} />
+              End Session
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Content */}
-      <main className="flex-1 overflow-auto">
-        <Outlet />
+      {/* Content Area */}
+      <main className="flex-1 p-6 pl-0 overflow-auto">
+        <div className="h-full glass-card rounded-[2.5rem] overflow-hidden p-8 border-white/20">
+          <Outlet />
+        </div>
       </main>
     </div>
   )

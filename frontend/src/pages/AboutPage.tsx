@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Camera } from 'lucide-react'
 import AuroraRibbon from '../components/shared/AuroraRibbon'
 import { AuroraBackground } from '../components/shared/AuroraBackground'
@@ -74,11 +75,20 @@ export default function AboutPage() {
               { title: 'Privacy First', desc: 'Guest selfies are processed and deleted immediately. We never store raw facial data beyond the matching moment.' },
               { title: 'Human at the Core', desc: 'AI is our tool, not our product. Every feature is designed around the human experience of sharing memories.' },
               { title: 'Zero Friction', desc: "No app downloads. No account creation for guests. Scan, verify, smile — that's it." },
-            ].map((v) => (
-              <div key={v.title} className="rounded-3xl p-7" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+            ].map((v, i) => (
+              <motion.div 
+                key={v.title} 
+                className="rounded-3xl p-7 transition-colors duration-300" 
+                style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.15 }}
+                whileHover={{ y: -8, boxShadow: '0 12px 40px rgba(255, 110, 108, 0.15)', borderColor: 'rgba(255,110,108,0.5)' }}
+              >
                 <h3 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 22, color: 'var(--foreground)', marginBottom: 8 }}>{v.title}</h3>
                 <p className="text-sm leading-relaxed text-muted">{v.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>

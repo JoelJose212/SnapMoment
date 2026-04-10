@@ -167,7 +167,7 @@ export default function PricingPage() {
         <section className="py-24 px-6 relative noise-overlay" style={{ background: 'var(--foreground)' }}>
           <div className="max-w-3xl mx-auto relative z-10">
             <div className="text-center mb-12">
-              <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', color: 'var(--foreground)', fontWeight: 700 }}>Questions? We have answers.</h2>
+              <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', color: 'var(--background)', fontWeight: 700 }}>Questions? We have answers.</h2>
             </div>
             <div className="space-y-3">
               {FAQ.map((item, i) => (

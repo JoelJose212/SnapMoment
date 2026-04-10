@@ -382,11 +382,11 @@ export default function HomePage() {
                 <ul className="space-y-4 flex-1">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm" style={{ color: plan.highlighted ? 'rgba(255, 255, 255, 0.9)' : 'var(--muted)' }}>
-                      <Check size={16} className={plan.highlighted ? 'text-amber-400' : 'text-coral-500'} /> {f}
+                      <Check size={16} className={plan.highlighted ? 'text-amber-400' : 'text-primary'} /> {f}
                     </li>
                   ))}
                 </ul>
-                <Link to="/signup" className={`mt-10 block text-center py-4 rounded-2xl font-bold transition-all ${plan.highlighted ? 'bg-white text-coral-600 hover:bg-gray-100' : 'bg-coral-600 text-white hover:bg-coral-700'}`}>
+                <Link to="/signup" className={`mt-10 block text-center py-4 rounded-2xl font-bold transition-all ${plan.highlighted ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:brightness-110'}`}>
                   {plan.cta}
                 </Link>
               </div>
@@ -399,7 +399,7 @@ export default function HomePage() {
       <section className="py-24 px-6 relative noise-overlay" style={{ background: 'var(--foreground)' }}>
         <div className="max-w-3xl mx-auto relative z-10">
           <div className="text-center mb-12">
-            <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', color: 'white' }}>Frequently Asked</h2>
+            <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', color: 'var(--background)' }}>Frequently Asked</h2>
           </div>
           <div className="space-y-3">
             {FAQ.map((item, i) => (
@@ -419,7 +419,7 @@ export default function HomePage() {
       <section className="py-20 px-6 text-center" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
         <h2 className="text-4xl md:text-5xl font-bold text-white">Ready to transform your events?</h2>
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10">
-          <Link to="/signup" className="px-10 py-4 rounded-2xl font-bold bg-white text-coral-600 hover:scale-105 transition-transform">Start Free Today</Link>
+          <Link to="/signup" className="px-10 py-4 rounded-2xl font-bold bg-white text-primary hover:scale-105 transition-transform">Start Free Today</Link>
           <Link to="/demo" className="px-10 py-4 rounded-2xl font-bold border border-white/30 text-white hover:bg-white/10 transition-all">Watch Demo</Link>
         </div>
       </section>

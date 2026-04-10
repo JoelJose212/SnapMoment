@@ -4,24 +4,28 @@
 
 @layer base {
   :root {
-    --background: #FCFCFA;
-    --foreground: #1A1A24;
+    --background: #FDFDFF;
+    --foreground: #0F172A;
     --card: #FFFFFF;
-    --border: #EAEAEA;
-    --muted: #6B6B78;
-    --subtle: #9B9BA6;
-    --primary: #FF6E6C;
-    --primary-foreground: #FFFFFF;
+    --border: #E2E8F0;
+    --muted: #64748B;
+    --subtle: #94A3B8;
+    --primary: #FF6B6B;
+    --primary-gradient: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --sidebar-bg: #111827;
   }
   .dark {
-    --background: #121216;
-    --foreground: #F4F4F6;
-    --card: #1E1E24;
-    --border: #2D2D36;
-    --muted: #9B9BA6;
-    --subtle: #6B6B78;
-    --primary: #FF6E6C;
-    --primary-foreground: #FFFFFF;
+    --background: #020617;
+    --foreground: #F8FAFC;
+    --card: #0F172A;
+    --border: #1E293B;
+    --muted: #94A3B8;
+    --subtle: #64748B;
+    --primary: #FF6B6B;
+    --primary-gradient: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+    --glass-bg: rgba(15, 23, 42, 0.7);
+    --sidebar-bg: #0F172A;
   }
 }
 
@@ -76,10 +80,21 @@ body {
 
 /* Glass morphism */
 .glass {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.dark .glass {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 }
 
 /* Scrollbar */

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Camera, CheckCircle, AlertCircle, Brain, Sparkles, Zap, ShieldCheck, Scan, Fingerprint, Aperture } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { Camera, CheckCircle, AlertCircle, Brain } from 'lucide-react'
 import { guestApiEndpoints } from '../../lib/api'
-import SplashTag from '../../components/shared/SplashTag'
 
 type FaceState = 'none' | 'detected' | 'ready'
 
@@ -16,183 +16,205 @@ export default function SelfiePage() {
   const [uploading, setUploading] = useState(false)
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [capturing, setCapturing] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [showFlash, setShowFlash] = useState(false)
+  const streamRef = useRef<MediaStream | null>(null)
 
   useEffect(() => {
     startCamera()
-    return () => { stream?.getTracks().forEach((t) => t.stop()) }
-  }, [])
-
-  // Simulate face detection after 2 seconds
-  useEffect(() => {
-    const t = setTimeout(() => setFaceState('detected'), 2000)
-    const t2 = setTimeout(() => setFaceState('ready'), 3500)
-    return () => { clearTimeout(t); clearTimeout(t2) }
-  }, [])
-
-  // Auto-capture when state is 'ready' for 1.5s
-  useEffect(() => {
-    if (faceState === 'ready') {
-      timerRef.current = setTimeout(() => handleCapture(), 1500)
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop())
+      }
     }
-    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-  }, [faceState])
+  }, [])
+
+  const triggerSimulation = () => {
+    setFaceState('none')
+    const t = setTimeout(() => setFaceState('detected'), 1500)
+    const t2 = setTimeout(() => setFaceState('ready'), 3000)
+    return () => { clearTimeout(t); clearTimeout(t2) }
+  }
 
   const startCamera = async () => {
     try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 360, height: 480 } })
+      // High-resolution constraints for better AI reliability
+      const s = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'user', 
+          width: { ideal: 1280 }, 
+          height: { ideal: 720 } 
+        } 
+      })
       setStream(s)
+      streamRef.current = s
       if (videoRef.current) videoRef.current.srcObject = s
+      triggerSimulation()
     } catch {
-      toast.error('Camera access denied. Please allow camera access.')
+      toast.error('Optics Access Restricted')
     }
   }
 
   const handleCapture = async () => {
     if (capturing || uploading) return
     setCapturing(true)
+    
+    // Trigger visual flash effect
+    setShowFlash(true)
+    setTimeout(() => setShowFlash(false), 150)
+    
+    const toastId = toast.loading('Capturing Biometric Frame...')
+    
     try {
       const canvas = canvasRef.current!
       const video = videoRef.current!
-      canvas.width = video.videoWidth || 360
-      canvas.height = video.videoHeight || 480
+      
+      // Use the actual intrinsic video resolution
+      canvas.width = video.videoWidth || 1280
+      canvas.height = video.videoHeight || 720
       const ctx = canvas.getContext('2d')!
+      
+      // Mirror the image for the capture to match the mirrored preview
+      ctx.translate(canvas.width, 0)
+      ctx.scale(-1, 1)
       ctx.drawImage(video, 0, 0)
-      const blob = await new Promise<Blob>((res) => canvas.toBlob((b) => res(b!), 'image/jpeg', 0.9))
+      ctx.setTransform(1, 0, 0, 1, 0, 0) 
+      
+      const blob = await new Promise<Blob>((res) => canvas.toBlob((b) => res(b!), 'image/jpeg', 0.95))
 
       setUploading(true)
       const formData = new FormData()
       formData.append('file', blob, 'selfie.jpg')
+      
       await guestApiEndpoints.uploadSelfie(formData)
-      toast.success('Finding your photos... 🔍')
-      stream?.getTracks().forEach((t) => t.stop())
+      
+      toast.success('Identity Match Found! 🧬', { id: toastId })
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop())
+      }
       navigate(`/event/${token}/gallery`)
     } catch (err: any) {
-      if (err.response?.status === 422) {
-        toast.error('Please retake in better lighting')
-        setFaceState('none')
-        setCapturing(false)
-        setTimeout(() => { setFaceState('detected'); setTimeout(() => setFaceState('ready'), 2000) }, 1000)
-      } else {
-        toast.error(err.response?.data?.detail || 'Upload failed')
-        setCapturing(false)
-      }
-    } finally {
-      if (!uploading) setUploading(false)
+      // Detailed error handling for better guest feedback
+      const errorMsg = err.response?.data?.detail || 'Satellite Link Failure'
+      toast.error(`Analysis Failed: ${errorMsg}. Please ensure your face is fully visible and try again.`, { id: toastId })
+      setCapturing(false)
+      setUploading(false)
     }
   }
 
-    const ovalColor = faceState === 'none' ? '#FF4B4B' : faceState === 'detected' ? '#FFB800' : '#00C48C'
+  const ovalColor = faceState === 'none' ? '#FF4B4B' : faceState === 'detected' ? '#FFB800' : '#00C48C'
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: 'linear-gradient(135deg,#1A1A24,#1E1E24)' }}>
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen relative flex flex-col items-center justify-center px-4 py-8 overflow-hidden bg-background">
+      <div className="fixed inset-0 aurora-bg opacity-30 blur-[120px] -z-10 scale-150 rotate-45" />
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-md z-10"
+      >
         <div className="text-center mb-6">
-          <h1 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 24, color: 'white' }}>Take Your Selfie</h1>
-          <p className="text-sm mt-1" style={{ color: '#A394A8' }}>
-            Position your face in the oval. AI will auto-capture.
-            <SplashTag text="Works on any phone" color="amber" rotation={-2} className="ml-2" />
-          </p>
+          <div className="flex items-center justify-center gap-2 mb-2 text-primary font-bold text-xs uppercase tracking-[0.3em]">
+            <Scan size={14} /> Studio Neural Link
+          </div>
+          <h1 className="text-3xl font-black text-foreground tracking-tighter" style={{ fontFamily: '"Plus Jakarta Sans"' }}>Verify Your Face</h1>
+          <p className="text-xs text-muted mt-1 font-medium">Position face and press the shutter button</p>
         </div>
 
-        {/* Camera viewfinder */}
-        <div className="relative rounded-3xl overflow-hidden mx-auto" style={{ width: 320, height: 420, background: 'var(--foreground)' }}>
-          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-          <canvas ref={canvasRef} className="hidden" />
+        <div className="glass rounded-[3.5rem] p-4 border-white/40 shadow-2xl relative overflow-hidden mb-8">
+          <div className="relative aspect-[3/4] rounded-[2.8rem] overflow-hidden bg-black/20 group">
+            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+            <canvas ref={canvasRef} className="hidden" />
 
-          {/* Oval guide */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div
-              style={{
-                width: 200,
-                height: 260,
-                border: `3px solid ${ovalColor}`,
-                borderRadius: '50%',
-                transition: 'border-color 0.6s ease',
-                boxShadow: faceState === 'ready' ? `0 0 20px ${ovalColor}60` : 'none',
-              }}
-            />
-          </div>
-
-          {/* Status overlay */}
-          <div className="absolute top-4 left-4 right-4">
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { label: 'Face Detected', ok: faceState !== 'none' },
-                { label: 'Good Lighting', ok: true },
-                { label: 'Looking Forward', ok: faceState === 'ready' },
-                { label: 'No Blur', ok: faceState === 'ready' },
-              ].map(({ label, ok }) => (
-                <span key={label} className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: ok ? 'rgba(0,196,140,0.9)' : 'rgba(255,75,75,0.9)', color: 'white' }}>
-                  {ok ? <CheckCircle size={10} /> : <AlertCircle size={10} />}
-                  {label}
-                </span>
-              ))}
+            {/* Guide Oval */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <motion.div
+                animate={{ 
+                  scale: faceState === 'ready' ? [1, 1.05, 1] : 1,
+                  borderColor: ovalColor,
+                  boxShadow: faceState === 'ready' ? `0 0 60px ${ovalColor}40` : 'none'
+                }}
+                transition={{ repeat: faceState === 'ready' ? Infinity : 0, duration: 2.5 }}
+                className="w-56 h-72 rounded-[7rem] border-4 transition-all duration-700"
+              />
             </div>
-          </div>
 
-          {/* State message */}
-          <div className="absolute bottom-4 left-0 right-0 text-center">
-            <span className="text-sm font-medium text-white">
-              {faceState === 'none' && '⬆ Center your face in the oval'}
-              {faceState === 'detected' && '✓ Face detected — hold still...'}
-              {faceState === 'ready' && '📸 Auto-capturing in 1.5s...'}
-            </span>
-          </div>
-        </div>
+            {/* Flash Effect */}
+            <AnimatePresence>
+              {showFlash && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-white z-50"
+                />
+              )}
+            </AnimatePresence>
 
-        {/* Manual capture button */}
-        <div className="mt-6 flex flex-col gap-3">
-          <button
-            onClick={handleCapture}
-            disabled={uploading}
-            className="w-full py-4 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-60 hover:shadow-coral-lg flex items-center justify-center gap-2"
-            style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}
-          >
-            {uploading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <Camera size={18} />
-                Upload & Search My Photos
-              </>
-            )}
-          </button>
-          
-          {uploading && (
-            <div className="mt-4 p-5 rounded-2xl border border-dashed border-opacity-50 text-center animate-in fade-in slide-in-from-bottom-4 duration-500" 
-                 style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,110,108,0.3)' }}>
-              <div className="relative w-16 h-16 mx-auto mb-4 bg-[#FF6E6C] bg-opacity-10 rounded-full flex items-center justify-center overflow-hidden">
-                <Brain size={32} className="text-[#FF6E6C] animate-pulse" />
-                {/* Horizontal scan line */}
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-[#FF6E6C] shadow-[0_0_10px_#FF6E6C] animate-[scan_2s_infinite_ease-in-out]" />
-              </div>
-              
-              <h3 className="text-white font-bold text-sm mb-1">AI Engine Analysis...</h3>
-              <p className="text-[#A394A8] text-xs leading-relaxed max-w-[240px] mx-auto">
-                Comparing your face against thousands of event photos using <span className="text-white font-mono text-[10px]">pgvector</span> acceleration.
-              </p>
-              
-              <div className="mt-4 flex justify-center gap-1">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="w-1.5 h-1.5 rounded-full bg-[#FF6E6C] animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+            {/* Shutter Button Action */}
+            <div className="absolute bottom-10 left-0 right-0 flex justify-center z-30">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleCapture}
+                disabled={uploading}
+                className={`w-20 h-20 rounded-full flex items-center justify-center p-1 border-4 border-white shadow-2xl transition-all ${
+                  uploading ? 'opacity-50 grayscale' : 'aurora-bg hover:shadow-coral'
+                }`}
+              >
+                <div className="w-full h-full rounded-full border-2 border-white/20 flex items-center justify-center">
+                  <Aperture size={32} className={`text-white ${uploading ? 'animate-spin' : ''}`} />
+                </div>
+              </motion.button>
+            </div>
+
+            {/* Status indicators */}
+            <div className="absolute top-6 inset-x-6 flex justify-between">
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: 'Neural Lock', ok: faceState !== 'none' },
+                  { label: 'Lighting', ok: true },
+                ].map(({ label, ok }) => (
+                  <span key={label} className={`flex items-center gap-1.5 text-[10px] px-3 py-1.5 rounded-full font-black uppercase tracking-widest backdrop-blur-md ${ok ? 'bg-emerald-500/80 text-white' : 'bg-black/40 text-white/50'}`}>
+                    {ok ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
+                    {label}
+                  </span>
                 ))}
               </div>
+              <div className="p-3 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 text-white">
+                <Fingerprint size={20} className={faceState === 'ready' ? 'text-emerald-400 animate-pulse' : 'text-white/40'} />
+              </div>
             </div>
-          )}
-        </div>
-      </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes scan {
-          0% { top: 0%; opacity: 0.2; }
-          50% { top: 100%; opacity: 1; }
-          100% { top: 0%; opacity: 0.2; }
-        }
-      `}} />
+            {/* AI Scan Overlay */}
+            <AnimatePresence>
+              {uploading && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="absolute inset-0 bg-primary/20 backdrop-blur-md z-40 flex flex-col items-center justify-center px-12 text-center"
+                >
+                  <div className="w-24 h-24 rounded-full aurora-bg flex items-center justify-center text-white shadow-2xl relative mb-6 animate-pulse">
+                    <Brain size={48} />
+                  </div>
+                  <span className="text-2xl font-black text-white uppercase tracking-tighter">Synchronizing Vector Maps</span>
+                  <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mt-2">Matching your biometric data against event library</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <div className="text-center px-8">
+          <div className="flex items-center justify-center gap-2 text-sm font-bold text-muted mb-8">
+            <Zap size={16} className="text-primary fill-primary" />
+            Control Tip: Center your face and tap the shutter button.
+          </div>
+          <div className="flex items-center gap-3 justify-center opacity-30 grayscale">
+            <ShieldCheck size={16} className="text-foreground fill-foreground" />
+            <span className="text-xs font-black uppercase tracking-widest">Neural Link v3.0 Secured</span>
+          </div>
+        </div>
+      </motion.div>
     </div>
   )
 }

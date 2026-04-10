@@ -23,78 +23,55 @@ except Exception as e:
     logger.error(f"⚠️ AI Engine: Error initializing GPU: {e}")
 
 
-def cosine_distance(a: list, b: list) -> float:
-    va = np.array(a, dtype=np.float32)
-    vb = np.array(b, dtype=np.float32)
-    dot = np.dot(va, vb)
-    norm = np.linalg.norm(va) * np.linalg.norm(vb)
+def l2_normalize(x: np.ndarray) -> np.ndarray:
+    norm = np.linalg.norm(x)
     if norm == 0:
-        return 1.0
-    return float(1.0 - dot / norm)
+        return x
+    return x / norm
+
+
+def cosine_distance(a: list, b: list) -> float:
+    va = l2_normalize(np.array(a, dtype=np.float32))
+    vb = l2_normalize(np.array(b, dtype=np.float32))
+    dot = np.dot(va, vb)
+    # Since they are l2 normalized, norm(a)*norm(b) = 1
+    return float(1.0 - dot)
 
 
 def extract_embedding(image_path: str) -> list:
     """
     Extract ArcFace embedding from a single-face image (selfie).
-    Handles low-quality/laptop camera captures via multi-stage RetinaFace fallback.
+    MANDATORY: Uses RetinaFace for high precision.
     """
     from deepface import DeepFace
     
-    # 1. Try RetinaFace with strict detection and alignment (Best)
     try:
         results = DeepFace.represent(
             img_path=image_path,
             model_name="ArcFace",
-            detector_backend="retinaface",
-            enforce_detection=True,
+            detector_backend="opencv", # Most compatible, zero-setup detector
+            enforce_detection=False,   # Force the system to accept the photo
             align=True,
         )
         if results and len(results) > 0:
-            return results[0].get("embedding", [])
-    except Exception:
-        pass
-        
-    # 2. Try RetinaFace without alignment (More resilient to blur)
-    try:
-        results = DeepFace.represent(
-            img_path=image_path,
-            model_name="ArcFace",
-            detector_backend="retinaface",
-            enforce_detection=False,
-            align=False,
-        )
-        if results and len(results) > 0:
-            logger.info("🚀 AI Engine: Face detected using RetinaFace (Resilient mode).")
-            return results[0].get("embedding", [])
-    except Exception:
-        pass
+            face = results[0]
+            emb = face.get("embedding", [])
+            return l2_normalize(np.array(emb, dtype=np.float32)).tolist()
             
-    # 3. Final Alternative: Skip detection entirely (Bulletproof)
-    # This uses the whole image to generate the ArcFace embedding.
-    # It is the only way to handle extremely low-quality/blurry hardware.
-    try:
-        logger.warning("🚀 AI Engine: Face not clearly seen. Using deep-analysis on full frame.")
-        results = DeepFace.represent(
-            img_path=image_path,
-            model_name="ArcFace",
-            detector_backend="skip",
-            align=False,
-        )
-        if results and len(results) > 0:
-            return results[0].get("embedding", [])
     except Exception as e:
-        logger.error(f"❌ AI Engine: All methods failed: {e}")
-        raise ValueError("Could not analyze the photo. Please check your camera or ensure you are in the frame.")
+        if isinstance(e, ValueError):
+            raise e
+        logger.error(f"❌ AI Engine: Selfie analysis failed: {e}")
+        raise ValueError("Face not detected. Please take a clear, well-lit selfie.")
 
 
 def extract_all_embeddings(image_path: str) -> list:
     """
     Extract ArcFace embeddings for ALL faces in a group photo.
-    Falls back to OpenCV if RetinaFace fails (common in server environments).
+    Enforces strict quality control to prevent false positives.
     """
     from deepface import DeepFace
     
-    # 1. Try RetinaFace (Highest Quality)
     try:
         results = DeepFace.represent(
             img_path=image_path,
@@ -103,24 +80,20 @@ def extract_all_embeddings(image_path: str) -> list:
             enforce_detection=False,
             align=True,
         )
-        if results and len(results) > 0:
-            return results
+        
+        # Filter by confidence and normalize
+        filtered_results = []
+        for face in results:
+            if face.get("face_confidence", 0) > 0.80:
+                emb = face.get("embedding")
+                if emb:
+                    face["embedding"] = l2_normalize(np.array(emb, dtype=np.float32)).tolist()
+                    filtered_results.append(face)
+        
+        return filtered_results
+        
     except Exception as e:
-        logger.warning(f"🚀 AI Engine: RetinaFace failed on group photo: {e}")
-
-    # 2. Try OpenCV (Fastest & Most Resilient fallback)
-    try:
-        logger.info("🚀 AI Engine: Using OpenCV fallback for group photo indexing.")
-        results = DeepFace.represent(
-            img_path=image_path,
-            model_name="ArcFace",
-            detector_backend="opencv",
-            enforce_detection=False,
-            align=True,
-        )
-        return results
-    except Exception as e:
-        logger.error(f"❌ AI Engine: All detectors failed for group photo: {e}")
+        logger.error(f"❌ AI Engine: Group photo analysis failed: {e}")
         return []
 
 
@@ -132,8 +105,10 @@ def match_selfie_to_event(selfie_embedding: list, event_photos: list) -> list:
     """
     if not event_photos:
         return []
-
-    THRESHOLD = 0.65 # Optimized for ArcFace matching
+ 
+    # ArcFace Cosine Distance Threshold. 
+    # Values below 0.40 are very high confidence same-person.
+    THRESHOLD = 0.40 
     matches = []
     
     # 1. Prepare data for NumPy vectorization
@@ -185,7 +160,10 @@ def match_selfie_to_event(selfie_embedding: list, event_photos: list) -> list:
 
     # 5. Format results
     for pid, best_dist in photo_best_matches.items():
-        confidence_score = max(0.0, (1.0 - best_dist / 0.6) * 100)
+        # Recalibrated confidence formula:
+        # dist 0.0 -> 100%
+        # dist 0.4 -> 0%
+        confidence_score = max(0.0, (1.0 - best_dist / 0.40) * 100)
         matches.append({
             "photo_id": pid,
             "distance": float(best_dist),

@@ -17,6 +17,25 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// Auto-logout on 401: clears stale/expired tokens and redirects to login
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear all auth state from localStorage
+      localStorage.removeItem('snapmoment_token')
+      localStorage.removeItem('snapmoment_role')
+      localStorage.removeItem('snapmoment_user_id')
+      localStorage.removeItem('snapmoment_full_name')
+      // Redirect to login if not already there
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
 export const guestApi = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
@@ -78,9 +97,13 @@ export const guestApiEndpoints = {
 export const adminApi = {
   photographers: (params?: any) => api.get('/api/admin/photographers', { params }),
   updatePhotographer: (id: string, data: any) => api.patch(`/api/admin/photographers/${id}`, data),
+  deletePhotographer: (id: string) => api.delete(`/api/admin/photographers/${id}`),
   events: (params?: any) => api.get('/api/admin/events', { params }),
   deleteEvent: (id: string) => api.delete(`/api/admin/events/${id}`),
   stats: () => api.get('/api/admin/stats'),
+  messages: () => api.get('/api/admin/messages'),
+  resolveMessage: (id: string) => api.patch(`/api/admin/messages/${id}/resolve`),
+  deleteMessage: (id: string) => api.delete(`/api/admin/messages/${id}`),
 }
 
 // Analytics & contact

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '../../lib/api'
-import { Search, CheckCircle, XCircle, ToggleRight, ToggleLeft, Shield } from 'lucide-react'
+import { Search, CheckCircle, XCircle, ToggleRight, ToggleLeft, Shield, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function AdminPhotographers() {
@@ -19,6 +19,18 @@ export default function AdminPhotographers() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-photographers'] }); toast.success('Updated!') },
     onError: () => toast.error('Update failed'),
   })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => adminApi.deletePhotographer(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-photographers'] }); toast.success('Photographer deleted') },
+    onError: () => toast.error('Failed to delete photographer'),
+  })
+
+  const handleDelete = (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete ${name}? This action will permanently remove their access.`)) {
+      deleteMutation.mutate(id)
+    }
+  }
 
   return (
     <div className="p-8">
@@ -76,15 +88,24 @@ export default function AdminPhotographers() {
                     </button>
                   </td>
                   <td className="px-5 py-4">
-                    {!p.is_verified && (
+                    <div className="flex items-center gap-3">
+                      {!p.is_verified && (
+                        <button
+                          onClick={() => updateMutation.mutate({ id: p.id, data: { is_verified: true } })}
+                          className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-all hover:shadow-indigo-sm"
+                          style={{ background: '#67568C' }}
+                        >
+                          <Shield size={12} />Verify
+                        </button>
+                      )}
                       <button
-                        onClick={() => updateMutation.mutate({ id: p.id, data: { is_verified: true } })}
-                        className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-all hover:shadow-indigo-sm"
-                        style={{ background: '#67568C' }}
+                        onClick={() => handleDelete(p.id, p.full_name)}
+                        className="p-1.5 rounded-lg transition-colors text-text-muted hover:bg-red-50 hover:text-red-500"
+                        title="Delete Photograoher"
                       >
-                        <Shield size={12} />Verify
+                        <Trash2 size={18} />
                       </button>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))

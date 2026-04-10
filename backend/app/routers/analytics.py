@@ -59,7 +59,17 @@ async def photographer_analytics(current_user: dict = Depends(require_photograph
 
 
 @router.post("/contact")
-async def contact(data: ContactForm):
+async def contact(data: ContactForm, db: AsyncSession = Depends(get_db)):
+    from app.models.message import Message
     logger.info(f"[CONTACT] From: {data.name} <{data.email}>, Subject: {data.subject}")
-    print(f"\n[CONTACT FORM] {data.name} ({data.email}): {data.subject}\n{data.message}\n")
+    
+    msg = Message(
+        name=data.name,
+        email=data.email,
+        subject=data.subject,
+        message=data.message,
+    )
+    db.add(msg)
+    await db.commit()
+    
     return {"message": "Thank you! We'll get back to you shortly."}

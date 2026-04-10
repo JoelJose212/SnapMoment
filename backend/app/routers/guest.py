@@ -131,16 +131,16 @@ async def upload_selfie(
         matches_raw = results.all()
         
         # 2. Filter by threshold and group by photo
-        THRESHOLD = 0.65 # Stricter threshold for higher precision
+        THRESHOLD = 0.40 # High precision threshold for identification
         matches = []
         seen_photos = set()
         
         for photo_id, distance in matches_raw:
             if distance <= THRESHOLD and photo_id not in seen_photos:
-                # Better more intuitive confidence score calculation
+                # Recalibrated confidence score calculation
                 # distance of 0.0 -> 100% confidence
-                # distance of THRESHOLD -> 0% confidence (relative to search)
-                confidence_score = max(0.0, (1.0 - distance / 0.75) * 100)
+                # distance of 0.40 -> 0% confidence
+                confidence_score = max(0.0, (1.0 - distance / 0.40) * 100)
                 matches.append({
                     "photo_id": str(photo_id),
                     "distance": float(distance),
