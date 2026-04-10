@@ -61,6 +61,37 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 
 ## 📐 Systems Architecture & Logic
 
+### 0. Context Level DFD (Level 0)
+```mermaid
+graph LR
+    %% External Entities (Ovals)
+    Photog([Photographer])
+    Guest([Event Guest])
+    S3([Cloud Storage / AWS S3])
+    SMS([SMS Gateway])
+
+    %% Central Process (Box)
+    System[[SnapMoment AI Platform]]
+
+    %% Data Flows
+    Photog -- "Event Setup / Bulk Photos" --> System
+    System -- "QR Code / Analytics" --> Photog
+
+    Guest -- "Selfie / OTP Request" --> System
+    System -- "Personal Gallery" --> Guest
+
+    System -- "Store Media" --> S3
+    S3 -- "Image CDN URLs" --> System
+
+    System -- "SMS Pin Request" --> SMS
+
+    style System fill:#fff,stroke:#333,stroke-width:4px
+    style Photog fill:#f9f9f9,stroke:#333
+    style Guest fill:#f9f9f9,stroke:#333
+    style S3 fill:#f9f9f9,stroke:#333
+    style SMS fill:#f9f9f9,stroke:#333
+```
+
 ### 1. Database Schema (Logical ER Diagram)
 ```mermaid
 graph TD
