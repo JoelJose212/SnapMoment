@@ -92,6 +92,56 @@ graph LR
     style SMS fill:#f9f9f9,stroke:#333
 ```
 
+### 0.1 Level 1 DFD (Internal Processes)
+```mermaid
+flowchart TD
+    %% External Entities
+    Photog([Photographer])
+    Guest([Guest])
+
+    %% Processes
+    P1((1.0 Authenticate))
+    P2((2.0 Manage Events))
+    P3((3.0 AI Face Indexing))
+    P4((4.0 Identity Check))
+    P5((5.0 Biometric Match))
+
+    %% Data Stores
+    D1[(D1: Photographers)]
+    D2[(D2: Events)]
+    D3[(D3: Photos)]
+    D4[(D4: Face Index)]
+    D5[(D5: Matches)]
+
+    %% Photographer Flow
+    Photog -- "Credentials" --> P1
+    P1 <--> D1
+    
+    Photog -- "Event Settings" --> P2
+    P2 <--> D2
+    
+    Photog -- "Image Data" --> P3
+    P3 <--> D3
+    P3 --> D4
+    D2 -- "Context" --> P3
+
+    %% Guest Flow
+    Guest -- "Phone / OTP" --> P4
+    P4 <--> D2
+    
+    Guest -- "Selfie Trace" --> P5
+    P5 <--> D4
+    P5 --> D5
+    D3 -- "URLs" --> P5
+    P5 -- "Personal Gallery" --> Guest
+
+    style P1 fill:#fff,stroke:#333,stroke-width:2px
+    style P2 fill:#fff,stroke:#333,stroke-width:2px
+    style P3 fill:#fff,stroke:#333,stroke-width:2px
+    style P4 fill:#fff,stroke:#333,stroke-width:2px
+    style P5 fill:#fff,stroke:#333,stroke-width:2px
+```
+
 ### 1. Database Schema (Logical ER Diagram)
 ```mermaid
 graph TD
