@@ -20,14 +20,37 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- **🚀 Instant Delivery**: Photos reach guests in under 30 seconds of AI matching.
-- **🎯 99.8% Accuracy**: Powered by the **ArcFace** deep learning model.
-- **📱 Zero Friction**: No app download required. Scan QR -> Verify -> Receive.
-- **🔒 Privacy First**: Selfies are processed in memory and deleted immediately. We never store raw guest facial data.
-- **📊 Pro Dashboard**: Advanced analytics for photographers to track event engagement.
-- **🌊 Dynamic Design**: A premium, responsive UI featuring glassmorphism and smooth animations.
+- **⚡ Instant AI Delivery**: Photos reach guests within seconds of upload using autonomous matching.
+- **🧠 Neural-Lock Selfie**: Real-time biometric guidance (MediaPipe) ensures guests capture high-quality, matchable selfies.
+- **🔍 Smart Person Clustering**: Uses **DBSCAN** to group faces into distinct personas, improving matching accuracy even in varied event lighting.
+- **🚀 High-Speed Search**: Powered by **pgvector** with HNSW indexing for sub-millisecond matching across tens of thousands of photos.
+- **💎 Premium UI/UX**: Professional dashboard with glassmorphism, fluid animations, and a mobile-first guest experience.
+- **🔒 Privacy-Focused**: Facial data is stored only as 512-dimensional mathematical vectors. Raw selfies are processed in-memory.
+- **🛠️ Infrastructure Hardening**: Automated storage maintenance with Docker compaction tools and robust async processing.
+
+---
+
+## 🎁 Benefits
+
+- **For Photographers**: 
+  - **Save Time**: Eliminates the need for manual photo sorting or individual link sharing.
+  - **Higher Engagement**: Guests are more likely to share photos immediately while the event energy is still high.
+  - **Professionalism**: Delivers a futuristic, high-tech experience that builds your brand.
+- **For Guests**:
+  - **Instant Access**: Find your photos in the crowd without scrolling through thousands of others.
+  - **Privacy**: No need to browse entire shared drives; see only the photos where you are present.
+  - **Zero Friction**: No app downloads or account registrations required—just scan and see.
+
+---
+
+## 🏆 Competitive Advantages
+
+- **State-of-the-Art Accuracy**: Leverages the **ArcFace** model (99.8% LFW Accuracy), outperforming standard facial recognition algorithms.
+- **Scalable Architecture**: Built on **FastAPI** and **Celery**, allowing the system to handle thousands of concurrent uploads without lag.
+- **Self-Healing Infrastructure**: Includes custom utilities for disk space management (VHDX compaction) to ensure long-term stability in local environments.
+- **Cost-Efficiency**: Uses high-performance open-source AI models, eliminating the recurring costs of commercial facial recognition APIs.
 
 ---
 
