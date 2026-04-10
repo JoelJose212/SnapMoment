@@ -61,56 +61,61 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 
 ## 📐 Systems Architecture & Logic
 
-### 1. Database Schema (High-Fidelity ERD)
+### 1. Database Schema (Logical ER Diagram)
 ```mermaid
-erDiagram
-    PHOTOGRAPHERS ||--o{ EVENTS : manages
-    EVENTS ||--o{ PHOTOS : contains
-    EVENTS ||--o{ GUESTS : registers
-    EVENTS ||--o{ FACE_CLUSTERS : "groups faces into"
-    PHOTOS ||--o{ FACE_INDICES : "contains detected faces"
-    PHOTOS ||--o{ PHOTO_MATCHES : "appears in"
-    GUESTS ||--o{ PHOTO_MATCHES : "finds self in"
+graph TD
+    %% Entities
+    Photographer[Photographer]
+    Event[Event]
+    Photo[Photo]
+    Guest[Guest]
+    Msg[Message]
 
-    PHOTOGRAPHERS {
-        uuid id PK
-        string full_name
-        string email "Unique Index"
-        string password_hash "Plain-text Admin fallback enabled"
-        string studio_name
-        string plan "Free/Pro"
-    }
-    EVENTS {
-        uuid id PK
-        uuid photographer_id FK
-        string name
-        string qr_token "Unique Index"
-        boolean is_active
-    }
-    PHOTOS {
-        uuid id PK
-        uuid event_id FK
-        string s3_key
-        boolean face_indexed
-        int faces_count
-    }
-    GUESTS {
-        uuid id PK
-        uuid event_id FK
-        string phone_number
-        jsonb face_embedding "512-dim ArcFace"
-    }
-    FACE_INDICES {
-        uuid id PK
-        uuid photo_id FK
-        vector embedding "512-dim Vector"
-    }
-    FACE_CLUSTERS {
-        uuid id PK
-        uuid event_id FK
-        vector centroid "Cluster Mean"
-        json photo_ids "Linked Photos"
-    }
+    %% Relationships
+    Photog_Ev{{"Manages"}}
+    Ev_Ph{{"Contains"}}
+    Ev_Gs{{"Registers"}}
+    Gs_Ph{{"Matches"}}
+
+    %% Photographer Attributes
+    p_id([id]) --- Photographer
+    p_name([name]) --- Photographer
+    p_email([email]) --- Photographer
+
+    %% Event Attributes
+    e_id([id]) --- Event
+    e_name([name]) --- Event
+    e_qr([qr_token]) --- Event
+
+    %% Photo Attributes
+    ph_id([id]) --- Photo
+    ph_key([s3_key]) --- Photo
+
+    %% Guest Attributes
+    g_id([id]) --- Guest
+    g_ph([phone]) --- Guest
+
+    %% Connections
+    Photographer --- Photog_Ev
+    Photog_Ev --- Event
+    Event --- Ev_Ph
+    Ev_Ph --- Photo
+    Event --- Ev_Gs
+    Ev_Gs --- Guest
+    Guest --- Gs_Ph
+    Gs_Ph --- Photo
+
+    %% Styling
+    style Photographer fill:#e1f5fe,stroke:#01579b
+    style Event fill:#e1f5fe,stroke:#01579b
+    style Photo fill:#e1f5fe,stroke:#01579b
+    style Guest fill:#e1f5fe,stroke:#01579b
+    style Msg fill:#e1f5fe,stroke:#01579b
+    
+    style Photog_Ev fill:#fff9c4,stroke:#fbc02d
+    style Ev_Ph fill:#fff9c4,stroke:#fbc02d
+    style Ev_Gs fill:#fff9c4,stroke:#fbc02d
+    style Gs_Ph fill:#fff9c4,stroke:#fbc02d
 ```
 
 ### 2. Object Diagram (Hierarchy & Interaction)
