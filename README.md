@@ -440,6 +440,22 @@ SnapMoment/
 
 ---
 
+## 📖 Input / Output (I/O) Table
+| S. No | Object | Input Details | Output Details |
+| :--- | :--- | :--- | :--- |
+| **1** | **Photographer Signup** | Name, Email, Password, Studio Name | Account creation confirmation |
+| **2** | **Photographer Login** | Email, Password | Login success/failure + JWT Token |
+| **3** | **Event Creation** | Event Name, Event Date, Location | Unique Event ID & QR Access Token |
+| **4** | **Photo Bulk Upload** | Multiple Image Files (JPG/PNG) | Upload status & AI indexing trigger |
+| **5** | **Guest Registration** | Phone Number | SMS OTP sent to mobile device |
+| **6** | **OTP Verification** | 6-Digit SMS Code | Session authorization / Selfie prompt |
+| **7** | **Selfie Submission** | Guest Face Image (Camera/Upload) | Biometric matching process status |
+| **8** | **Biometric Search** | 512-dim Selfie Embedding | List of matching personal photos |
+| **9** | **Photo Download** | Selected Photo ID | High-resolution image direct download |
+| **10** | **Contact/Support** | Name, Email, Inquiry Message | Submission success confirmation |
+
+---
+
 ## 🛡️ Security & Privacy
 - **OTP-based Guest Access**: Secures galleries without requiring complex passwords.
 - **Admin Security**: Transitioned to managed plain-text for developer-friendly admin management in isolated environments.
