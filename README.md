@@ -148,24 +148,41 @@ graph TD
     style Guest fill:#6f9,stroke:#333,stroke-width:2px
 ```
 
-### 3. Event Lifecycle (Sequence Diagram)
+### 3. Event Lifecycle (Flowchart)
 ```mermaid
-sequenceDiagram
-    participant P as Photographer
-    participant B as Backend
-    participant W as AI Worker
-    participant G as Guest
-
-    P->>B: Bulk Upload Event Photos
-    B->>W: Push Processing Job (Redis)
-    W->>W: Extract Faces & Generate Embeddings
-    W->>W: DBSCAN Clustering (Group People)
-    W->>B: Store Vectors & Cluster Centroids
+flowchart TD
+    Start([Start: Photographer Setup]) --> Create[Create Event & Settings]
+    Create --> Upload[Bulk Upload Photos]
+    Upload --> AI_Proc[AI: ArcFace Feature Extraction]
     
-    G->>B: Verify Identity (OTP)
-    G->>B: Upload Secure Selfie
-    B->>B: Biometric Vector Search (pgvector)
-    B->>G: Load Personalized Gallery
+    AI_Proc --> Face_Check{Faces Detected?}
+    Face_Check -- No --> Warn[Notify: No faces found]
+    Face_Check -- Yes --> Cluster[DBSCAN: Person Clustering]
+    
+    Cluster --> Index[pgvector: HNSW Indexing]
+    Index --> QR[Generate Event QR & Token]
+    
+    QR --> Guest_Entry([Guest Scans QR])
+    Guest_Entry --> OTP[OTP Phone Verification]
+    
+    OTP --> OTP_Check{Valid OTP?}
+    OTP_Check -- No --> OTP
+    OTP_Check -- Yes --> Selfie[Guest: Take Neural-Lock Selfie]
+    
+    Selfie --> Match[AI: Vector Similarity Search]
+    
+    Match --> Match_Check{Matches Found?}
+    Match_Check -- No --> Suggest[Show: All Photos / Retry]
+    Match_Check -- Yes --> Gallery[Display Personal Gallery]
+    
+    Gallery --> DL[Download High-Res Photos]
+    DL --> End([End: Happy Guest])
+
+    style Start fill:#f9f,stroke:#333
+    style End fill:#f9f,stroke:#333
+    style Face_Check fill:#fff4dd,stroke:#d4a017,stroke-width:2px
+    style OTP_Check fill:#fff4dd,stroke:#d4a017,stroke-width:2px
+    style Match_Check fill:#fff4dd,stroke:#d4a017,stroke-width:2px
 ```
 
 ### 4. Photo Status (State Diagram)
