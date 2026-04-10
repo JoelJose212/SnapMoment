@@ -121,6 +121,61 @@ def index_event_photos(self, event_id: str):
                 "total": total,
                 "unique_faces": unique_faces,
             })
+
+            # ── Phase 2: DBSCAN Clustering ────────────────────────────
+            # Group all indexed faces into person-identity clusters.
+            # This makes selfie matching O(clusters) instead of O(faces).
+            logger.info(f"🔵 Phase 2: Clustering faces for event {event_id}...")
+            await store_task_status(event_id, {
+                "status": "clustering",
+                "processed": processed,
+                "total": total,
+                "unique_faces": unique_faces,
+            })
+
+            from app.models.face_index import FaceIndex
+            from app.models.face_cluster import FaceCluster
+            from sqlalchemy import delete as sa_delete
+
+            fi_result = await session.execute(
+                select(FaceIndex).where(FaceIndex.event_id == event_id)
+            )
+            all_face_indices = fi_result.scalars().all()
+
+            face_data = [
+                {"photo_id": str(fi.photo_id), "embedding": list(fi.embedding)}
+                for fi in all_face_indices
+            ]
+
+            clusters = face_engine.cluster_event_faces(face_data)
+
+            # Delete old clusters for this event
+            await session.execute(
+                sa_delete(FaceCluster).where(FaceCluster.event_id == event_id)
+            )
+
+            for c in clusters:
+                fc = FaceCluster(
+                    id=uuid.uuid4(),
+                    event_id=event_id,
+                    cluster_label=c["cluster_label"],
+                    centroid=c["centroid"],
+                    photo_ids=c["photo_ids"],
+                    face_count=c["face_count"],
+                )
+                session.add(fc)
+
+            await session.commit()
+            logger.info(f"✅ Clustering done: {len(clusters)} clusters saved for event {event_id}.")
+
+            await store_task_status(event_id, {
+                "status": "complete",
+                "processed": processed,
+                "total": total,
+                "unique_faces": unique_faces,
+                "clusters": len(clusters),
+            })
+
         await engine.dispose()
 
     asyncio.run(run())

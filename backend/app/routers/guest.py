@@ -14,7 +14,7 @@ from app.schemas import OTPSendRequest, OTPVerifyRequest, GuestTokenResponse, Ga
 from app.services.auth import create_token, get_guest_user
 from app.services.redis_service import generate_otp, store_otp, verify_otp, check_rate_limit
 from app.services import s3 as s3_service
-from app.services.face_engine import extract_embedding, match_selfie_to_event
+from app.services.face_engine import extract_embedding, match_selfie_to_event, match_selfie_to_clusters
 from app.config import settings
 import logging
 
@@ -113,44 +113,65 @@ async def upload_selfie(
             guest.selfie_s3_key = selfie_key
             guest.face_embedding = {"embedding": selfie_embedding}
 
-        # Match using pgvector (L2 distance or Cosine distance)
-        # We find the top matched photos for this guest in this event
+        # ── Stage 1: Cluster-based matching (fast, O(k)) ─────────────────────
         from app.models.face_index import FaceIndex
-        from sqlalchemy import delete, insert
-        
-        # 1. Direct SQL Vector Search (Instant even with 100k faces)
-        # embedding <=> vector performs cosine similarity search using the index
-        search_query = (
-            select(FaceIndex.photo_id, FaceIndex.embedding.cosine_distance(selfie_embedding).label("distance"))
-            .where(FaceIndex.event_id == uuid.UUID(event_id))
-            .order_by("distance")
-            .limit(100) # Only consider top 100 matches
+        from app.models.face_cluster import FaceCluster
+        from sqlalchemy import delete
+
+        cluster_result = await db.execute(
+            select(FaceCluster).where(FaceCluster.event_id == uuid.UUID(event_id))
         )
-        
-        results = await db.execute(search_query)
-        matches_raw = results.all()
-        
-        # 2. Filter by threshold and group by photo
-        THRESHOLD = 0.40 # High precision threshold for identification
+        clusters_db = cluster_result.scalars().all()
+
         matches = []
-        seen_photos = set()
-        
-        for photo_id, distance in matches_raw:
-            if distance <= THRESHOLD and photo_id not in seen_photos:
-                # Recalibrated confidence score calculation
-                # distance of 0.0 -> 100% confidence
-                # distance of 0.40 -> 0% confidence
-                confidence_score = max(0.0, (1.0 - distance / 0.40) * 100)
-                matches.append({
-                    "photo_id": str(photo_id),
-                    "distance": float(distance),
-                    "confidence_score": round(float(confidence_score), 2)
-                })
-                seen_photos.add(photo_id)
 
-        # 3. Save matches to DB for the gallery view
+        if clusters_db:
+            logger.info(f"Using cluster matching: {len(clusters_db)} clusters for event {event_id}")
+            cluster_data = [
+                {
+                    "centroid": list(c.centroid),
+                    "photo_ids": c.photo_ids,
+                    "face_count": c.face_count,
+                }
+                for c in clusters_db
+            ]
+            cluster_matches = match_selfie_to_clusters(selfie_embedding, cluster_data)
+            seen_photos: set = set()
+            for cm in cluster_matches:
+                for pid in cm["photo_ids"]:
+                    if pid not in seen_photos:
+                        matches.append({
+                            "photo_id": pid,
+                            "distance": cm["distance"],
+                            "confidence_score": cm["confidence_score"],
+                        })
+                        seen_photos.add(pid)
+
+        else:
+            # ── Stage 2: pgvector linear scan fallback ─────────────────────
+            logger.info(f"No clusters found — falling back to pgvector scan for event {event_id}")
+            THRESHOLD = 0.30
+            search_query = (
+                select(FaceIndex.photo_id, FaceIndex.embedding.cosine_distance(selfie_embedding).label("distance"))
+                .where(FaceIndex.event_id == uuid.UUID(event_id))
+                .order_by("distance")
+                .limit(100)
+            )
+            results = await db.execute(search_query)
+            matches_raw = results.all()
+            seen_photos = set()
+            for photo_id, distance in matches_raw:
+                if distance <= THRESHOLD and photo_id not in seen_photos:
+                    confidence_score = max(0.0, (1.0 - distance / THRESHOLD) * 100)
+                    matches.append({
+                        "photo_id": str(photo_id),
+                        "distance": float(distance),
+                        "confidence_score": round(float(confidence_score), 2),
+                    })
+                    seen_photos.add(photo_id)
+
+        # ── Save matches ───────────────────────────────────────────────────
         await db.execute(delete(PhotoMatch).where(PhotoMatch.guest_id == uuid.UUID(guest_id)))
-
         for match in matches:
             pm = PhotoMatch(
                 id=uuid.uuid4(),

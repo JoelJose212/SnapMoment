@@ -17,7 +17,8 @@ python-dotenv>=1.0.1
 aiofiles>=23.2.1
 deepface>=0.0.93
 opencv-python-headless>=4.9.0.80
-tf-keras>=2.16.0
+tensorflow==2.15.1
 email-validator>=2.1.1
 pgvector>=0.2.5
-onnxruntime-gpu>=1.17.0
+mediapipe>=0.10.0
+scikit-learn>=1.4.0
