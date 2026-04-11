@@ -24,7 +24,7 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 
 - **⚡ Instant AI Delivery**: Photos reach guests within seconds of upload using autonomous matching.
 - **🧠 Neural-Lock Selfie**: Real-time biometric guidance (MediaPipe) ensures guests capture high-quality, matchable selfies.
-- **🔍 Smart Person Clustering**: Uses **DBSCAN** to group faces into distinct personas, improving matching accuracy even in varied event lighting.
+- **🔍 Smart Person Clustering**: Uses **DBSCAN (Density-Based Spatial Clustering of Applications with Noise)** to group faces into distinct personas, improving matching accuracy even in varied event lighting.
 - **🚀 High-Speed Search**: Powered by **pgvector** with HNSW indexing for sub-millisecond matching across tens of thousands of photos.
 - **💎 Premium UI/UX**: Professional dashboard with glassmorphism, fluid animations, and a mobile-first guest experience.
 - **🔒 Privacy-Focused**: Facial data is stored only as 512-dimensional mathematical vectors. Raw selfies are processed in-memory.

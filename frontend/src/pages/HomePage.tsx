@@ -86,20 +86,12 @@ const TESTIMONIALS = [
 const FAQ = [
   { q: 'Does it work without an app download?', a: 'Yes! Guests only need to scan a QR code and open it in any browser. No app required.' },
   { q: 'How accurate is the face recognition?', a: 'We use DeepFace ArcFace model with 99.8% accuracy. Guests can also report incorrect matches.' },
-  {
-    q: 'What if a face is not detected correctly?', a: 'Guests can retry with a better selfie or report mismatches, and our system will improve accuracy over time.'
-  },
+  {q: 'What if a face is not detected correctly?', a: 'Guests can retry with a better selfie or report mismatches, and our system will improve accuracy over time.'},
   { q: 'What happens to selfie data after matching?', a: 'Selfies are processed in real time and deleted immediately after embedding extraction. We never store raw selfie images.' },
   { q: 'How many photos can I upload per event?', a: 'Free plan supports up to 200 photos. Pro supports 2000 and Studio is unlimited.' },
-  {
-    q: 'How long does it take for guests to receive their photos?', a: 'Photos are delivered instantly after a successful face match. In most cases, guests receive their photos within seconds.'
-  },
-  {
-    q: 'Is internet required for this to work?', a: 'Yes, an internet connection is required for uploading photos and matching faces in real time.'
-  },
-  {
-    q: 'Can guests download their photos?', a: 'Yes! Guests can view, download, and share their photos directly from their browser.'
-  },
+  {q: 'How long does it take for guests to receive their photos?', a: 'Photos are delivered instantly after a successful face match. In most cases, guests receive their photos within seconds.'},
+  {q: 'Is internet required for this to work?', a: 'Yes, an internet connection is required for uploading photos and matching faces in real time.'},
+  {q: 'Can guests download their photos?', a: 'Yes! Guests can view, download, and share their photos directly from their browser.'},
   
 ]
 
