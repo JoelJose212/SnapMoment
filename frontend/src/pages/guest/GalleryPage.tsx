@@ -33,6 +33,9 @@ export default function GalleryPage() {
     }).finally(() => setLoading(false))
   }, [])
 
+  const verifiedPhotos = photos.filter(p => !p.is_suggested)
+  const suggestedPhotos = photos.filter(p => p.is_suggested)
+
   const downloadPhoto = async (url: string, photoId: string) => {
     const toastId = toast.loading('Extracting frame...')
     try {
@@ -50,7 +53,7 @@ export default function GalleryPage() {
   const downloadAll = async () => {
     if (photos.length === 0 || downloadingAll) return
     setDownloadingAll(true)
-    const toastId = toast.loading('Bundling legacy collection...')
+    const toastId = toast.loading('Bundling full moment stream...')
     
     try {
       const zip = new JSZip()
@@ -60,7 +63,7 @@ export default function GalleryPage() {
         try {
           const res = await fetch(p.photo_url, { mode: 'cors' })
           const blob = await res.blob()
-          folder?.file(`moment-${i + 1}.jpg`, blob)
+          folder?.file(`${p.is_suggested ? 'suggested' : 'verified'}-moment-${i + 1}.jpg`, blob)
         } catch (e) {
           console.warn(`Failed to package fragment ${i}`, e)
         }
@@ -79,22 +82,33 @@ export default function GalleryPage() {
   const handleShare = async (url: string) => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'My moment from SnapMoment', url })
-      } catch (err) {}
+        await navigator.share({
+          title: 'My SnapMoment!',
+          text: 'Check out this moment from the event!',
+          url: url,
+        })
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Error sharing:', err)
+        }
+      }
     } else {
-      navigator.clipboard.writeText(url)
-      toast.success('Transmission link copied!')
+      try {
+        await navigator.clipboard.writeText(url)
+        toast.success('Link copied to clipboard! 📋')
+      } catch (err) {
+        toast.error('Failed to copy link.')
+      }
     }
   }
 
   const handleReport = async (photoId: string) => {
-    if (!confirm('Flag this content for review?')) return
+    const toastId = toast.loading('Filing report...')
     try {
       await guestApiEndpoints.report(photoId)
-      toast.success('Content flagged for auditing.')
-      setPhotos(prev => prev.filter(p => p.photo_id !== photoId))
-    } catch {
-      toast.error('Audit request failed')
+      toast.success('Moment reported for review. Thank you.', { id: toastId })
+    } catch (err) {
+      toast.error('Failed to file report. Please try again.', { id: toastId })
     }
   }
 
@@ -141,15 +155,15 @@ export default function GalleryPage() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 bg-primary/10 text-primary px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-8 border border-primary/20"
           >
-            <Sparkles size={14} /> Discovery Engine Active
+            <Sparkles size={14} /> Multi-Tier Engine Active
           </motion.div>
           
           <h1 className="text-5xl md:text-8xl font-black text-foreground mb-6 tracking-tighter" style={{ fontFamily: '"Plus Jakarta Sans"' }}>
-            Personal <span className="text-primary">Gallery</span>
+            AI <span className="text-primary">Gallery</span>
           </h1>
           
           <p className="text-muted text-lg md:text-2xl font-medium max-w-2xl mx-auto mb-12 leading-tight">
-            Our AI identified <span className="text-foreground font-black underline decoration-primary decoration-4 underline-offset-4">{photos.length}</span> unique moments captured by the studio.
+            Identified <span className="text-foreground font-black underline decoration-primary decoration-4 underline-offset-4">{verifiedPhotos.length}</span> Verified and <span className="text-amber-500 font-black">{suggestedPhotos.length}</span> Suggested moments.
           </p>
 
           <motion.button
@@ -161,89 +175,50 @@ export default function GalleryPage() {
           >
             <div className="absolute inset-0 aurora-bg opacity-0 group-hover:opacity-20 transition-opacity" />
             <ArrowDownCircle size={20} className={`inline mr-3 ${downloadingAll ? 'animate-bounce' : ''}`} />
-            {downloadingAll ? 'Packaging ZIP...' : `Export Full Stream`}
+            {downloadingAll ? 'Packaging ZIP...' : `Export Fully Loaded Stream`}
           </motion.button>
         </header>
 
-        {/* Dynamic Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-          <AnimatePresence>
-            {photos.map((photo, i) => (
-              <motion.div
-                key={photo.match_id}
-                layout
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: i * 0.08 }}
-                className="group relative glass rounded-[2.8rem] overflow-hidden shadow-2xl border-white/30 hover:shadow-primary/10 transition-all duration-500"
-              >
-                {/* Confidence Badge */}
-                <div className="absolute top-5 left-5 z-20">
-                  <div className="glass-card bg-white/70 dark:bg-black/70 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-xl border border-white/40">
-                    <Zap size={14} className={photo.confidence_score >= 90 ? 'text-emerald-500 fill-emerald-500' : 'text-amber-500 fill-amber-500'} />
-                    <span className="text-[10px] font-black text-foreground uppercase tracking-widest leading-none">
-                      {photo.confidence_score?.toFixed(0)}% Precise
-                    </span>
-                  </div>
-                </div>
+        {/* ── Verified Moments Section ─────────────────────────────────── */}
+        {verifiedPhotos.length > 0 && (
+          <section className="mb-24">
+            <div className="flex items-center gap-4 mb-10">
+              <div className="h-px flex-1 bg-white/20" />
+              <h2 className="text-xs font-black uppercase tracking-[0.5em] text-emerald-500 flex items-center gap-2">
+                <Check size={16} /> Verified Moments
+              </h2>
+              <div className="h-px flex-1 bg-white/20" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+              {verifiedPhotos.map((photo, i) => (
+                <PhotoCard key={photo.match_id} photo={photo} i={i} downloadPhoto={downloadPhoto} handleShare={handleShare} handleReport={handleReport} />
+              ))}
+            </div>
+          </section>
+        )}
 
-                {/* Media Wrapper */}
-                <div className="relative aspect-[4/5] overflow-hidden bg-white/10">
-                  <img
-                    src={photo.photo_url || photo.thumbnail_url}
-                    alt=""
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                    loading="lazy"
-                  />
-                  
-                  {/* Hover Interface */}
-                  <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-                    <div className="flex gap-3">
-                      <button 
-                        onClick={() => downloadPhoto(photo.photo_url, photo.photo_id)}
-                        className="flex-1 bg-white hover:bg-primary hover:text-white text-foreground p-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
-                      >
-                        <Download size={16} /> Get High-Res
-                      </button>
-                      <button 
-                        onClick={() => handleShare(photo.photo_url)}
-                        className="w-14 h-14 bg-white/20 hover:bg-white text-white hover:text-foreground rounded-2xl flex items-center justify-center transition-all backdrop-blur-md"
-                      >
-                        <Share2 size={20} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Micro Actions */}
-                <div className="p-4 flex items-center justify-between">
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => setHearts((h) => { const n = new Set(h); n.has(photo.match_id) ? n.delete(photo.match_id) : n.add(photo.match_id); return n })}
-                      className={`p-3 rounded-2xl glass transition-all ${hearts.has(photo.match_id) ? 'aurora-bg text-white' : 'hover:bg-primary/10 text-muted'}`}
-                    >
-                      <Heart 
-                        size={18} 
-                        className={hearts.has(photo.match_id) ? 'fill-white' : ''} 
-                      />
-                    </button>
-                    <button 
-                      onClick={() => handleReport(photo.photo_id)}
-                      className="p-3 rounded-2xl glass hover:bg-red-500/10 transition-all text-muted/40 hover:text-red-500"
-                    >
-                      <Flag size={18} />
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 pr-2 text-muted/30">
-                    <Info size={12} />
-                    <span className="text-[8px] font-black uppercase tracking-tighter">AI ID: {photo.photo_id.slice(0, 6)}</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
+        {/* ── Suggested Moments Section ───────────────────────────────── */}
+        {suggestedPhotos.length > 0 && (
+          <section>
+            <div className="flex flex-col items-center mb-10 text-center">
+              <div className="flex items-center gap-4 w-full mb-4">
+                <div className="h-px flex-1 bg-white/10" />
+                <h2 className="text-xs font-black uppercase tracking-[0.5em] text-amber-500/60 flex items-center gap-2">
+                  <Info size={16} /> Suggested Moments
+                </h2>
+                <div className="h-px flex-1 bg-white/10" />
+              </div>
+              <p className="text-[10px] text-muted max-w-md font-bold uppercase tracking-widest leading-relaxed">
+                Found in lower lighting or distant backgrounds. AI suggests these may be you.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 opacity-70 hover:opacity-100 transition-opacity duration-500">
+              {suggestedPhotos.map((photo, i) => (
+                <PhotoCard key={photo.match_id} photo={photo} i={i} downloadPhoto={downloadPhoto} handleShare={handleShare} handleReport={handleReport} isSuggested />
+              ))}
+            </div>
+          </section>
+        )}
 
         <footer className="mt-32 py-12 border-t border-white/10 text-center">
           <div className="flex items-center justify-center gap-2 mb-4 opacity-30 grayscale">
@@ -256,5 +231,76 @@ export default function GalleryPage() {
         </footer>
       </div>
     </div>
+  )
+}
+
+function PhotoCard({ photo, i, downloadPhoto, handleShare, handleReport, isSuggested = false }: any) {
+  const [heart, setHeart] = useState(false)
+  
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: i * 0.08 }}
+      className={`group relative glass rounded-[2.8rem] overflow-hidden shadow-2xl border-white/30 hover:shadow-primary/10 transition-all duration-500 ${isSuggested ? 'grayscale-[0.5] hover:grayscale-0' : ''}`}
+    >
+      <div className="absolute top-5 left-5 z-20">
+        <div className={`glass-card bg-white/70 dark:bg-black/70 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-xl border border-white/40`}>
+          <Zap size={14} className={isSuggested ? 'text-amber-500 fill-amber-500' : 'text-emerald-500 fill-emerald-500'} />
+          <span className="text-[10px] font-black text-foreground uppercase tracking-widest leading-none">
+            {photo.confidence_score?.toFixed(0)}% {isSuggested ? 'Match' : 'Precise'}
+          </span>
+        </div>
+      </div>
+
+      <div className="relative aspect-[4/5] overflow-hidden bg-white/10">
+        <img
+          src={photo.photo_url || photo.thumbnail_url}
+          alt=""
+          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+          loading="lazy"
+        />
+        
+        <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+          <div className="flex gap-3">
+            <button 
+              onClick={() => downloadPhoto(photo.photo_url, photo.photo_id)}
+              className="flex-1 bg-white hover:bg-primary hover:text-white text-foreground p-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+            >
+              <Download size={16} /> Get High-Res
+            </button>
+            <button 
+              onClick={() => handleShare(photo.photo_url)}
+              className="w-14 h-14 bg-white/20 hover:bg-white text-white hover:text-foreground rounded-2xl flex items-center justify-center transition-all backdrop-blur-md"
+            >
+              <Share2 size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setHeart(!heart)}
+            className={`p-3 rounded-2xl glass transition-all ${heart ? 'aurora-bg text-white' : 'hover:bg-primary/10 text-muted'}`}
+          >
+            <Heart size={18} className={heart ? 'fill-white' : ''} />
+          </button>
+          <button 
+            onClick={() => handleReport(photo.photo_id)}
+            className="p-3 rounded-2xl glass hover:bg-red-500/10 transition-all text-muted/40 hover:text-red-500"
+          >
+            <Flag size={18} />
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-2 pr-2 text-muted/30">
+          <Info size={12} />
+          <span className="text-[8px] font-black uppercase tracking-tighter">AI ID: {photo.photo_id.slice(0, 6)}</span>
+        </div>
+      </div>
+    </motion.div>
   )
 }

@@ -13,5 +13,6 @@ class PhotoMatch(Base):
     photo_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("photos.id", ondelete="CASCADE"))
     guest_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("guests.id", ondelete="CASCADE"))
     confidence_score: Mapped[float] = mapped_column(Float, default=0.0)
+    is_suggested: Mapped[bool] = mapped_column(Boolean, default=False)
     is_reported: Mapped[bool] = mapped_column(Boolean, default=False)
     matched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

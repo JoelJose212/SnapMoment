@@ -117,7 +117,7 @@ async def upload_selfie(
         from app.models.face_index import FaceIndex
         from sqlalchemy import delete
         
-        THRESHOLD = 0.34
+        THRESHOLD = 0.40
         logger.info(f"Performing comprehensive match for event {event_id} (threshold: {THRESHOLD})")
         
         # Search every indexed face in the event, including non-clustered faces
@@ -134,15 +134,26 @@ async def upload_selfie(
         matches = []
         seen_photos = set()
         
+        PRECISION_BASELINE = 0.34
         for photo_id, distance in matches_raw:
             if distance <= THRESHOLD:
                 # Deduplicate: if multiple faces match in one photo, take the best one
                 if photo_id not in seen_photos:
-                    confidence_score = max(0.0, (1.0 - distance / THRESHOLD) * 100)
+                    is_suggested = distance > PRECISION_BASELINE
+                    
+                    # If suggested, we normalize confidence to 0-80% to manage expectations
+                    if is_suggested:
+                        # 0.34 -> 80%, 0.40 -> 20%
+                        confidence_score = max(20.0, (1.0 - (distance - 0.34) / (0.40 - 0.34)) * 80)
+                    else:
+                        # 0.0 -> 100%, 0.34 -> 90%
+                        confidence_score = max(90.0, (1.0 - distance / 0.34) * 100)
+                    
                     matches.append({
                         "photo_id": str(photo_id),
                         "distance": float(distance),
                         "confidence_score": round(float(confidence_score), 2),
+                        "is_suggested": is_suggested
                     })
                     seen_photos.add(photo_id)
 
@@ -154,6 +165,7 @@ async def upload_selfie(
                 photo_id=uuid.UUID(match["photo_id"]),
                 guest_id=uuid.UUID(guest_id),
                 confidence_score=match["confidence_score"],
+                is_suggested=match["is_suggested"],
             )
             db.add(pm)
 

@@ -120,9 +120,9 @@ def match_selfie_to_event(selfie_embedding: list, event_photos: list) -> list:
         return []
  
     # ArcFace Cosine Distance Threshold.
-    # 0.34 = balanced high-confidence match.
-    # ArcFace paper recommends 0.25-0.35 for production use.
-    THRESHOLD = 0.34
+    # 0.40 = Inclusive matching (Tiered: <0.34=Precise, 0.34-0.40=Suggested).
+    # ArcFace paper recommends 0.25-0.35 for production hide precision.
+    THRESHOLD = 0.40
     matches = []
     
     # 1. Prepare data for NumPy vectorization
@@ -174,9 +174,9 @@ def match_selfie_to_event(selfie_embedding: list, event_photos: list) -> list:
 
     # 5. Format results
     for pid, best_dist in photo_best_matches.items():
-        # Recalibrated confidence formula:
+        # Recalibrated confidence formula (normalized to 0.34 baseline):
         # dist 0.0  -> 100%
-        # dist 0.34 -> 0%  (threshold boundary)
+        # dist 0.34 -> 0%  (precision boundary)
         confidence_score = max(0.0, (1.0 - best_dist / 0.34) * 100)
         matches.append({
             "photo_id": pid,
@@ -206,8 +206,8 @@ def cluster_event_faces(face_data: list) -> list:
     embeddings = np.array([fd["embedding"] for fd in face_data], dtype=np.float32)
     photo_ids  = [fd["photo_id"] for fd in face_data]
 
-    # eps=0.34 matches our match threshold; min_samples=2 = a person must appear at least twice
-    db = DBSCAN(eps=0.34, min_samples=2, metric="cosine", n_jobs=-1)
+    # eps=0.40 matches our inclusive match threshold
+    db = DBSCAN(eps=0.40, min_samples=2, metric="cosine", n_jobs=-1)
     labels = db.fit_predict(embeddings)
 
     clusters_dict: dict = {}
@@ -247,7 +247,7 @@ def match_selfie_to_clusters(selfie_embedding: list, clusters: list) -> list:
     if not clusters:
         return []
 
-    THRESHOLD = 0.34
+    THRESHOLD = 0.40
     selfie_vec = l2_normalize(np.array(selfie_embedding, dtype=np.float32))
     centroids  = np.array([c["centroid"] for c in clusters], dtype=np.float32)
 

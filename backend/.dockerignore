@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+uploads/
+.env
+pip_err*.txt
+.pyre_configuration
