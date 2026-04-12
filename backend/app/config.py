@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: str = "admin@snapmoment.app"
     ADMIN_PASSWORD: str
 
+    # SMTP Settings (Gmail)
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASS: Optional[str] = None
+
     FRONTEND_URL: str = "http://localhost:3000"
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
 

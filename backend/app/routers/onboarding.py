@@ -8,6 +8,9 @@ from app.models.photographer import Photographer
 from app.services.auth import require_photographer
 from app.config import settings
 from app.services.invoice import generate_invoice_pdf
+from app.services.email import send_invoice_email
+from app.models.invoice import Invoice
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/onboarding", tags=["onboarding"])
 
@@ -101,15 +104,32 @@ async def verify_payment(
     await db.commit()
     
     try:
-        generate_invoice_pdf(
+        amount_inr = 1499 if photographer.plan == "pro" else 4999
+        pdf_path = generate_invoice_pdf(
             name=photographer.full_name,
             studio_name=photographer.studio_name or "",
             email=photographer.email,
             plan_name=photographer.plan,
-            amount_inr=1499 if photographer.plan == "pro" else 4999,
+            amount_inr=amount_inr,
             payment_id=payment_id
         )
+        
+        # Save to DB
+        invoice_rec = Invoice(
+            id=uuid.uuid4(),
+            photographer_id=photographer.id,
+            order_id=data.get("razorpay_order_id", f"ord_{uuid.uuid4().hex[:8]}"),
+            payment_id=payment_id,
+            amount=float(amount_inr),
+            pdf_url=pdf_path
+        )
+        db.add(invoice_rec)
+        await db.commit()
+        
+        # Send Email
+        send_invoice_email(photographer.email, photographer.full_name, pdf_path)
+        
     except Exception as e:
-        print("Invoice Error:", e)
+        print("Invoice/Email Error:", e)
         
     return {"message": "Payment verified", "onboarding_step": 6}

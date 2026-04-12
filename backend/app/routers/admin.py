@@ -7,6 +7,7 @@ from app.models.photographer import Photographer
 from app.models.event import Event
 from app.models.photo import Photo
 from app.models.guest import Guest
+from app.models.invoice import Invoice
 from app.schemas import AdminPhotographerUpdate, PhotographerOut, EventOut, AdminStatsOut
 from app.services.auth import require_admin
 from datetime import datetime, timedelta
@@ -133,6 +134,14 @@ async def suspend_photographer(photographer_id: str, current_user: dict = Depend
     photographer.subscription_expires_at = datetime.utcnow() - timedelta(minutes=1)
     await db.commit()
     return {"message": "Account suspended successfully"}
+
+@router.get("/invoices")
+async def list_invoices(
+    current_user: dict = Depends(require_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Invoice).order_by(Invoice.created_at.desc()))
+    return result.scalars().all()
 
 @router.get("/stats")
 async def get_stats(current_user: dict = Depends(require_admin), db: AsyncSession = Depends(get_db)):

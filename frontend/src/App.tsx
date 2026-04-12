@@ -25,7 +25,7 @@ import PhotographerUpload from './pages/photographer/PhotographerUpload'
 import PhotographerQR from './pages/photographer/PhotographerQR'
 import PhotographerAnalytics from './pages/photographer/PhotographerAnalytics'
 import PhotographerProfile from './pages/photographer/PhotographerProfile'
-import OnboardingWizard from './pages/photographer/OnboardingWizard'
+import OnboardingWizard from '@/pages/photographer/OnboardingWizard'
 
 // Admin
 import AdminLayout from './pages/admin/AdminLayout'
@@ -34,6 +34,7 @@ import AdminPhotographers from './pages/admin/AdminPhotographers'
 import AdminEvents from './pages/admin/AdminEvents'
 import AdminAnalytics from './pages/admin/AdminAnalytics'
 import AdminMessages from './pages/admin/AdminMessages'
+import AdminInvoices from './pages/admin/AdminInvoices'
 import AdminSettings from './pages/admin/AdminSettings'
 import { ThemeProvider } from './components/shared/ThemeProvider'
 
@@ -77,6 +78,7 @@ export default function App() {
           <Route path="photographers" element={<AdminPhotographers />} />
           <Route path="events" element={<AdminEvents />} />
           <Route path="messages" element={<AdminMessages />} />
+          <Route path="invoices" element={<AdminInvoices />} />
           <Route path="analytics" element={<AdminAnalytics />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>

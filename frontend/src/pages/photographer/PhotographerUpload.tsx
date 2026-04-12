@@ -1,11 +1,13 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Upload, Trash2, Brain, CheckCircle, Image, X, Sparkles, CloudUpload, Zap } from 'lucide-react'
+import { Upload, Trash2, Brain, CheckCircle, Image, X, Sparkles, CloudUpload, Zap, FolderSync, Play, Pause } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { photosApi } from '../../lib/api'
+
+const SUPPORTED_EXTS = ['.jpeg', '.jpg', '.jpe', '.raw', '.cr3', '.webp', '.avif']
 
 export default function PhotographerUpload() {
   const { id: eventId } = useParams()
@@ -15,10 +17,80 @@ export default function PhotographerUpload() {
   const [processing, setProcessing] = useState(false)
   const [processStatus, setProcessStatus] = useState<any>(null)
 
-  const { data: photos = [], isLoading } = useQuery({
+  // Tethering State
+  const [isTethering, setIsTethering] = useState(false)
+  const [tetherFolder, setTetherFolder] = useState<FileSystemDirectoryHandle | null>(null)
+  const [syncingFiles, setSyncingFiles] = useState<{ [key: string]: 'pending' | 'success' | 'error' }>({})
+  const seenFilesRef = useRef<Set<string>>(new Set())
+
+  const { data: photos = [] } = useQuery({
     queryKey: ['event-photos', eventId],
     queryFn: () => photosApi.list(eventId!).then((r) => r.data),
   })
+
+  // Sync loop for Tethering
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null
+    
+    const syncFolder = async () => {
+      if (!tetherFolder || !isTethering) return
+
+      try {
+        const newFiles: File[] = []
+        // Iterate through directory entries
+        for await (const entry of (tetherFolder as any).values()) {
+          if (entry.kind === 'file') {
+            const name = entry.name.toLowerCase()
+            const match = SUPPORTED_EXTS.some(ext => name.endsWith(ext))
+            
+            if (match && !seenFilesRef.current.has(entry.name)) {
+              const file = await entry.getFile()
+              newFiles.push(file)
+              seenFilesRef.current.add(entry.name)
+            }
+          }
+        }
+
+        if (newFiles.length > 0) {
+          toast.success(`Tethering: Syncing ${newFiles.length} new captures...`)
+          const formData = new FormData()
+          newFiles.forEach((file) => formData.append('files', file))
+          await photosApi.upload(eventId!, formData)
+          qc.invalidateQueries({ queryKey: ['event-photos', eventId] })
+        }
+      } catch (err) {
+        console.error('Tethering Sync Error:', err)
+        setIsTethering(false)
+        toast.error('Tethering interrupted. Please re-connect.')
+      }
+    }
+
+    if (isTethering) {
+      interval = setInterval(syncFolder, 4000)
+    }
+
+    return () => { if (interval) clearInterval(interval) }
+  }, [isTethering, tetherFolder, eventId, qc])
+
+  const handleTetherToggle = async () => {
+    if (isTethering) {
+      setIsTethering(false)
+      return
+    }
+
+    try {
+      // @ts-ignore
+      const handle = await window.showDirectoryPicker()
+      setTetherFolder(handle)
+      setIsTethering(true)
+      seenFilesRef.current.clear() // Reset on new connection if needed, or keep to avoid re-upload
+      toast.success('Live RAW Tethering Active! Watching folder...')
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        toast.error('Failed to access local folder')
+      }
+    }
+  }
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -70,12 +142,41 @@ export default function PhotographerUpload() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-10"
     >
-      <header className="px-2">
-        <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs uppercase tracking-[0.2em]">
-          <CloudUpload size={14} /> Content Ingestion
+      <header className="px-2 flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-2 text-primary font-bold text-xs uppercase tracking-[0.2em]">
+            <CloudUpload size={14} /> Content Ingestion
+          </div>
+          <h1 className="text-5xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans"' }}>Upload Photos</h1>
+          <p className="text-muted font-medium mt-2">Feed your AI-powered gallery</p>
         </div>
-        <h1 className="text-5xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans"' }}>Upload Photos</h1>
-        <p className="text-muted font-medium mt-2">Feed your AI-powered gallery</p>
+
+        {/* RAW Tethering Button */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleTetherToggle}
+          className={`relative overflow-hidden flex items-center gap-4 px-8 py-5 rounded-[2rem] border-2 transition-all shadow-2xl ${
+            isTethering 
+              ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-600' 
+              : 'border-white/10 bg-white/5 text-subtle hover:text-foreground'
+          }`}
+        >
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isTethering ? 'bg-emerald-500 text-white shadow-emerald-xl' : 'bg-white/10'}`}>
+            {isTethering ? <FolderSync className="animate-spin-slow" size={20} /> : <Play size={20} />}
+          </div>
+          <div className="text-left">
+            <div className="text-sm font-black uppercase tracking-widest">
+              {isTethering ? 'RAW Tether Active' : 'Enable RAW Sync'}
+            </div>
+            <div className="text-[10px] font-bold opacity-60">
+              {isTethering ? 'Watching: ' + tetherFolder?.name : 'Connect local camera folder'}
+            </div>
+          </div>
+          {isTethering && (
+            <div className="ml-4 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          )}
+        </motion.button>
       </header>
 
       {/* Dropzone Area */}
@@ -112,7 +213,7 @@ export default function PhotographerUpload() {
             </div>
             <h3 className="text-2xl font-bold text-foreground">Drop your captures here</h3>
             <p className="text-muted mt-2 text-sm">Drag and drop photos or click to browse local storage</p>
-            <p className="text-[10px] font-black uppercase tracking-widest opacity-30 mt-6">Supports JPG • PNG • HEIC</p>
+            <p className="text-[10px] font-black uppercase tracking-widest opacity-30 mt-6">Supports {SUPPORTED_EXTS.join(' • ').toUpperCase()}</p>
           </div>
 
           {uploading && (
@@ -189,11 +290,7 @@ export default function PhotographerUpload() {
           </h3>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5].map((i) => <div key={i} className="skeleton rounded-[2rem] aspect-square" />)}
-          </div>
-        ) : photos.length === 0 ? (
+        {photos.length === 0 ? (
           <div className="text-center py-20 bg-white/20 dark:bg-black/10 rounded-[2.5rem] border border-border border-dashed">
             <Image size={48} className="mx-auto mb-4 opacity-10" />
             <p className="text-muted font-medium italic">Your creative canvas is empty</p>

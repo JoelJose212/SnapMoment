@@ -111,6 +111,7 @@ export const adminApi = {
   events: (params?: any) => api.get('/api/admin/events', { params }),
   deleteEvent: (id: string) => api.delete(`/api/admin/events/${id}`),
   stats: () => api.get('/api/admin/stats'),
+  invoices: () => api.get('/api/admin/invoices'),
   messages: () => api.get('/api/admin/messages'),
   resolveMessage: (id: string) => api.patch(`/api/admin/messages/${id}/resolve`),
   deleteMessage: (id: string) => api.delete(`/api/admin/messages/${id}`),
