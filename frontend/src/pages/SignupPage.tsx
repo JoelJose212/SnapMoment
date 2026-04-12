@@ -19,8 +19,8 @@ export default function SignupPage() {
     setLoading(true)
     try {
       const res = await authApi.signup(form)
-      const { access_token, role, user_id, full_name } = res.data
-      setAuth(access_token, role, user_id, full_name)
+      const { access_token, role, user_id, full_name, onboarding_step } = res.data
+      setAuth(access_token, role, user_id, full_name, onboarding_step)
       toast.success(`Welcome to SnapMoment, ${full_name}! 📸`)
       navigate('/photographer/events')
     } catch (err: any) {

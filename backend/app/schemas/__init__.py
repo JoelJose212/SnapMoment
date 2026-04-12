@@ -24,6 +24,7 @@ class TokenResponse(BaseModel):
     role: str
     user_id: str
     full_name: str
+    onboarding_step: int = 1
 
 
 # --- Photographer Schemas ---

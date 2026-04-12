@@ -25,6 +25,7 @@ import PhotographerUpload from './pages/photographer/PhotographerUpload'
 import PhotographerQR from './pages/photographer/PhotographerQR'
 import PhotographerAnalytics from './pages/photographer/PhotographerAnalytics'
 import PhotographerProfile from './pages/photographer/PhotographerProfile'
+import OnboardingWizard from './pages/photographer/OnboardingWizard'
 
 // Admin
 import AdminLayout from './pages/admin/AdminLayout'
@@ -56,6 +57,9 @@ export default function App() {
         <Route path="/event/:token/otp" element={<OTPPage />} />
         <Route path="/event/:token/selfie" element={<SelfiePage />} />
         <Route path="/event/:token/gallery" element={<GalleryPage />} />
+
+        {/* Onboarding - protected but not dashboard */}
+        <Route path="/onboarding" element={<ProtectedRoute requiredRole="photographer"><OnboardingWizard /></ProtectedRoute>} />
 
         {/* Photographer - protected */}
         <Route path="/photographer" element={<ProtectedRoute requiredRole="photographer"><PhotographerLayout /></ProtectedRoute>}>

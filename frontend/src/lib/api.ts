@@ -57,6 +57,15 @@ export const authApi = {
   me: () => api.get('/api/auth/me'),
 }
 
+// Onboarding endpoints
+export const onboardingApi = {
+  step2: (data: any) => api.post('/api/onboarding/step2', data),
+  step3: (data: any) => api.post('/api/onboarding/step3', data),
+  step4: () => api.post('/api/onboarding/step4'),
+  createOrder: () => api.post('/api/onboarding/create-order'),
+  verifyPayment: (data: any) => api.post('/api/onboarding/verify-payment', data),
+}
+
 // Event endpoints
 export const eventsApi = {
   list: () => api.get('/api/events'),

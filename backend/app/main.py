@@ -7,7 +7,7 @@ from pathlib import Path
 
 from app.config import settings
 from app.database import init_db
-from app.routers import auth, events, photos, guest, admin, analytics
+from app.routers import auth, events, photos, guest, admin, analytics, onboarding
 
 
 @asynccontextmanager
@@ -48,6 +48,7 @@ app.include_router(photos.router)
 app.include_router(guest.router)
 app.include_router(admin.router)
 app.include_router(analytics.router)
+app.include_router(onboarding.router)
 
 
 @app.get("/api/health")

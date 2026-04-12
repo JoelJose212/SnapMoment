@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 
 interface ProtectedRouteProps {
@@ -7,7 +7,8 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { token, role } = useAuthStore()
+  const { token, role, onboardingStep } = useAuthStore()
+  const loc = useLocation()
 
   if (!token) {
     return <Navigate to="/login" replace />
@@ -15,6 +16,10 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
 
   if (requiredRole && role !== requiredRole) {
     return <Navigate to="/" replace />
+  }
+
+  if (role === 'photographer' && onboardingStep < 6 && !loc.pathname.startsWith('/onboarding')) {
+    return <Navigate to="/onboarding" replace />
   }
 
   return <>{children}</>

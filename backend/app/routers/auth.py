@@ -33,7 +33,7 @@ async def signup(data: SignupRequest, db: AsyncSession = Depends(get_db)):
     await db.refresh(photographer)
 
     token = create_token({"sub": str(photographer.id), "role": "photographer", "email": photographer.email})
-    return TokenResponse(access_token=token, role="photographer", user_id=str(photographer.id), full_name=photographer.full_name)
+    return TokenResponse(access_token=token, role="photographer", user_id=str(photographer.id), full_name=photographer.full_name, onboarding_step=photographer.onboarding_step)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -47,7 +47,7 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=403, detail="Account is deactivated")
 
     token = create_token({"sub": str(photographer.id), "role": "photographer", "email": photographer.email})
-    return TokenResponse(access_token=token, role="photographer", user_id=str(photographer.id), full_name=photographer.full_name)
+    return TokenResponse(access_token=token, role="photographer", user_id=str(photographer.id), full_name=photographer.full_name, onboarding_step=photographer.onboarding_step)
 
 
 @router.post("/admin/login", response_model=TokenResponse)

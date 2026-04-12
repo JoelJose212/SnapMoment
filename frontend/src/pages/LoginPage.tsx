@@ -21,8 +21,8 @@ export default function LoginPage() {
       const res = isAdmin
         ? await authApi.adminLogin(form)
         : await authApi.login(form)
-      const { access_token, role, user_id, full_name } = res.data
-      setAuth(access_token, role, user_id, full_name)
+      const { access_token, role, user_id, full_name, onboarding_step } = res.data
+      setAuth(access_token, role, user_id, full_name, onboarding_step)
       toast.success(`Welcome back, ${full_name}! 📸`)
       navigate(role === 'admin' ? '/admin' : '/photographer/events')
     } catch (err: any) {

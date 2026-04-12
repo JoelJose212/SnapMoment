@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     MSG91_AUTH_KEY: Optional[str] = None
     DEV_MODE: bool = True
 
+    S3_PUBLIC_DOMAIN: str = ""
+
+    # RAZORPAY
+    RAZORPAY_KEY_ID: str = "rzp_test_placeholder"
+    RAZORPAY_KEY_SECRET: str = "rzp_test_secret_placeholder"
+
     ADMIN_EMAIL: str = "admin@snapmoment.app"
     ADMIN_PASSWORD: str
 
