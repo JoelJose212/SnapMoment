@@ -23,12 +23,12 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 ## ✨ Key Features
 
 - **⚡ Instant AI Delivery**: Photos reach guests within seconds of upload using autonomous matching.
+- **📷 RAW Live Tethering**: Connect your camera's local folder via the **Folder Sync Engine** for instant over-the-air ingestion. Supports `.RAW`, `.CR3`, `.WebP`, and more.
 - **🧠 Neural-Lock Selfie**: Real-time biometric guidance (MediaPipe) ensures guests capture high-quality, matchable selfies.
-- **🔍 Smart Person Clustering**: Uses **DBSCAN (Density-Based Spatial Clustering of Applications with Noise)** to group faces into distinct personas, improving matching accuracy even in varied event lighting.
-- **🚀 High-Speed Search**: Powered by **pgvector** with HNSW indexing for sub-millisecond matching across tens of thousands of photos.
-- **💎 Premium UI/UX**: Professional dashboard with glassmorphism, fluid animations, and a mobile-first guest experience.
-- **🔒 Privacy-Focused**: Facial data is stored only as 512-dimensional mathematical vectors. Raw selfies are processed in-memory.
-- **🛠️ Infrastructure Hardening**: Automated storage maintenance with Docker compaction tools and robust async processing.
+- **🔍 Smart Person Clustering**: Uses **DBSCAN** to group faces into distinct personas, improving matching accuracy.
+- **💳 Pro Billing & Subscriptions**: Integrated **Razorpay** checkout with automated **PDF Invoice** generation and Gmail distribution.
+- **🚀 High-Speed Search**: Powered by **pgvector** with HNSW indexing for sub-millisecond matching.
+- **🔒 Privacy-Focused**: Facial data is stored only as 512-dimensional vectors. RAW selfies are processed in-memory.
 
 ---
 
@@ -67,6 +67,9 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 
 ### Backend
 - **Framework**: FastAPI (Python 3.10+)
+- **Billing**: Razorpay API Integration
+- **Invoicing**: FPDF (Automated PDF Engine)
+- **Emails**: Gmail SMTP Integration
 - **Async ORM**: SQLAlchemy 2.0 (with asyncpg)
 - **Background Tasks**: Celery + Redis
 - **Clustering**: Scikit-Learn (DBSCAN)
@@ -92,27 +95,33 @@ graph LR
     Guest([Event Guest])
     S3([Cloud Storage / AWS S3])
     SMS([SMS Gateway])
+    RP([Razorpay Gateway])
+    Gmail([Gmail SMTP])
 
     %% Central Process (Box)
     System[[SnapMoment AI Platform]]
 
     %% Data Flows
-    Photog -- "Event Setup / Bulk Photos" --> System
+    Photog -- "Event Setup / Folder Sync" --> System
     System -- "QR Code / Analytics" --> Photog
 
     Guest -- "Selfie / OTP Request" --> System
     System -- "Personal Gallery" --> Guest
 
+    System -- "Payment Tracking" <--> RP
+    System -- "Email Invoices" --> Gmail
+    System -- "SMS Pin Request" --> SMS
+
     System -- "Store Media" --> S3
     S3 -- "Image CDN URLs" --> System
-
-    System -- "SMS Pin Request" --> SMS
 
     style System fill:#fff,stroke:#333,stroke-width:4px
     style Photog fill:#f9f9f9,stroke:#333
     style Guest fill:#f9f9f9,stroke:#333
     style S3 fill:#f9f9f9,stroke:#333
     style SMS fill:#f9f9f9,stroke:#333
+    style RP fill:#f9f9f9,stroke:#333
+    style Gmail fill:#f9f9f9,stroke:#333
 ```
 
 ### 0.1 Level 1 DFD (Internal Processes)
@@ -126,43 +135,46 @@ flowchart TD
     P1((1.0 Authenticate))
     P2((2.0 Manage Events))
     P3((3.0 AI Face Indexing))
-    P4((4.0 Identity Check))
-    P5((5.0 Biometric Match))
+    P4((4.0 Onboarding & Billing))
+    P5((5.0 Identity Check))
+    P6((6.0 Biometric Match))
 
     %% Data Stores
     D1[(D1: Photographers)]
     D2[(D2: Events)]
     D3[(D3: Photos)]
     D4[(D4: Face Index)]
-    D5[(D5: Matches)]
+    D5[(D5: Invoices)]
 
     %% Photographer Flow
     Photog -- "Credentials" --> P1
     P1 <--> D1
     
+    Photog -- "Subscription" --> P4
+    P4 <--> D5
+    P4 <--> D1
+
     Photog -- "Event Settings" --> P2
     P2 <--> D2
     
-    Photog -- "Image Data" --> P3
+    Photog -- "Folder Sync / RAW" --> P3
     P3 <--> D3
     P3 --> D4
-    D2 -- "Context" --> P3
 
     %% Guest Flow
-    Guest -- "Phone / OTP" --> P4
-    P4 <--> D2
+    Guest -- "Phone / OTP" --> P5
+    P5 <--> D2
     
-    Guest -- "Selfie Trace" --> P5
-    P5 <--> D4
-    P5 --> D5
-    D3 -- "URLs" --> P5
-    P5 -- "Personal Gallery" --> Guest
+    Guest -- "Selfie" --> P6
+    P6 <--> D4
+    P6 -- "Personal Gallery" --> Guest
 
     style P1 fill:#fff,stroke:#333,stroke-width:2px
     style P2 fill:#fff,stroke:#333,stroke-width:2px
     style P3 fill:#fff,stroke:#333,stroke-width:2px
     style P4 fill:#fff,stroke:#333,stroke-width:2px
     style P5 fill:#fff,stroke:#333,stroke-width:2px
+    style P6 fill:#fff,stroke:#333,stroke-width:2px
 ```
 
 ### 1. Database Schema (Logical ER Diagram)
@@ -173,53 +185,37 @@ graph TD
     Event[Event]
     Photo[Photo]
     Guest[Guest]
-    Msg[Message]
+    Invoice[Invoice]
 
     %% Relationships
     Photog_Ev{{"Manages"}}
     Ev_Ph{{"Contains"}}
     Ev_Gs{{"Registers"}}
-    Gs_Ph{{"Matches"}}
+    Photog_Inv{{"Pays"}}
 
-    %% Photographer Attributes
-    p_id([id]) --- Photographer
-    p_name([name]) --- Photographer
-    p_email([email]) --- Photographer
-
-    %% Event Attributes
-    e_id([id]) --- Event
-    e_name([name]) --- Event
-    e_qr([qr_token]) --- Event
-
-    %% Photo Attributes
-    ph_id([id]) --- Photo
-    ph_key([s3_key]) --- Photo
-
-    %% Guest Attributes
-    g_id([id]) --- Guest
-    g_ph([phone]) --- Guest
+    %% Attributes
+    sub_exp([subscription_expires_at]) --- Photographer
+    p_plan([plan]) --- Photographer
+    
+    inv_pdf([pdf_url]) --- Invoice
+    inv_amt([amount]) --- Invoice
 
     %% Connections
     Photographer --- Photog_Ev
+    Photographer --- Photog_Inv
+    Photog_Inv --- Invoice
     Photog_Ev --- Event
     Event --- Ev_Ph
     Ev_Ph --- Photo
     Event --- Ev_Gs
     Ev_Gs --- Guest
-    Guest --- Gs_Ph
-    Gs_Ph --- Photo
 
     %% Styling
     style Photographer fill:#e1f5fe,stroke:#01579b
     style Event fill:#e1f5fe,stroke:#01579b
     style Photo fill:#e1f5fe,stroke:#01579b
     style Guest fill:#e1f5fe,stroke:#01579b
-    style Msg fill:#e1f5fe,stroke:#01579b
-    
-    style Photog_Ev fill:#fff9c4,stroke:#fbc02d
-    style Ev_Ph fill:#fff9c4,stroke:#fbc02d
-    style Ev_Gs fill:#fff9c4,stroke:#fbc02d
-    style Gs_Ph fill:#fff9c4,stroke:#fbc02d
+    style Invoice fill:#f3e5f5,stroke:#7b1fa2
 ```
 
 ### 2. Object Diagram (Hierarchy & Interaction)
@@ -260,32 +256,29 @@ graph TD
 ### 3. Event Lifecycle (Flowchart)
 ```mermaid
 flowchart TD
-    Start([Start: Photographer Setup]) --> Create[Create Event & Settings]
-    Create --> Upload[Bulk Upload Photos]
+    Start([Start: Photographer Signup]) --> Onboard[Onboarding: Studio Setup]
+    Onboard --> Pay[Razorpay: Subscription Payment]
+    Pay --> Create[Create Event & Settings]
+    Create --> RAW{Sync Mode?}
+    RAW -- Manual --> Upload[Bulk Drag-and-Drop]
+    RAW -- Tether --> Folder[Folder Sync Engine]
+    
     Upload --> AI_Proc[AI: ArcFace Feature Extraction]
+    Folder --> AI_Proc
     
-    AI_Proc --> Face_Check{Faces Detected?}
-    Face_Check -- No --> Warn[Notify: No faces found]
-    Face_Check -- Yes --> Cluster[DBSCAN: Person Clustering]
-    
-    Cluster --> Index[pgvector: HNSW Indexing]
-    Index --> QR[Generate Event QR & Token]
+    AI_Proc --> Cluster[DBSCAN Clustering]
+    Cluster --> QR[Generate Event Access Kit]
     
     QR --> Guest_Entry([Guest Scans QR])
-    Guest_Entry --> OTP[OTP Phone Verification]
+    Guest_Entry --> OTP[OTP Verification]
+    OTP -- Yes --> Selfie[Neural-Lock Selfie]
     
-    OTP --> OTP_Check{Valid OTP?}
-    OTP_Check -- No --> OTP
-    OTP_Check -- Yes --> Selfie[Guest: Take Neural-Lock Selfie]
-    
-    Selfie --> Match[AI: Vector Similarity Search]
-    
-    Match --> Match_Check{Matches Found?}
-    Match_Check -- No --> Suggest[Show: All Photos / Retry]
-    Match_Check -- Yes --> Gallery[Display Personal Gallery]
-    
-    Gallery --> DL[Download High-Res Photos]
-    DL --> End([End: Happy Guest])
+    Selfie --> Match[pgvector Search]
+    Match --> Gallery[Personal Gallery]
+    Gallery --> End([End: Happy Guest])
+
+    style Start fill:#f9f,stroke:#333
+    style End fill:#f9f,stroke:#333
 
     style Start fill:#f9f,stroke:#333
     style End fill:#f9f,stroke:#333
@@ -480,40 +473,24 @@ SnapMoment/
 ## 📖 Comprehensive Data Dictionary
 | S. No | Name of Class | Data Member | Data Type | Method / API | Method Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **1** | **Photographer** | `id` | UUID (PK) | `signup()` | Creates a new photographer account. |
-| | | `email` | String (Unique) | `login()` | Authenticates photographer session. |
-| | | `password_hash` | String | `admin_login()` | Backend fallback for admin access (Plaintext). |
+| **1** | **Photographer** | `subscription_expires_at` | DateTime | `suspend_account()` | Automatically hides data after expiry. |
+| | | `plan` | String | `verify_payment()` | Upgrades account capabilities. |
 | **2** | **Event** | `id` | UUID (PK) | `create_event()` | Initializes a new photo event. |
-| | | `qr_token` | String (Unique) | `get_public()` | Guest entry point via QR Token. |
-| | | `photographer_id` | UUID (FK) | `list()` | Filter events by owning photographer. |
-| **3** | **Photo** | `id` | UUID (PK) | `upload_photo()`| Stores raw image in S3/Local storage. |
-| | | `face_indexed` | Boolean | `process_ai()` | Marks photo as biometrically analyzed. |
-| | | `s3_key` | String | `get_signed_url()`| Generates secure time-bound view URL. |
-| **4** | **Guest** | `id` | UUID (PK) | `verify_otp()` | Finalizes guest session after SMS check. |
-| | | `face_embedding` | JSONB (Vector) | `upload_selfie()`| Core biometric point for gallery matching. |
-| | | `phone_number` | String | `send_otp()` | Triggers Redis-backed verification code. |
-| **5** | **FaceIndex** | `embedding` | Vector(512) | `match_event()` | High-speed pgvector similarity search. |
-| | | `photo_id` | UUID (FK) | `index_faces()` | Internal task linking faces to photos. |
-| **6** | **FaceCluster** | `centroid` | Vector(512) | `match_clusters()`| Centroid-based person identification. |
-| | | `face_count` | Integer | `cluster_faces()` | Aggregates faces into person groups. |
-| **7** | **Message** | `id` | UUID (PK) | `send_contact()` | Submits support request to admin panel. |
-| | | `is_resolved` | Boolean | `resolve()` | Admin action to close support tickets. |
+| **3** | **Invoice** | `pdf_url` | String | `generate_pdf()`| Creates professional billing receipts. |
+| | | `amount` | Float | `send_email()` | Distributes invoices via Gmail SMTP. |
+| **4** | **Photo** | `id` | UUID (PK) | `tether_sync()` | Auto-ingests frames from local folders. |
+| **5** | **Guest** | `id` | UUID (PK) | `verify_otp()` | Finalizes guest session after SMS check. |
 
 ---
 
 ## 📖 Input / Output (I/O) Table
 | S. No | Object | Input Details | Output Details |
 | :--- | :--- | :--- | :--- |
-| **1** | **Photographer Signup** | Name, Email, Password, Studio Name | Account creation confirmation |
-| **2** | **Photographer Login** | Email, Password | Login success/failure + JWT Token |
-| **3** | **Event Creation** | Event Name, Event Date, Location | Unique Event ID & QR Access Token |
-| **4** | **Photo Bulk Upload** | Multiple Image Files (JPG/PNG) | Upload status & AI indexing trigger |
-| **5** | **Guest Registration** | Phone Number | SMS OTP sent to mobile device |
-| **6** | **OTP Verification** | 6-Digit SMS Code | Session authorization / Selfie prompt |
-| **7** | **Selfie Submission** | Guest Face Image (Camera/Upload) | Biometric matching process status |
-| **8** | **Biometric Search** | 512-dim Selfie Embedding | List of matching personal photos |
-| **9** | **Photo Download** | Selected Photo ID | High-resolution image direct download |
-| **10** | **Contact/Support** | Name, Email, Inquiry Message | Submission success confirmation |
+| **1** | **Studio Onboarding** | Studio Details, Gear, Fav Plan | Profile setup & Pricing selection |
+| **2** | **Payment Checkout** | Razorpay Order, Card/UPI Details | Payment ID & Activated Workspace |
+| **3** | **Invoice Generation** | Payment Event | Automated PDF Receipt & Email |
+| **4** | **RAW Tethering** | Local Folder Handle | Instant Automatic Cloud Sync |
+| **5** | **Biometric Match** | Guest Selfie | List of Matching Personal Photos |
 
 ---
 
@@ -536,11 +513,12 @@ SnapMoment/
 - **Done ✅**: 
     - Real-time face alignment guidance for guests (MediaPipe).
     - Hardened biometric matching with DBSCAN.
-    - Automated Docker storage compaction utility.
+    - Automated Subscription Billing (Razorpay).
+    - Professional RAW Live Tethering Engine.
+    - Automated Multi-Recipient Invoice PDFs.
 - **Next Up 🚀**: 
     - [ ] Multi-photographer collaboration per event.
     - [ ] Smart AI Auto-cropping for social media formats.
-    - [ ] Advanced analytics and heatmaps for photographers.
     - [ ] Global expansion with international phone support.
 
 ---
