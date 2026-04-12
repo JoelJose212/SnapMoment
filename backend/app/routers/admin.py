@@ -122,6 +122,18 @@ async def force_delete_event(event_id: str, current_user: dict = Depends(require
     return {"message": "Event deleted"}
 
 
+@router.post("/photographers/{photographer_id}/suspend")
+async def suspend_photographer(photographer_id: str, current_user: dict = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(photographer_id)))
+    photographer = result.scalar_one_or_none()
+    if not photographer:
+        raise HTTPException(status_code=404, detail="Photographer not found")
+    
+    # Manually expire the subscription
+    photographer.subscription_expires_at = datetime.utcnow() - timedelta(minutes=1)
+    await db.commit()
+    return {"message": "Account suspended successfully"}
+
 @router.get("/stats")
 async def get_stats(current_user: dict = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     total_photographers = (await db.execute(select(func.count(Photographer.id)).where(Photographer.is_deleted == False))).scalar()

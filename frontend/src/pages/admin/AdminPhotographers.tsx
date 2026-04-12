@@ -20,6 +20,12 @@ export default function AdminPhotographers() {
     onError: () => toast.error('Update failed'),
   })
 
+  const suspendMutation = useMutation({
+    mutationFn: (id: string) => adminApi.suspendPhotographer(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-photographers'] }); toast.success('Account suspended') },
+    onError: () => toast.error('Failed to suspend account'),
+  })
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminApi.deletePhotographer(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-photographers'] }); toast.success('Photographer deleted') },
@@ -29,6 +35,12 @@ export default function AdminPhotographers() {
   const handleDelete = (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete ${name}? This action will permanently remove their access.`)) {
       deleteMutation.mutate(id)
+    }
+  }
+
+  const handleSuspend = (id: string, name: string) => {
+    if (window.confirm(`Suspend ${name}? This will hide all their data until reactivation.`)) {
+      suspendMutation.mutate(id)
     }
   }
 
@@ -99,9 +111,16 @@ export default function AdminPhotographers() {
                         </button>
                       )}
                       <button
+                        onClick={() => handleSuspend(p.id, p.full_name)}
+                        className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-medium bg-amber-500 text-white transition-all hover:bg-amber-600"
+                        title="Suspend Account"
+                      >
+                        <XCircle size={12} /> Suspend
+                      </button>
+                      <button
                         onClick={() => handleDelete(p.id, p.full_name)}
                         className="p-1.5 rounded-lg transition-colors text-text-muted hover:bg-red-50 hover:text-red-500"
-                        title="Delete Photograoher"
+                        title="Delete Photographer"
                       >
                         <Trash2 size={18} />
                       </button>

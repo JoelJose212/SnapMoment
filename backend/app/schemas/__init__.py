@@ -25,6 +25,7 @@ class TokenResponse(BaseModel):
     user_id: str
     full_name: str
     onboarding_step: int = 1
+    subscription_active: bool = True
 
 
 # --- Photographer Schemas ---
@@ -36,6 +37,8 @@ class PhotographerOut(BaseModel):
     studio_name: Optional[str]
     watermark_url: Optional[str]
     plan: str
+    onboarding_step: int
+    subscription_expires_at: Optional[datetime]
     is_active: bool
     is_verified: bool
     created_at: datetime

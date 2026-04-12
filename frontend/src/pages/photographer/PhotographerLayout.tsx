@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Camera, CalendarDays, BarChart2, User, LogOut, ArrowRight } from 'lucide-react'
+import { Camera, CalendarDays, BarChart2, User, LogOut, ArrowRight, AlertTriangle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
 
@@ -10,7 +10,7 @@ const NAV = [
 ]
 
 export default function PhotographerLayout() {
-  const { fullName, logout } = useAuthStore()
+  const { fullName, logout, subscriptionActive } = useAuthStore()
   const navigate = useNavigate()
 
   return (
@@ -105,6 +105,30 @@ export default function PhotographerLayout() {
 
       {/* Content Area */}
       <main className="flex-1 p-6 pl-0 overflow-auto">
+        {!subscriptionActive && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            className="mb-6 rounded-[2rem] p-4 flex items-center justify-between text-white shadow-xl px-8"
+            style={{ background: 'linear-gradient(135deg, #FF6E6C, #67568C)' }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <div className="font-bold text-sm">Account Suspended</div>
+                <p className="text-[11px] opacity-80 font-medium">Your subscription has expired. Please reactivate your account to access your events and photos.</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => navigate('/onboarding')}
+              className="px-6 py-2 rounded-xl bg-white text-[#FF6E6C] text-xs font-black uppercase tracking-widest hover:scale-105 transition-transform"
+            >
+              Reactivate Now
+            </button>
+          </motion.div>
+        )}
         <div className="h-full glass-card rounded-[2.5rem] overflow-hidden p-8 border-white/20">
           <Outlet />
         </div>

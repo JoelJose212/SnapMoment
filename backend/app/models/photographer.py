@@ -26,6 +26,7 @@ class Photographer(Base):
     primary_gear: Mapped[str] = mapped_column(String(200), nullable=True)
     portfolio_url: Mapped[str] = mapped_column(String(500), nullable=True)
     experience_level: Mapped[str] = mapped_column(String(100), nullable=True)
+    subscription_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)

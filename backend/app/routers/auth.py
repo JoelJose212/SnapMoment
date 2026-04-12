@@ -7,6 +7,7 @@ from app.schemas import SignupRequest, LoginRequest, TokenResponse
 from app.services.auth import hash_password, verify_password, create_token, require_photographer, get_current_user
 from app.config import settings
 import uuid
+from datetime import datetime
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -33,7 +34,14 @@ async def signup(data: SignupRequest, db: AsyncSession = Depends(get_db)):
     await db.refresh(photographer)
 
     token = create_token({"sub": str(photographer.id), "role": "photographer", "email": photographer.email})
-    return TokenResponse(access_token=token, role="photographer", user_id=str(photographer.id), full_name=photographer.full_name, onboarding_step=photographer.onboarding_step)
+    return TokenResponse(
+        access_token=token, 
+        role="photographer", 
+        user_id=str(photographer.id), 
+        full_name=photographer.full_name, 
+        onboarding_step=photographer.onboarding_step,
+        subscription_active=True
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -43,11 +51,25 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
 
     if not photographer or photographer.is_deleted or not verify_password(data.password, photographer.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    if not photographer.is_active:
-        raise HTTPException(status_code=403, detail="Account is deactivated")
+
+    sub_active = True
+    if photographer.subscription_expires_at and photographer.subscription_expires_at < datetime.utcnow():
+        sub_active = False
+    
+    # We allow login even if sub is expired, as long as is_deleted is False.
+    # We only block if is_active is specifically False AND it's NOT a subscription expiry case.
+    if not photographer.is_active and sub_active:
+         raise HTTPException(status_code=403, detail="Account is deactivated")
 
     token = create_token({"sub": str(photographer.id), "role": "photographer", "email": photographer.email})
-    return TokenResponse(access_token=token, role="photographer", user_id=str(photographer.id), full_name=photographer.full_name, onboarding_step=photographer.onboarding_step)
+    return TokenResponse(
+        access_token=token, 
+        role="photographer", 
+        user_id=str(photographer.id), 
+        full_name=photographer.full_name, 
+        onboarding_step=photographer.onboarding_step,
+        subscription_active=sub_active
+    )
 
 
 @router.post("/admin/login", response_model=TokenResponse)

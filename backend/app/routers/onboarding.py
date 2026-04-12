@@ -96,6 +96,8 @@ async def verify_payment(
     payment_id = data.get("razorpay_payment_id", f"pay_mock_{uuid.uuid4().hex[:8]}")
     
     photographer.onboarding_step = 6
+    photographer.subscription_expires_at = datetime.utcnow() + timedelta(days=30)
+    photographer.is_active = True
     await db.commit()
     
     try:

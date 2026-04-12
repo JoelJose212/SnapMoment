@@ -11,7 +11,23 @@ from app.models.guest import Guest
 from app.schemas import EventCreate, EventUpdate, EventOut, PublicEventOut
 from app.services.auth import require_photographer
 
+from app.models.photographer import Photographer
+
 router = APIRouter(prefix="/api/events", tags=["events"])
+
+async def check_subscription(photographer_id: str, db: AsyncSession):
+    if photographer_id == "admin": 
+        return True
+    result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(photographer_id)))
+    p = result.scalar_one_or_none()
+    if not p: return False
+    # If is_active is specifically False and sub is still active, we block.
+    # But if sub is expired, we block data management.
+    if p.subscription_expires_at and p.subscription_expires_at < datetime.utcnow():
+        return False
+    if not p.is_active:
+        return False
+    return True
 
 
 def _generate_qr_token() -> str:
@@ -21,6 +37,8 @@ def _generate_qr_token() -> str:
 @router.post("", response_model=EventOut)
 async def create_event(data: EventCreate, current_user: dict = Depends(require_photographer), db: AsyncSession = Depends(get_db)):
     photographer_id = current_user["sub"]
+    if not await check_subscription(photographer_id, db):
+        raise HTTPException(status_code=403, detail="Subscription expired. Please reactivate your account.")
     qr_token = _generate_qr_token()
     event_date = data.event_date
     expires_at = (event_date + timedelta(days=90)) if event_date else (datetime.utcnow() + timedelta(days=90))
@@ -51,6 +69,8 @@ async def create_event(data: EventCreate, current_user: dict = Depends(require_p
 @router.get("", response_model=list[EventOut])
 async def list_events(current_user: dict = Depends(require_photographer), db: AsyncSession = Depends(get_db)):
     photographer_id = current_user["sub"]
+    if not await check_subscription(photographer_id, db):
+        return [] # Hide data per requirement
     result = await db.execute(select(Event).where(Event.photographer_id == uuid.UUID(photographer_id)).order_by(Event.created_at.desc()))
     events = result.scalars().all()
 
@@ -86,6 +106,8 @@ async def get_public_event(qr_token: str, db: AsyncSession = Depends(get_db)):
 
 @router.get("/{event_id}", response_model=EventOut)
 async def get_event(event_id: str, current_user: dict = Depends(require_photographer), db: AsyncSession = Depends(get_db)):
+    if not await check_subscription(current_user["sub"], db):
+        raise HTTPException(status_code=403, detail="Subscription expired")
     result = await db.execute(select(Event).where(Event.id == uuid.UUID(event_id)))
     event = result.scalar_one_or_none()
     if not event:
@@ -104,6 +126,8 @@ async def get_event(event_id: str, current_user: dict = Depends(require_photogra
 
 @router.patch("/{event_id}", response_model=EventOut)
 async def update_event(event_id: str, data: EventUpdate, current_user: dict = Depends(require_photographer), db: AsyncSession = Depends(get_db)):
+    if not await check_subscription(current_user["sub"], db):
+        raise HTTPException(status_code=403, detail="Subscription expired")
     result = await db.execute(select(Event).where(Event.id == uuid.UUID(event_id)))
     event = result.scalar_one_or_none()
     if not event:
@@ -123,6 +147,8 @@ async def update_event(event_id: str, data: EventUpdate, current_user: dict = De
 
 @router.delete("/{event_id}")
 async def delete_event(event_id: str, current_user: dict = Depends(require_photographer), db: AsyncSession = Depends(get_db)):
+    if not await check_subscription(current_user["sub"], db):
+        raise HTTPException(status_code=403, detail="Subscription expired")
     from app.models.photo import Photo as PhotoModel
     from app.services.s3 import delete_file
 

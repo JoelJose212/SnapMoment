@@ -107,6 +107,7 @@ export const adminApi = {
   photographers: (params?: any) => api.get('/api/admin/photographers', { params }),
   updatePhotographer: (id: string, data: any) => api.patch(`/api/admin/photographers/${id}`, data),
   deletePhotographer: (id: string) => api.delete(`/api/admin/photographers/${id}`),
+  suspendPhotographer: (id: string) => api.post(`/api/admin/photographers/${id}/suspend`),
   events: (params?: any) => api.get('/api/admin/events', { params }),
   deleteEvent: (id: string) => api.delete(`/api/admin/events/${id}`),
   stats: () => api.get('/api/admin/stats'),

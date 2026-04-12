@@ -6,10 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { eventsApi } from '../../lib/api'
 
+import { useAuthStore } from '../../store/authStore'
+
 const EVENT_TYPES = ['wedding', 'birthday', 'college', 'corporate', 'anniversary', 'other']
 
 export default function PhotographerEvents() {
   const qc = useQueryClient()
+  const { subscriptionActive } = useAuthStore()
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name: '', type: 'wedding', event_date: '', location: '', description: '' })
 
@@ -74,8 +77,9 @@ export default function PhotographerEvents() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          disabled={!subscriptionActive}
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-8 py-4 rounded-[1.5rem] text-sm font-bold text-white shadow-xl transition-all aurora-bg"
+          className={`flex items-center gap-2 px-8 py-4 rounded-[1.5rem] text-sm font-bold text-white shadow-xl transition-all aurora-bg ${!subscriptionActive ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <Plus size={18} /> New Studio Event
         </motion.button>
@@ -93,13 +97,26 @@ export default function PhotographerEvents() {
           className="text-center py-24 bg-white/5 rounded-[3rem] border-2 border-dashed border-border flex flex-col items-center"
         >
           <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-6">
-            <Calendar size={32} className="text-subtle" />
+             {subscriptionActive ? <Calendar size={32} className="text-subtle" /> : <X size={32} className="text-primary" />}
           </div>
-          <h3 className="text-2xl font-bold text-foreground">Awaiting Your First Story</h3>
-          <p className="text-muted mt-2 max-w-xs mx-auto text-sm leading-relaxed">Your creative portfolio starts here. Create an event to begin capturing moments.</p>
-          <button onClick={() => setShowModal(true)} className="mt-8 px-8 py-3.5 rounded-2xl text-sm font-bold text-white transition-all shadow-lg aurora-bg">
-            Initialize Event
-          </button>
+          <h3 className="text-2xl font-bold text-foreground">
+             {subscriptionActive ? 'Awaiting Your First Story' : 'Events Hidden'}
+          </h3>
+          <p className="text-muted mt-2 max-w-xs mx-auto text-sm leading-relaxed">
+             {subscriptionActive 
+               ? 'Your creative portfolio starts here. Create an event to begin capturing moments.'
+               : 'Your data is securely preserved but hidden until your subscription is reactivated.'
+             }
+          </p>
+          {subscriptionActive ? (
+            <button onClick={() => setShowModal(true)} className="mt-8 px-8 py-3.5 rounded-2xl text-sm font-bold text-white transition-all shadow-lg aurora-bg">
+              Initialize Event
+            </button>
+          ) : (
+            <Link to="/onboarding" className="mt-8 px-8 py-3.5 rounded-2xl text-sm font-bold text-white transition-all shadow-lg aurora-bg block">
+              Reactivate Account
+            </Link>
+          )}
         </motion.div>
       ) : (
         <motion.div 

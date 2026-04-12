@@ -6,9 +6,10 @@ interface AuthState {
   userId: string | null
   fullName: string | null
   onboardingStep: number
+  subscriptionActive: boolean
   guestToken: string | null
   guestEventId: string | null
-  setAuth: (token: string, role: string, userId: string, fullName: string, onboardingStep: number) => void
+  setAuth: (token: string, role: string, userId: string, fullName: string, onboardingStep: number, subscriptionActive: boolean) => void
   setGuestAuth: (token: string, eventId: string) => void
   logout: () => void
   logoutGuest: () => void
@@ -20,16 +21,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   userId: localStorage.getItem('snapmoment_user_id'),
   fullName: localStorage.getItem('snapmoment_full_name'),
   onboardingStep: parseInt(localStorage.getItem('snapmoment_onboarding_step') || '1', 10),
+  subscriptionActive: localStorage.getItem('snapmoment_subscription_active') !== 'false',
   guestToken: localStorage.getItem('snapmoment_guest_token'),
   guestEventId: localStorage.getItem('snapmoment_guest_event_id'),
 
-  setAuth: (token, role, userId, fullName, onboardingStep) => {
+  setAuth: (token, role, userId, fullName, onboardingStep, subscriptionActive) => {
     localStorage.setItem('snapmoment_token', token)
     localStorage.setItem('snapmoment_role', role)
     localStorage.setItem('snapmoment_user_id', userId)
     localStorage.setItem('snapmoment_full_name', fullName)
     localStorage.setItem('snapmoment_onboarding_step', onboardingStep.toString())
-    set({ token, role, userId, fullName, onboardingStep })
+    localStorage.setItem('snapmoment_subscription_active', subscriptionActive.toString())
+    set({ token, role, userId, fullName, onboardingStep, subscriptionActive })
   },
 
   setGuestAuth: (token, eventId) => {
@@ -44,7 +47,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem('snapmoment_user_id')
     localStorage.removeItem('snapmoment_full_name')
     localStorage.removeItem('snapmoment_onboarding_step')
-    set({ token: null, role: null, userId: null, fullName: null, onboardingStep: 1 })
+    localStorage.removeItem('snapmoment_subscription_active')
+    set({ token: null, role: null, userId: null, fullName: null, onboardingStep: 1, subscriptionActive: true })
   },
 
   logoutGuest: () => {
