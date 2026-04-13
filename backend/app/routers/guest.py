@@ -16,6 +16,10 @@ from app.services.redis_service import generate_otp, store_otp, verify_otp, chec
 from app.services import s3 as s3_service
 from app.services.face_engine import extract_embedding, match_selfie_to_event, match_selfie_to_clusters
 from app.config import settings
+from app.models.photographer import Photographer
+from app.utils.watermark import apply_text_watermark
+from fastapi.responses import StreamingResponse
+import io
 import logging
 
 router = APIRouter(prefix="/api/guest", tags=["guest"])
@@ -223,3 +227,51 @@ async def report_photo(photo_id: str, current_guest: dict = Depends(get_guest_us
     match.is_reported = True
     await db.commit()
     return {"message": "Reported"}
+
+
+@router.get("/gallery/{photo_id}/download")
+async def download_photo(
+    photo_id: str,
+    format: str = "original",  # original, 1x1, 9:16
+    current_guest: dict = Depends(get_guest_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. Get Photo
+    result = await db.execute(select(Photo).where(Photo.id == uuid.UUID(photo_id)))
+    photo = result.scalar_one_or_none()
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    
+    # 2. Get Studio Name
+    result = await db.execute(
+        select(Photographer.studio_name)
+        .join(Event, Event.photographer_id == Photographer.id)
+        .where(Event.id == photo.event_id)
+    )
+    studio_name = result.scalar() or "SnapMoment"
+    watermark_text = f"Captured by {studio_name}"
+
+    # 3. Determine Storage Key
+    if format == "1x1":
+        key = f"crops/{photo.id}_1x1.jpg"
+    elif format == "9:16":
+        key = f"crops/{photo.id}_9:16.jpg" # Note: our logic used _9x16 earlier, checking...
+        # Let's use the actual stored format from face_indexing
+        key = f"crops/{photo.id}_9x16.jpg" 
+    else:
+        key = photo.s3_key
+
+    # 4. Fetch and Watermark
+    try:
+        image_bytes = await s3_service.read_file(key)
+        watermarked_bytes = apply_text_watermark(image_bytes, watermark_text)
+        
+        return StreamingResponse(
+            io.BytesIO(watermarked_bytes),
+            media_type="image/jpeg",
+            headers={"Content-Disposition": f"attachment; filename=SnapMoment_{photo_id}_{format}.jpg"}
+        )
+    except Exception as e:
+        logger.error(f"Download failed: {e}")
+        raise HTTPException(status_code=500, detail="Could not process image for download")
+

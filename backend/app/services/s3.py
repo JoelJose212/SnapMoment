@@ -57,6 +57,26 @@ async def delete_file(key: str) -> None:
         s3.delete_object(Bucket=settings.AWS_S3_BUCKET, Key=key)
 
 
+async def read_file(key: str) -> bytes:
+    """Fetch file bytes from storage."""
+    if settings.USE_LOCAL_STORAGE:
+        path = Path(settings.LOCAL_STORAGE_PATH) / key
+        async with aiofiles.open(path, "rb") as f:
+            return await f.read()
+    else:
+        import boto3
+        s3 = boto3.client(
+            "s3",
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_REGION,
+        )
+        import io
+        fileobj = io.BytesIO()
+        s3.download_fileobj(settings.AWS_S3_BUCKET, key, fileobj)
+        return fileobj.getvalue()
+
+
 def get_signed_url(key: str, expiry_seconds: int = 7200) -> str:
     if settings.USE_LOCAL_STORAGE:
         return f"{settings.LOCAL_STORAGE_BASE_URL}/{key}"
