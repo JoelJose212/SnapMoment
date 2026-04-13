@@ -7,5 +7,6 @@ from app.models.analytics import AnalyticsEvent
 from app.models.face_index import FaceIndex
 from app.models.face_cluster import FaceCluster
 from app.models.message import Message
+from app.models.collaboration import EventCollaboration
 
-__all__ = ["Photographer", "Event", "Photo", "Guest", "PhotoMatch", "AnalyticsEvent", "FaceIndex", "FaceCluster", "Message"]
+__all__ = ["Photographer", "Event", "Photo", "Guest", "PhotoMatch", "AnalyticsEvent", "FaceIndex", "FaceCluster", "Message", "EventCollaboration"]

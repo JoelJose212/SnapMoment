@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, QrCode, Upload, Trash2, Calendar, Image, Users, X, MapPin, Sparkles, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { eventsApi } from '../../lib/api'
+import { eventsApi, api } from '../../lib/api'
 
 import { useAuthStore } from '../../store/authStore'
 
@@ -14,6 +14,8 @@ export default function PhotographerEvents() {
   const qc = useQueryClient()
   const { subscriptionActive } = useAuthStore()
   const [showModal, setShowModal] = useState(false)
+  const [showCollabModal, setShowCollabModal] = useState<any>(null)
+  const [collabEmail, setCollabEmail] = useState('')
   const [form, setForm] = useState({ name: '', type: 'wedding', event_date: '', location: '', description: '' })
 
   const { data: events = [], isLoading } = useQuery({
@@ -30,6 +32,16 @@ export default function PhotographerEvents() {
       setForm({ name: '', type: 'wedding', event_date: '', location: '', description: '' })
     },
     onError: (err: any) => toast.error(err.response?.data?.detail || 'Failed to create event'),
+  })
+
+  const inviteMutation = useMutation({
+    mutationFn: (data: any) => api.post('/api/collaborations/invite', data),
+    onSuccess: () => {
+      toast.success('Team invite sent! 🚀')
+      setShowCollabModal(null)
+      setCollabEmail('')
+    },
+    onError: (err: any) => toast.error(err.response?.data?.detail || 'Failed to send invite'),
   })
 
   const toggleMutation = useMutation({
@@ -84,6 +96,56 @@ export default function PhotographerEvents() {
           <Plus size={18} /> New Studio Event
         </motion.button>
       </div>
+
+      {/* Collaboration Invite Modal */}
+      <AnimatePresence>
+        {showCollabModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              className="w-full max-w-md rounded-[3rem] p-10 glass shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-2 aurora-bg" />
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-black text-foreground">Invite Second Shooter</h2>
+                  <p className="text-xs text-muted">Grant access to {showCollabModal.name}</p>
+                </div>
+                <button onClick={() => setShowCollabModal(null)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                  <X size={16} className="text-foreground" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                 <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted block mb-2 px-1">Collaborator Email</label>
+                    <input 
+                      type="email"
+                      value={collabEmail} 
+                      onChange={(e) => setCollabEmail(e.target.value)} 
+                      className="w-full px-6 py-4 rounded-[1.25rem] bg-white/50 dark:bg-black/20 border border-border text-foreground font-bold outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all" 
+                      placeholder="e.g. associate@studio.com" 
+                    />
+                 </div>
+                 <button 
+                   onClick={() => inviteMutation.mutate({ event_id: showCollabModal.id, email: collabEmail })}
+                   disabled={inviteMutation.isPending}
+                   className="w-full py-4 rounded-[1.25rem] text-xs font-black uppercase tracking-widest text-white shadow-xl transition-all aurora-bg active:scale-95 disabled:opacity-50"
+                 >
+                   {inviteMutation.isPending ? 'Inviting...' : 'Send Secure Invite'}
+                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Events grid */}
       {isLoading ? (
@@ -181,8 +243,14 @@ export default function PhotographerEvents() {
                 <Link to={`/photographer/events/${event.id}/upload`} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-xs font-bold text-white aurora-bg shadow-sm transition-all hover:shadow-coral active:scale-95">
                   <Upload size={14} /> Upload
                 </Link>
-                <Link to={`/photographer/events/${event.id}/qr`} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-xs font-bold bg-white dark:bg-black/40 text-foreground border border-white/40 shadow-sm transition-all hover:bg-white/60 active:scale-95">
-                  <QrCode size={14} className="text-primary" /> QR Code
+                <button 
+                  onClick={() => setShowCollabModal(event)}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-xs font-bold bg-white dark:bg-black/40 text-foreground border border-white/40 shadow-sm transition-all hover:bg-white/60 active:scale-95"
+                >
+                  <Users size={14} className="text-primary" /> Invite
+                </button>
+                <Link to={`/photographer/events/${event.id}/qr`} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white dark:bg-black/40 text-foreground border border-white/40 shadow-sm transition-all hover:bg-white/60 active:scale-95">
+                  <QrCode size={16} className="text-primary" />
                 </Link>
                 <button 
                   onClick={() => { if (confirm('Irreversible Action: Delete this event and all associated frames?')) deleteMutation.mutate(event.id) }} 

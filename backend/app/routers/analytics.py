@@ -11,6 +11,8 @@ from app.services.auth import require_photographer
 from datetime import datetime, timedelta
 import logging
 
+from app.models.analytics import AnalyticsEvent
+
 router = APIRouter(prefix="/api", tags=["analytics"])
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,7 @@ logger = logging.getLogger(__name__)
 async def photographer_analytics(current_user: dict = Depends(require_photographer), db: AsyncSession = Depends(get_db)):
     photographer_id = current_user["sub"]
     if photographer_id == "admin":
-        return {"total_events": 0, "total_photos": 0, "total_guests": 0, "events_per_month": [], "type_distribution": {}}
+        return {"total_events": 0, "total_photos": 0, "total_guests": 0, "events_per_month": [], "type_distribution": {}, "engagement": []}
 
     events_result = await db.execute(select(Event).where(Event.photographer_id == uuid.UUID(photographer_id)))
     events = events_result.scalars().all()
@@ -33,7 +35,7 @@ async def photographer_analytics(current_user: dict = Depends(require_photograph
         tg = await db.execute(select(func.count(Guest.id)).where(Guest.event_id.in_(event_ids)))
         total_guests = tg.scalar() or 0
 
-    # Monthly distribution
+    # Monthly distribution (last 30 days)
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     epd = []
     if event_ids:
@@ -45,6 +47,16 @@ async def photographer_analytics(current_user: dict = Depends(require_photograph
         )
         epd = [{"day": str(r.day), "count": r.count} for r in pp_result]
 
+    # Engagement Distribution (Log Actions)
+    engagement = []
+    if event_ids:
+        eng_result = await db.execute(
+            select(AnalyticsEvent.action_type, func.count(AnalyticsEvent.id).label("count"))
+            .where(AnalyticsEvent.event_id.in_(event_ids))
+            .group_by(AnalyticsEvent.action_type)
+        )
+        engagement = [{"type": r.action_type, "count": r.count} for r in eng_result]
+
     type_distribution = {}
     for event in events:
         type_distribution[event.type] = type_distribution.get(event.type, 0) + 1
@@ -55,7 +67,27 @@ async def photographer_analytics(current_user: dict = Depends(require_photograph
         "total_guests": total_guests,
         "events_per_month": epd,
         "type_distribution": type_distribution,
+        "engagement": engagement
     }
+
+
+@router.post("/analytics/log")
+async def log_event(
+    event_id: uuid.UUID,
+    action_type: str,
+    photo_id: Optional[uuid.UUID] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """Log guest interaction (VIEW, DOWNLOAD, SHARE)."""
+    log = AnalyticsEvent(
+        id=uuid.uuid4(),
+        event_id=event_id,
+        action_type=action_type,
+        metadata_={"photo_id": str(photo_id) if photo_id else None}
+    )
+    db.add(log)
+    await db.commit()
+    return {"status": "logged"}
 
 
 @router.post("/contact")

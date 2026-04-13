@@ -124,6 +124,7 @@ class PhotoOut(BaseModel):
     thumbnail_url: Optional[str]
     face_indexed: bool
     faces_count: int
+    has_social_crops: bool = False
     uploaded_at: datetime
 
     class Config:
@@ -154,8 +155,11 @@ class GalleryPhotoOut(BaseModel):
     photo_id: str
     photo_url: str
     thumbnail_url: Optional[str]
+    crop_1x1_url: Optional[str] = None
+    crop_9x16_url: Optional[str] = None
     confidence_score: float
     is_reported: bool
+    is_suggested: bool = False
     matched_at: datetime
 
 

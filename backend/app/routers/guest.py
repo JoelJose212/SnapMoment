@@ -189,13 +189,23 @@ async def get_gallery(current_guest: dict = Depends(get_guest_user), db: AsyncSe
 
     gallery = []
     for match, photo in rows:
+        crop_1x1 = None
+        crop_9x16 = None
+        
+        if getattr(photo, 'has_social_crops', False):
+            crop_1x1 = s3_service.get_signed_url(f"crops/{photo.id}_1x1.jpg")
+            crop_9x16 = s3_service.get_signed_url(f"crops/{photo.id}_9x16.jpg")
+
         gallery.append(GalleryPhotoOut(
             match_id=str(match.id),
             photo_id=str(photo.id),
             photo_url=s3_service.get_signed_url(photo.s3_key),
             thumbnail_url=s3_service.get_signed_url(photo.s3_key) if photo.thumbnail_url else None,
+            crop_1x1_url=crop_1x1,
+            crop_9x16_url=crop_9x16,
             confidence_score=match.confidence_score,
             is_reported=match.is_reported,
+            is_suggested=match.is_suggested,
             matched_at=match.matched_at,
         ))
     return gallery

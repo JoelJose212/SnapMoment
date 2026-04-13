@@ -132,40 +132,40 @@ export default function PhotographerAnalytics() {
           className="glass-card rounded-[2.5rem] p-8 border-white/30"
         >
           <div className="flex items-center justify-between mb-8 px-2">
-            <h3 className="text-xl font-bold text-foreground">Experience Mix</h3>
-            <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">Distribution</span>
+            <h3 className="text-xl font-bold text-foreground">Guest Engagement Funnel</h3>
+            <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">Interactions</span>
           </div>
           
           <div className="h-[280px]">
-            {typeData.length > 0 ? (
+            {data?.engagement?.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie 
-                    data={typeData} 
-                    cx="50%" 
-                    cy="50%" 
-                    innerRadius={60} 
-                    outerRadius={100} 
-                    paddingAngle={8} 
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {typeData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Pie>
+                <BarChart data={data.engagement} layout="vertical">
+                  <XAxis type="number" hide />
+                  <YAxis 
+                    dataKey="type" 
+                    type="category" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 11, fill: 'var(--foreground)', fontWeight: 800 }} 
+                  />
                   <Tooltip 
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
                   />
-                </PieChart>
+                  <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={32}>
+                    {data.engagement.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-subtle italic">
                 <BarChart3 size={48} className="opacity-10 mb-2" />
-                <span className="text-sm">Distribution pending inaugural events...</span>
+                <span className="text-sm">Engagement pending guest activity...</span>
               </div>
             )}
           </div>
         </motion.div>
       </div>
+    </div>
     </div>
   )
 }

@@ -17,4 +17,5 @@ class Photo(Base):
     face_indexed: Mapped[bool] = mapped_column(Boolean, default=False)
     face_embeddings: Mapped[dict] = mapped_column(JSONB, nullable=True)
     faces_count: Mapped[int] = mapped_column(Integer, default=0)
+    has_social_crops: Mapped[bool] = mapped_column(Boolean, default=False)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

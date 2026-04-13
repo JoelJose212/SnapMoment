@@ -77,14 +77,46 @@ def index_event_photos(self, event_id: str):
                             logger.warning(f"⚠️ Photo {photo.id}: No faces detected.")
 
                         # 1. Update Photo indexed status
-                        await session.execute(
-                            update(Photo).where(Photo.id == photo.id).values(
-                                face_indexed=True,
-                                face_embeddings={"faces": results},
-                                faces_count=faces_count,
-                            )
-                        )
-                        
+                        # AI Smart-Crop Logic
+                        if faces_count > 0:
+                            try:
+                                from PIL import Image
+                                with Image.open(img_path) as im:
+                                    w, h = im.size
+                                    
+                                    # Create crops for each face or at least the most prominent one
+                                    # For MVP, we take the largest/first face
+                                    face = results[0]
+                                    fa = face.get("facial_area", {})
+                                    fx = fa.get("x", 0) + fa.get("w", 0) // 2
+                                    fy = fa.get("y", 0) + fa.get("h", 0) // 2
+                                    
+                                    crops_dir = Path(settings.LOCAL_STORAGE_PATH) / "crops"
+                                    crops_dir.mkdir(parents=True, exist_ok=True)
+                                    
+                                    # 1:1 Square Crop
+                                    size = min(w, h)
+                                    left = max(0, min(fx - size // 2, w - size))
+                                    top = max(0, min(fy - size // 2, h - size))
+                                    im.crop((left, top, left + size, top + size)).save(crops_dir / f"{photo.id}_1x1.jpg", quality=90)
+                                    
+                                    # 9:16 Story Crop
+                                    # Logic: maintain 9:16 ratio based on height
+                                    sw = int(h * (9/16))
+                                    if sw > w: # if image is too narrow, use full width and adjust height
+                                        sw = w
+                                        sh = int(w * (16/9))
+                                    else:
+                                        sh = h
+                                    
+                                    left = max(0, min(fx - sw // 2, w - sw))
+                                    top = max(0, min(fy - sh // 2, h - sh))
+                                    im.crop((left, top, left + sw, top + sh)).save(crops_dir / f"{photo.id}_9x16.jpg", quality=90)
+                                    
+                                    logger.info(f"✨ Smart-Crops generated for photo {photo.id}")
+                            except Exception as crop_err:
+                                logger.error(f"⚠️ Error generating crops for {photo.id}: {crop_err}")
+
                         # 2. Add to pgvector Index
                         from app.models.face_index import FaceIndex
                         for face in results:
@@ -98,6 +130,17 @@ def index_event_photos(self, event_id: str):
                             session.add(fi)
 
                         unique_faces += faces_count
+                        has_crops = faces_count > 0
+
+                        # 3. Update Photo indexed status
+                        await session.execute(
+                            update(Photo).where(Photo.id == photo.id).values(
+                                face_indexed=True,
+                                face_embeddings={"faces": results},
+                                faces_count=faces_count,
+                                has_social_crops=has_crops
+                            )
+                        )
 
                     except Exception as e:
                         logger.error(f"❌ Error indexing photo {photo.id}: {str(e)}")
