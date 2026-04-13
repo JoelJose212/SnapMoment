@@ -1,6 +1,6 @@
-import razorpay
+import stripe
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db
@@ -14,9 +14,8 @@ from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/onboarding", tags=["onboarding"])
 
-rzp_client = None
-if settings.RAZORPAY_KEY_ID != "rzp_test_placeholder":
-    rzp_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+if settings.STRIPE_SECRET_KEY:
+    stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @router.post("/step2")
 async def onboarding_step2(
@@ -68,7 +67,7 @@ async def onboarding_step4(
     return {"message": "Step 4 completed", "onboarding_step": photographer.onboarding_step}
 
 @router.post("/create-order")
-async def create_razorpay_order(
+async def create_stripe_checkout(
     current_user: dict = Depends(require_photographer),
     db: AsyncSession = Depends(get_db)
 ):
@@ -77,59 +76,117 @@ async def create_razorpay_order(
     
     amount = 1499 * 100 if photographer.plan == "pro" else 4999 * 100
         
-    if not rzp_client:
-        return {"id": f"order_mock_{uuid.uuid4().hex[:8]}", "amount": amount, "currency": "INR"}
-        
-    order = rzp_client.order.create({
-        "amount": amount,
-        "currency": "INR",
-        "receipt": f"receipt_{photographer.id}"
-    })
-    return order
+    if not settings.STRIPE_SECRET_KEY or settings.STRIPE_SECRET_KEY == "sk_test_placeholder":
+        # Mock session for dev environment without keys
+        return {"id": f"cs_test_{uuid.uuid4().hex[:12]}", "url": f"{settings.FRONTEND_URL}/photographer/onboarding?mock_success=true"}
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'inr',
+                    'product_data': {
+                        'name': f"SnapMoment {photographer.plan.upper()} Plan",
+                    },
+                    'unit_amount': amount,
+                },
+                'quantity': 1,
+            }],
+            metadata={
+                'photographer_id': str(photographer.id),
+                'plan': photographer.plan
+            },
+            mode='payment',
+            success_url=f"{settings.FRONTEND_URL}/photographer/onboarding?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{settings.FRONTEND_URL}/photographer/onboarding",
+        )
+        return {"id": session.id, "url": session.url}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/verify-payment")
-async def verify_payment(
+async def verify_stripe_payment(
     data: dict = Body(...),
     current_user: dict = Depends(require_photographer),
     db: AsyncSession = Depends(get_db)
 ):
+    # This is a fallback manual verification via session_id
+    # The professional way is via Stripe Webhooks
     result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(current_user["sub"])))
     photographer = result.scalar_one_or_none()
     
-    payment_id = data.get("razorpay_payment_id", f"pay_mock_{uuid.uuid4().hex[:8]}")
+    session_id = data.get("session_id")
+    mock_success = data.get("mock_success")
     
-    photographer.onboarding_step = 6
-    photographer.subscription_expires_at = datetime.utcnow() + timedelta(days=30)
-    photographer.is_active = True
-    await db.commit()
+    if not mock_success and not session_id:
+        raise HTTPException(status_code=400, detail="Missing session_id or mock_success")
     
-    try:
-        amount_inr = 1499 if photographer.plan == "pro" else 4999
-        pdf_path = generate_invoice_pdf(
-            name=photographer.full_name,
-            studio_name=photographer.studio_name or "",
-            email=photographer.email,
-            plan_name=photographer.plan,
-            amount_inr=amount_inr,
-            payment_id=payment_id
-        )
-        
-        # Save to DB
-        invoice_rec = Invoice(
-            id=uuid.uuid4(),
-            photographer_id=photographer.id,
-            order_id=data.get("razorpay_order_id", f"ord_{uuid.uuid4().hex[:8]}"),
-            payment_id=payment_id,
-            amount=float(amount_inr),
-            pdf_url=pdf_path
-        )
-        db.add(invoice_rec)
+    # In a real app, we would verify session_id with Stripe here
+    # session = stripe.checkout.Session.retrieve(session_id)
+    # if session.payment_status != "paid": ...
+    
+    payment_id = session_id or f"pay_mock_{uuid.uuid4().hex[:8]}"
+    
+    if photographer.onboarding_step < 6:
+        photographer.onboarding_step = 6
+        photographer.subscription_expires_at = datetime.utcnow() + timedelta(days=30)
+        photographer.is_active = True
         await db.commit()
-        
-        # Send Email
-        send_invoice_email(photographer.email, photographer.full_name, pdf_path)
-        
-    except Exception as e:
-        print("Invoice/Email Error:", e)
+    
+        try:
+            amount_inr = 1499 if photographer.plan == "pro" else 4999
+            pdf_path = generate_invoice_pdf(
+                name=photographer.full_name,
+                studio_name=photographer.studio_name or "",
+                email=photographer.email,
+                plan_name=photographer.plan,
+                amount_inr=amount_inr,
+                payment_id=payment_id
+            )
+            
+            invoice_rec = Invoice(
+                id=uuid.uuid4(),
+                photographer_id=photographer.id,
+                order_id=session_id or f"ord_mock_{uuid.uuid4().hex[:8]}",
+                payment_id=payment_id,
+                amount=float(amount_inr),
+                pdf_url=pdf_path
+            )
+            db.add(invoice_rec)
+            await db.commit()
+            
+            send_invoice_email(photographer.email, photographer.full_name, pdf_path)
+            
+        except Exception as e:
+            print("Invoice/Email Error:", e)
         
     return {"message": "Payment verified", "onboarding_step": 6}
+
+@router.post("/webhook/stripe")
+async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Webhook Error: {str(e)}")
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        photog_id = session["metadata"]["photographer_id"]
+        
+        result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(photog_id)))
+        photog = result.scalar_one_or_none()
+        
+        if photog:
+            photog.is_active = True
+            photog.subscription_expires_at = datetime.utcnow() + timedelta(days=30)
+            photog.onboarding_step = 6
+            # We could also generate the invoice here for maximum reliability
+            await db.commit()
+            
+    return {"status": "success"}

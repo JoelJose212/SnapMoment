@@ -85,64 +85,56 @@ export default function OnboardingWizard() {
     }
   }
 
-  // RAZORPAY INTEGRATION
-  const loadRazorpayScript = () => new Promise((resolve) => {
-    const script = document.createElement('script')
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-    script.onload = () => resolve(true)
-    script.onerror = () => resolve(false)
-    document.body.appendChild(script)
-  })
-
+  // STRIPE INTEGRATION
   const handleCheckout = async () => {
     setLoading(true)
     try {
-      const res = await loadRazorpayScript()
-      if (!res) {
-        toast.error('Failed to load payment gateway')
-        setLoading(false)
+      const orderRes = await onboardingApi.createOrder()
+      
+      // If mock environment, handle mock success redirect
+      if (orderRes.data.url && orderRes.data.url.includes('mock_success=true')) {
+        window.location.href = orderRes.data.url
         return
       }
 
-      const orderRes = await onboardingApi.createOrder()
-      const options = {
-        key: 'rzp_test_placeholder', // Usually fetched from backend, hardcoded for demo config
-        amount: orderRes.data.amount,
-        currency: orderRes.data.currency,
-        name: 'SnapMoment',
-        description: `SnapMoment ${plan.toUpperCase()} Plan`,
-        order_id: orderRes.data.id,
-        handler: async function (response: any) {
-          try {
-            const verifyRes = await onboardingApi.verifyPayment({
-              razorpay_payment_id: response.razorpay_payment_id,
-            })
-            updateAuthStep(verifyRes.data.onboarding_step)
-            toast.success("Payment successful! Invoice sent to your email.")
-            navigate('/photographer/events')
-          } catch (e) {
-            toast.error("Payment verification failed")
-          }
-        },
-        prefill: {
-          name: fullName,
-        },
-        theme: {
-          color: '#FF6E6C',
-        },
+      if (orderRes.data.url) {
+        window.location.href = orderRes.data.url
+      } else {
+        toast.error('Payment gateway unavailable')
       }
-
-      const rzp = new (window as any).Razorpay(options)
-      rzp.on('payment.failed', function () {
-        toast.error('Payment failed or cancelled')
-      })
-      rzp.open()
     } catch (err) {
       toast.error('Could not initiate checkout')
     } finally {
       setLoading(false)
     }
   }
+
+  // Handle Stripe Success Callback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const sessionId = params.get('session_id')
+    const mockSuccess = params.get('mock_success')
+
+    if (sessionId || mockSuccess) {
+      const verifyPayment = async () => {
+        setLoading(true)
+        try {
+          const verifyRes = await onboardingApi.verifyPayment({ 
+            session_id: sessionId,
+            mock_success: mockSuccess === 'true'
+          })
+          updateAuthStep(verifyRes.data.onboarding_step)
+          toast.success("Payment successful! Welcome to the Pro family.")
+          navigate('/photographer/events')
+        } catch (e) {
+          toast.error("Payment verification failed. Contact support.")
+        } finally {
+          setLoading(false)
+        }
+      }
+      verifyPayment()
+    }
+  }, [])
 
   const variants = {
     hidden: { opacity: 0, x: 20 },
@@ -268,15 +260,15 @@ export default function OnboardingWizard() {
                 <CreditCard size={32} color="#FF6E6C" />
               </div>
               <h1 className="text-3xl font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Ready for take-off</h1>
-              <p className="text-text-muted mb-8">Complete a secure payment via Razorpay to activate your {plan.toUpperCase()} workspace.</p>
+              <p className="text-text-muted mb-8">Complete a secure payment via Stripe to activate your {plan.toUpperCase()} workspace.</p>
               
               <div className="p-6 rounded-2xl mb-8 flex justify-between items-center" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
                  <span className="font-medium" style={{ color: 'var(--foreground)' }}>{plan.toUpperCase()} Plan</span>
                  <span className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>₹{plan === 'pro' ? '1,499' : '4,999'}</span>
               </div>
-
+ 
               <button disabled={loading} onClick={handleCheckout} className="w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:shadow-coral-lg" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
-                 {loading ? 'Connecting to Gateway...' : 'Pay with Razorpay'} <ChevronRight size={18} />
+                 {loading ? 'Connecting to Gateway...' : 'Pay with Stripe'} <ChevronRight size={18} />
               </button>
               <div className="mt-4 text-xs text-text-subtle flex justify-center items-center gap-1">
                  <Shield size={12} /> Secure encrypted checkout

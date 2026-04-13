@@ -25,7 +25,7 @@ import PhotographerUpload from './pages/photographer/PhotographerUpload'
 import PhotographerQR from './pages/photographer/PhotographerQR'
 import PhotographerAnalytics from './pages/photographer/PhotographerAnalytics'
 import PhotographerProfile from './pages/photographer/PhotographerProfile'
-import OnboardingWizard from '@/pages/photographer/OnboardingWizard'
+import OnboardingWizard from './pages/photographer/OnboardingWizard'
 
 // Admin
 import AdminLayout from './pages/admin/AdminLayout'

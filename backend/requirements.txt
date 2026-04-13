@@ -22,5 +22,5 @@ email-validator>=2.1.1
 pgvector>=0.2.5
 mediapipe>=0.10.0
 scikit-learn>=1.4.0
-razorpay>=1.4.1
+stripe>=8.0.0
 fpdf2>=2.7.9

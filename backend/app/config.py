@@ -23,9 +23,10 @@ class Settings(BaseSettings):
 
     S3_PUBLIC_DOMAIN: str = ""
 
-    # RAZORPAY
-    RAZORPAY_KEY_ID: str = "rzp_test_placeholder"
-    RAZORPAY_KEY_SECRET: str = "rzp_test_secret_placeholder"
+    # STRIPE
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_PUBLIC_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
 
     ADMIN_EMAIL: str = "admin@snapmoment.app"
     ADMIN_PASSWORD: str
