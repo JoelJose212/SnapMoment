@@ -78,7 +78,7 @@ async def create_stripe_checkout(
         
     if not settings.STRIPE_SECRET_KEY or settings.STRIPE_SECRET_KEY == "sk_test_placeholder":
         # Mock session for dev environment without keys
-        return {"id": f"cs_test_{uuid.uuid4().hex[:12]}", "url": f"{settings.FRONTEND_URL}/photographer/onboarding?mock_success=true"}
+        return {"id": f"cs_test_{uuid.uuid4().hex[:12]}", "url": f"{settings.FRONTEND_URL}/onboarding?mock_success=true"}
 
     try:
         session = stripe.checkout.Session.create(
@@ -98,8 +98,8 @@ async def create_stripe_checkout(
                 'plan': photographer.plan
             },
             mode='payment',
-            success_url=f"{settings.FRONTEND_URL}/photographer/onboarding?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{settings.FRONTEND_URL}/photographer/onboarding",
+            success_url=f"{settings.FRONTEND_URL}/onboarding?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{settings.FRONTEND_URL}/onboarding",
         )
         return {"id": session.id, "url": session.url}
     except Exception as e:
