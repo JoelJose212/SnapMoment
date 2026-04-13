@@ -1,6 +1,6 @@
 # Implementation Plan: 5-Step Photographer Onboarding & Billing
 
-This plan implements a professional, 5-step onboarding wizard for photographers, culminating in a Razorpay payment and automated, branded PDF invoice generation.
+This plan implements a professional, 5-step onboarding wizard for photographers, culminating in a Stripe payment and automated, branded PDF invoice generation.
 
 ## 1. The 5-Step Journey
 Photographers will be redirected to this wizard immediately after signup. They will not be able to access the dashboard until all 5 steps are completed.
@@ -9,7 +9,7 @@ Photographers will be redirected to this wizard immediately after signup. They w
 2.  **Studio Setup**: Detailed profile (Founded year, services, team size, **primary camera gear, and portfolio link**).
 3.  **Choose Your Power**: Plan Selection (Comparing benefits of Free, Pro, and Studio).
 4.  **The Agreement**: Terms & Conditions (Legal consent).
-5.  **Activation**: **Razorpay** checkout + **Automated PDF Invoice** generation.
+5.  **Activation**: **Stripe** checkout + **Automated PDF Invoice** generation.
 
 ## 2. Proposed Technical Changes
 

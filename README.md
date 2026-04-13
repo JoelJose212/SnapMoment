@@ -26,7 +26,7 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 - **📷 RAW Live Tethering**: Connect your camera's local folder via the **Folder Sync Engine** for instant over-the-air ingestion. Supports `.RAW`, `.CR3`, `.WebP`, and more.
 - **🧠 Neural-Lock Selfie**: Real-time biometric guidance (MediaPipe) ensures guests capture high-quality, matchable selfies.
 - **🔍 Smart Person Clustering**: Uses **DBSCAN** to group faces into distinct personas, improving matching accuracy.
-- **💳 Pro Billing & Subscriptions**: Integrated **Razorpay** checkout with automated **PDF Invoice** generation and Gmail distribution.
+- **💳 Pro Billing & Subscriptions**: Integrated **Stripe** checkout with automated **PDF Invoice** generation and Gmail distribution.
 - **🚀 High-Speed Search**: Powered by **pgvector** with HNSW indexing for sub-millisecond matching.
 - **🔒 Privacy-Focused**: Facial data is stored only as 512-dimensional vectors. RAW selfies are processed in-memory.
 
@@ -67,7 +67,7 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 
 ### Backend
 - **Framework**: FastAPI (Python 3.10+)
-- **Billing**: Razorpay API Integration
+- **Billing**: Stripe API Integration
 - **Invoicing**: FPDF (Automated PDF Engine)
 - **Emails**: Gmail SMTP Integration
 - **Async ORM**: SQLAlchemy 2.0 (with asyncpg)
@@ -95,7 +95,7 @@ graph LR
     Guest([Event Guest])
     S3([Cloud Storage / AWS S3])
     SMS([SMS Gateway])
-    RP([Razorpay Gateway])
+    Stripe([Stripe Checkout])
     Gmail([Gmail SMTP])
 
     %% Central Process (Box)
@@ -108,7 +108,7 @@ graph LR
     Guest -- "Selfie / OTP Request" --> System
     System -- "Personal Gallery" --> Guest
 
-    System -- "Payment Tracking" <--> RP
+    System -- "Payment Tracking" <--> Stripe
     System -- "Email Invoices" --> Gmail
     System -- "SMS Pin Request" --> SMS
 
@@ -120,7 +120,7 @@ graph LR
     style Guest fill:#f9f9f9,stroke:#333
     style S3 fill:#f9f9f9,stroke:#333
     style SMS fill:#f9f9f9,stroke:#333
-    style RP fill:#f9f9f9,stroke:#333
+    style Stripe fill:#f9f9f9,stroke:#333
     style Gmail fill:#f9f9f9,stroke:#333
 ```
 
@@ -257,7 +257,7 @@ graph TD
 ```mermaid
 flowchart TD
     Start([Start: Photographer Signup]) --> Onboard[Onboarding: Studio Setup]
-    Onboard --> Pay[Razorpay: Subscription Payment]
+    Onboard --> Pay[Stripe: Secure Payment]
     Pay --> Create[Create Event & Settings]
     Create --> RAW{Sync Mode?}
     RAW -- Manual --> Upload[Bulk Drag-and-Drop]
@@ -487,7 +487,7 @@ SnapMoment/
 | S. No | Object | Input Details | Output Details |
 | :--- | :--- | :--- | :--- |
 | **1** | **Studio Onboarding** | Studio Details, Gear, Fav Plan | Profile setup & Pricing selection |
-| **2** | **Payment Checkout** | Razorpay Order, Card/UPI Details | Payment ID & Activated Workspace |
+| **2** | **Payment Checkout** | Stripe Checkout Session | Payment ID & Activated Workspace |
 | **3** | **Invoice Generation** | Payment Event | Automated PDF Receipt & Email |
 | **4** | **RAW Tethering** | Local Folder Handle | Instant Automatic Cloud Sync |
 | **5** | **Biometric Match** | Guest Selfie | List of Matching Personal Photos |
@@ -513,7 +513,7 @@ SnapMoment/
 - **Done ✅**: 
     - Real-time face alignment guidance for guests (MediaPipe).
     - Hardened biometric matching with DBSCAN.
-    - Automated Subscription Billing (Razorpay).
+    - Automated Subscription Billing (Stripe).
     - Professional RAW Live Tethering Engine.
     - Automated Multi-Recipient Invoice PDFs.
 - **Next Up 🚀**: 
