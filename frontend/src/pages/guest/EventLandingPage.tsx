@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Camera, MapPin, Calendar, Sparkles, ArrowRight, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { eventsApi } from '../../lib/api'
+import { eventsApi, guestApiEndpoints } from '../../lib/api'
 
 export default function EventLandingPage() {
   const { token } = useParams()
@@ -25,7 +25,6 @@ export default function EventLandingPage() {
     if (!/^\d{10}$/.test(phone)) { toast.error('Please enter a valid 10-digit phone number'); return }
     setSending(true)
     try {
-      const { guestApiEndpoints } = await import('../../lib/api')
       await guestApiEndpoints.sendOtp({ phone_number: phone, event_id: event.id })
       toast.success('Secure Code Transmitted! ✨')
       navigate(`/event/${token}/otp`, { state: { phone, eventId: event.id } })

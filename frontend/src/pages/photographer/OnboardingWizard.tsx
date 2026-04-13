@@ -8,7 +8,7 @@ import { useAuthStore } from '../../store/authStore'
 
 export default function OnboardingWizard() {
   const navigate = useNavigate()
-  const { onboardingStep, setAuth, token, role, userId, fullName } = useAuthStore()
+  const { onboardingStep, setAuth, token, role, userId, fullName, subscriptionActive } = useAuthStore()
   
   // Local state for forms
   const [loading, setLoading] = useState(false)
@@ -36,7 +36,7 @@ export default function OnboardingWizard() {
   }, [onboardingStep, navigate])
 
   const updateAuthStep = (newStep: number) => {
-    setAuth(token!, role!, userId!, fullName!, newStep)
+    setAuth(token!, role!, userId!, fullName!, newStep, subscriptionActive)
     setStep(newStep)
   }
 

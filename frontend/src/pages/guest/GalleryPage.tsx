@@ -18,8 +18,9 @@ export default function GalleryPage() {
       setPhotos(res.data)
       if (!confettiRef.current && res.data.length > 0) {
         confettiRef.current = true
-        import('canvas-confetti').then((m) => {
-          m.default({ 
+        import('canvas-confetti').then((m: any) => {
+          const confetti = m.default || m
+          confetti({ 
             particleCount: 150, 
             spread: 80, 
             origin: { y: 0.6 }, 
