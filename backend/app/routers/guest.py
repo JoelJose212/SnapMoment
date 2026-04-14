@@ -21,6 +21,7 @@ from app.utils.watermark import apply_text_watermark
 from fastapi.responses import StreamingResponse
 import io
 import logging
+import zipfile
 
 router = APIRouter(prefix="/api/guest", tags=["guest"])
 logger = logging.getLogger(__name__)
@@ -66,12 +67,14 @@ async def verify_otp_route(data: OTPVerifyRequest, db: AsyncSession = Depends(ge
     if not guest:
         guest = Guest(
             id=uuid.uuid4(),
+            full_name=data.full_name,
             phone_number=data.phone_number,
             event_id=uuid.UUID(data.event_id),
             verified_at=datetime.utcnow(),
         )
         db.add(guest)
     else:
+        guest.full_name = data.full_name
         guest.verified_at = datetime.utcnow()
 
     await db.commit()
@@ -178,6 +181,59 @@ async def upload_selfie(
 
     finally:
         os.unlink(tmp_path)
+
+
+@router.get("/gallery/download-all")
+async def download_all(
+    current_guest: dict = Depends(get_guest_user),
+    db: AsyncSession = Depends(get_db)
+):
+    guest_id = current_guest["sub"]
+    event_id = current_guest["event_id"]
+
+    # 1. Get All Matches
+    result = await db.execute(
+        select(Photo).join(PhotoMatch, PhotoMatch.photo_id == Photo.id)
+        .where(PhotoMatch.guest_id == uuid.UUID(guest_id))
+    )
+    photos = result.scalars().all()
+    if not photos:
+        raise HTTPException(status_code=404, detail="No matched photos found for download")
+
+    # 2. Get Studio Name for watermarking
+    result = await db.execute(
+        select(Photographer.studio_name)
+        .join(Event, Event.photographer_id == Photographer.id)
+        .where(Event.id == uuid.UUID(event_id))
+    )
+    studio_name = result.scalar() or "SnapMoment"
+    watermark_text = f"Captured by {studio_name}"
+
+    # 3. Create ZIP Archive
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for i, photo in enumerate(photos):
+            try:
+                # Fetch original image
+                image_bytes = await s3_service.read_file(photo.s3_key)
+                
+                # Apply watermark (consistent with individual downloads)
+                watermarked_bytes = apply_text_watermark(image_bytes, watermark_text)
+                
+                # Add to ZIP
+                zip_file.writestr(f"SnapMoment_{i+1}_{photo.id}.jpg", watermarked_bytes)
+            except Exception as e:
+                logger.error(f"Failed to add photo {photo.id} to ZIP: {e}")
+                continue
+
+    zip_buffer.seek(0)
+    
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename=SnapMoment_Gallery_{event_id}.zip"}
+    )
+
 
 
 @router.get("/gallery", response_model=list[GalleryPhotoOut])

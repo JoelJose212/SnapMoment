@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Camera } from 'lucide-react'
 import AuroraRibbon from '../components/shared/AuroraRibbon'
-import { AuroraBackground } from '../components/shared/AuroraBackground'
 import Navbar from '../components/shared/Navbar'
 import Footer from '../components/shared/Footer'
 import SplashTag from '../components/shared/SplashTag'
@@ -41,10 +40,9 @@ export default function AboutPage() {
       <Navbar />
 
       {/* Hero */}
-      <AuroraBackground
-        className="py-24 px-6 text-center w-full"
+      <header
+        className="relative flex flex-col items-center justify-center overflow-hidden py-24 px-6 text-center w-full"
         style={{ background: 'var(--background)' }}
-        showRadialGradient={true}
       >
         <h1 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(36px,5vw,60px)', fontWeight: 600, color: 'var(--foreground)' }}>
           Building for the moments<br />that matter most
@@ -52,7 +50,7 @@ export default function AboutPage() {
         <p className="text-base mt-5 max-w-md mx-auto leading-relaxed" style={{ color: 'var(--muted)', fontSize: 'clamp(18px,2vw,22px)' }}>
           SnapMoment was born from a simple frustration: why do event photos take days to arrive, buried in a shared drive with hundreds of strangers?
         </p>
-      </AuroraBackground>
+      </header>
 
       {/* Story */}
       <section className="py-20 px-6">

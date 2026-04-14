@@ -8,7 +8,6 @@ import {
 
 // Shared Components
 import AuroraRibbon from '../components/shared/AuroraRibbon'
-import { AuroraBackground } from '../components/shared/AuroraBackground'
 import Navbar from '../components/shared/Navbar'
 import Footer from '../components/shared/Footer'
 import SplashTag from '../components/shared/SplashTag'
@@ -162,10 +161,9 @@ export default function HomePage() {
       <Navbar />
 
       {/* Hero Section */}
-      <AuroraBackground
-        className="min-h-[90vh] w-full noise-overlay"
+      <section
+        className="relative flex flex-col items-center justify-center overflow-hidden min-h-[90vh] w-full noise-overlay"
         style={{ background: 'var(--background)' }}
-        showRadialGradient={true}
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <div className="absolute w-72 h-72 rounded-full opacity-20" style={{ background: '#FF6E6C', filter: 'blur(80px)', top: '10%', left: '5%', animation: 'blob 8s ease-in-out infinite' }} />
@@ -238,7 +236,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </AuroraBackground>
+      </section>
 
       <WaveDivider fill="var(--background)" fromColor="var(--foreground)" />
 

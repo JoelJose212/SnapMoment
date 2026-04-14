@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { MapPin, Mail, Phone, ChevronDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 import AuroraRibbon from '../components/shared/AuroraRibbon'
-import { AuroraBackground } from '../components/shared/AuroraBackground'
 import Navbar from '../components/shared/Navbar'
 import Footer from '../components/shared/Footer'
 import { contactApi } from '../lib/api'
@@ -36,10 +35,9 @@ export default function ContactPage() {
   }
 
   return (
-    <AuroraBackground
-      className="min-h-screen w-full"
+    <main
+      className="relative flex flex-col items-center justify-center overflow-hidden min-h-screen w-full"
       style={{ background: 'var(--background)' }}
-      showRadialGradient={true}
     >
       <AuroraRibbon />
       <Navbar />
@@ -134,6 +132,6 @@ export default function ContactPage() {
       </div>
 
       <Footer />
-    </AuroraBackground>
+    </main>
   )
 }

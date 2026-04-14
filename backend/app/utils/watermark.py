@@ -9,16 +9,17 @@ def apply_text_watermark(image_bytes: bytes, text: str) -> bytes:
     img = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
     txt_layer = Image.new("RGBA", img.size, (255, 255, 255, 0))
     
-    # Smart font sizing: ~3% of the image width
-    font_size = max(20, int(img.width * 0.03))
+    # Premium font sizing: ~4% of the image width
+    font_size = max(28, int(img.width * 0.04))
     
-    # Font Discovery: Try common system fonts
+    # Font Discovery: Try common attractive fonts
     font = None
     font_paths = [
-        "C:\\Windows\\Fonts\\arial.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "/System/Library/Fonts/Helvetica.ttc",
+        "C:\\Windows\\Fonts\\pala.ttf", # Palatino Linotype
+        "C:\\Windows\\Fonts\\georgia.ttf",
+        "C:\\Windows\\Fonts\\times.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
         "arial.ttf"
     ]
     
@@ -35,7 +36,7 @@ def apply_text_watermark(image_bytes: bytes, text: str) -> bytes:
 
     draw = ImageDraw.Draw(txt_layer)
     
-    # Calculate position (Bottom Right with padding)
+    # Calculate position (Bottom Right with premium padding)
     try:
         # For modern Pillow (10+)
         bbox = draw.textbbox((0, 0), text, font=font)
@@ -45,19 +46,22 @@ def apply_text_watermark(image_bytes: bytes, text: str) -> bytes:
         # Fallback for older Pillow
         text_width, text_height = draw.textsize(text, font=font)
 
-    x = img.width - text_width - int(img.width * 0.02)
-    y = img.height - text_height - int(img.height * 0.02)
+    # Add 4% padding from edges for a "magazine" feel
+    padding = int(img.width * 0.04)
+    x = img.width - text_width - padding
+    y = img.height - text_height - padding
     
-    # Draw shadow/outline for readability
-    outline_color = (0, 0, 0, 100)
-    draw.text((x+1, y+1), text, font=font, fill=outline_color)
+    # 1. Subtle soft shadow (spread out for elegance)
+    shadow_color = (0, 0, 0, 45)
+    for offset in range(1, 3):
+        draw.text((x + offset, y + offset), text, font=font, fill=shadow_color)
     
-    # Draw main text (Semi-transparent white)
-    draw.text((x, y), text, font=font, fill=(255, 255, 255, 160))
+    # 2. Main text (Slightly more opaque for impact)
+    draw.text((x, y), text, font=font, fill=(255, 255, 255, 210))
     
     # Combine and convert back to RGB
     combined = Image.alpha_composite(img, txt_layer)
     out = io.BytesIO()
-    combined.convert("RGB").save(out, format="JPEG", quality=90)
+    combined.convert("RGB").save(out, format="JPEG", quality=95)
     
     return out.getvalue()

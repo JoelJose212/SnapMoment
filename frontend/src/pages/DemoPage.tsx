@@ -5,7 +5,6 @@ import { useDropzone } from 'react-dropzone'
 import { QRCodeSVG } from 'qrcode.react'
 import { Camera, Upload, CheckCircle, Image, Download } from 'lucide-react'
 import AuroraRibbon from '../components/shared/AuroraRibbon'
-import { AuroraBackground } from '../components/shared/AuroraBackground'
 import Navbar from '../components/shared/Navbar'
 import SplashTag from '../components/shared/SplashTag'
 
@@ -50,10 +49,9 @@ export default function DemoPage() {
   const nextStep = () => setStep((s) => Math.min(s + 1, 4))
 
   return (
-    <AuroraBackground
-      className="min-h-screen w-full"
+    <main
+      className="relative flex flex-col items-center justify-center overflow-hidden min-h-screen w-full"
       style={{ background: 'var(--background)' }}
-      showRadialGradient={true}
     >
       <AuroraRibbon />
       <Navbar />
@@ -241,6 +239,6 @@ export default function DemoPage() {
           </motion.div>
         </AnimatePresence>
       </div>
-    </AuroraBackground>
+    </main>
   )
 }

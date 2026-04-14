@@ -11,6 +11,7 @@ export default function EventLandingPage() {
   const [event, setEvent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [phone, setPhone] = useState('')
+  const [fullName, setFullName] = useState('')
   const [sending, setSending] = useState(false)
 
   useEffect(() => {
@@ -22,12 +23,13 @@ export default function EventLandingPage() {
   }, [token])
 
   const handleSendOtp = async () => {
+    if (!fullName.trim()) { toast.error('Please enter your full name'); return }
     if (!/^\d{10}$/.test(phone)) { toast.error('Please enter a valid 10-digit phone number'); return }
     setSending(true)
     try {
       await guestApiEndpoints.sendOtp({ phone_number: phone, event_id: event.id })
       toast.success('Secure Code Transmitted! ✨')
-      navigate(`/event/${token}/otp`, { state: { phone, eventId: event.id } })
+      navigate(`/event/${token}/otp`, { state: { phone, fullName, eventId: event.id } })
     } catch (err: any) {
       toast.error(err.response?.data?.detail || 'Transmission failed')
     } finally {
@@ -140,6 +142,17 @@ export default function EventLandingPage() {
             transition={{ delay: 0.4 }}
             className="space-y-6"
           >
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted block mb-2 px-1">Your Full Name</label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full px-6 py-4 rounded-2xl bg-white/50 dark:bg-black/20 border border-border text-foreground font-bold text-lg outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-muted/30"
+                placeholder="e.g. John Doe"
+              />
+            </div>
+
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-muted block mb-2 px-1">Studio Access Code (Mobile)</label>
               <div className="relative">

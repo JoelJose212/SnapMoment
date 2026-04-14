@@ -140,6 +140,7 @@ class OTPSendRequest(BaseModel):
 class OTPVerifyRequest(BaseModel):
     phone_number: str
     event_id: str
+    full_name: str
     otp: str
 
 

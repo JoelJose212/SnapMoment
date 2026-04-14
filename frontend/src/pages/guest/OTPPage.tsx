@@ -18,6 +18,7 @@ export default function OTPPage() {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const phone = location.state?.phone
+  const fullName = location.state?.fullName
   const eventId = location.state?.eventId
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function OTPPage() {
     if (otpCode.length !== 6) { toast.error('Enter all 6 digits'); return }
     setVerifying(true)
     try {
-      const res = await guestApiEndpoints.verifyOtp({ phone_number: phone, event_id: eventId, otp: otpCode })
+      const res = await guestApiEndpoints.verifyOtp({ phone_number: phone, full_name: fullName, event_id: eventId, otp: otpCode })
       const { access_token, event_id } = res.data
       setGuestAuth(access_token, event_id)
       toast.success('Identity Verified! 🔒')

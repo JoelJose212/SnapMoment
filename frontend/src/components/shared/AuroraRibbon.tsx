@@ -4,7 +4,7 @@ const MARQUEE_TEXT = '✦ Every memory deserves to be found instantly · SnapMom
 
 export default function AuroraRibbon() {
   return (
-    <div className="aurora-bg" style={{ height: 36, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
+    <div className="aurora-bg w-full" style={{ height: 36, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
       {/* Left pin */}
       <div className="flex items-center gap-1.5 pl-3 pr-4 z-10 shrink-0" style={{ background: 'rgba(0,0,0,0.15)', height: '100%' }}>
         <Camera size={14} color="var(--card)" />

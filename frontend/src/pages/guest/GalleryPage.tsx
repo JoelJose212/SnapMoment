@@ -82,6 +82,26 @@ export default function GalleryPage() {
     }
   }
 
+  const handleDownloadAll = async () => {
+    if (photos.length === 0) return
+    const toastId = toast.loading('Preparing your memories...')
+    try {
+      const response = await guestApiEndpoints.downloadAll()
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `SnapMoment_Gallery.zip`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode?.removeChild(link)
+      
+      toast.success('Gallery downloaded as ZIP! 📦', { id: toastId })
+    } catch (err) {
+      toast.error('Bulk download failed. Try individual downloads.', { id: toastId })
+    }
+  }
+
   const verifiedPhotos = photos.filter(p => !p.is_suggested)
   const suggestedPhotos = photos.filter(p => p.is_suggested)
 
@@ -101,18 +121,6 @@ export default function GalleryPage() {
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-coral/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
-
-      {/* Social Access Kit Modal */}
-      <AnimatePresence>
-        {selectedSocialPhoto && (
-          <SocialKitModal 
-            photo={selectedSocialPhoto} 
-            onClose={() => setSelectedSocialPhoto(null)} 
-            downloadPhoto={downloadPhoto}
-            handleShare={handleShare}
-          />
-        )}
-      </AnimatePresence>
 
       <div className="max-w-7xl mx-auto relative z-10">
         <header className="mb-20">
@@ -136,14 +144,26 @@ export default function GalleryPage() {
           >
             Captured Moments.
           </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-muted text-xl max-w-2xl font-medium leading-relaxed"
-          >
-            We've found {photos.length} frames where you shine. Download them in high-res with studio branding.
-          </motion.p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="text-muted text-xl max-w-2xl font-medium leading-relaxed"
+              >
+                We've found {photos.length} frames where you shine. Download them in high-res with studio branding.
+              </motion.p>
+              
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                onClick={handleDownloadAll}
+                className="flex items-center gap-3 px-10 py-5 rounded-[2rem] text-sm font-black uppercase tracking-widest text-white aurora-bg shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all w-full md:w-auto justify-center"
+              >
+                <Download size={20} className="animate-bounce" /> Download All as ZIP
+              </motion.button>
+            </div>
         </header>
 
         {/* Verified Matches */}
@@ -166,7 +186,6 @@ export default function GalleryPage() {
                 downloadPhoto={downloadPhoto} 
                 handleShare={handleShare} 
                 handleReport={handleReport}
-                onSocialKit={() => setSelectedSocialPhoto(photo)}
               />
             ))}
           </div>
@@ -182,19 +201,18 @@ export default function GalleryPage() {
                  <p className="text-muted text-lg mb-12 max-w-xl">These matched with lower confidence, but we think they might be you!</p>
                  
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-                   {suggestedPhotos.map((photo, i) => (
-                     <PhotoCard 
-                       key={photo.match_id} 
-                       photo={photo} 
-                       i={i} 
-                       downloadPhoto={downloadPhoto} 
-                       handleShare={handleShare} 
-                       handleReport={handleReport}
-                       isSuggested={true}
-                       onSocialKit={() => setSelectedSocialPhoto(photo)}
-                     />
-                   ))}
-                 </div>
+                    {suggestedPhotos.map((photo, i) => (
+                      <PhotoCard 
+                        key={photo.match_id} 
+                        photo={photo} 
+                        i={i} 
+                        downloadPhoto={downloadPhoto} 
+                        handleShare={handleShare} 
+                        handleReport={handleReport}
+                        isSuggested={true}
+                      />
+                    ))}
+                  </div>
                </div>
             </div>
           </section>
@@ -204,105 +222,7 @@ export default function GalleryPage() {
   )
 }
 
-function SocialKitModal({ photo, onClose, downloadPhoto, handleShare }: any) {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8"
-    >
-      <div 
-        className="absolute inset-0 bg-background/90 backdrop-blur-2xl"
-        onClick={onClose}
-      />
-      
-      <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        className="relative bg-card border border-white/10 rounded-[3rem] p-8 md:p-12 max-w-4xl w-full shadow-2xl overflow-hidden"
-      >
-        <div className="absolute top-0 left-0 w-full h-2 aurora-bg" />
-        
-        <header className="flex items-center justify-between mb-10">
-          <div>
-            <h2 className="text-3xl font-black text-foreground flex items-center gap-3">
-              <Zap className="text-primary fill-primary" /> Social Access Kit
-            </h2>
-            <p className="text-muted mt-2 font-medium">AI-optimized crops for your favorite platforms</p>
-          </div>
-          <button 
-            onClick={onClose}
-            className="w-12 h-12 rounded-full glass hover:bg-white/10 flex items-center justify-center transition-all"
-          >
-            <div className="text-2xl">×</div>
-          </button>
-        </header>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Post - Square */}
-          <div className="space-y-4">
-            <div className="aspect-square rounded-3xl overflow-hidden bg-white/5 border border-white/10">
-              <img 
-                src={photo.crop_1x1_url || photo.photo_url} 
-                alt="Square Crop" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="flex items-center justify-between px-2">
-              <span className="text-xs font-black uppercase tracking-widest opacity-60">1:1 Square (Post)</span>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => downloadPhoto(photo.photo_id, '1x1')}
-                  className="p-3 rounded-2xl glass hover:bg-primary/20 text-primary transition-all"
-                >
-                  <Download size={18} />
-                </button>
-                <button 
-                  onClick={() => handleShare(photo.crop_1x1_url || photo.photo_url)}
-                  className="p-3 rounded-2xl glass hover:bg-white/10 text-foreground transition-all"
-                >
-                  <Share2 size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Story - 9:16 */}
-          <div className="space-y-4">
-            <div className="aspect-[9/16] rounded-3xl overflow-hidden bg-white/5 border border-white/10 max-h-[400px]">
-              <img 
-                src={photo.crop_9x16_url || photo.photo_url} 
-                alt="Story Crop" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="flex items-center justify-between px-2">
-              <span className="text-xs font-black uppercase tracking-widest opacity-60">9:16 Story (Vertical)</span>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => downloadPhoto(photo.photo_id, '9:16')}
-                  className="p-3 rounded-2xl glass hover:bg-primary/20 text-primary transition-all"
-                >
-                  <Download size={18} />
-                </button>
-                <button 
-                  onClick={() => handleShare(photo.crop_9x16_url || photo.photo_url)}
-                  className="p-3 rounded-2xl glass hover:bg-white/10 text-foreground transition-all"
-                >
-                  <Share2 size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  )
-}
-
-function PhotoCard({ photo, i, downloadPhoto, handleShare, handleReport, isSuggested = false, onSocialKit }: any) {
+function PhotoCard({ photo, i, downloadPhoto, handleShare, handleReport, isSuggested = false }: any) {
   const [heart, setHeart] = useState(false)
   
   return (
@@ -345,13 +265,6 @@ function PhotoCard({ photo, i, downloadPhoto, handleShare, handleReport, isSugge
                 <Share2 size={20} />
               </button>
             </div>
-            
-            <button 
-              onClick={onSocialKit}
-              className="w-full bg-primary hover:bg-primary-dark text-white p-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl shadow-primary/20"
-            >
-              <Zap size={16} className="fill-white" /> Access Social Kit
-            </button>
           </div>
         </div>
       </div>

@@ -6,7 +6,6 @@ import Navbar from '../components/shared/Navbar'
 import Footer from '../components/shared/Footer'
 import SplashTag from '../components/shared/SplashTag'
 import AuroraRibbon from '../components/shared/AuroraRibbon'
-import { AuroraBackground } from '../components/shared/AuroraBackground'
 import WaveDivider from '../components/shared/WaveDivider'
 
 const FAQ = [
@@ -29,10 +28,9 @@ export default function PricingPage() {
 
       <main className="flex-1">
         {/* Header */}
-        <AuroraBackground
-          className="pt-24 pb-16 px-4 md:px-6 text-center w-full"
+        <header
+          className="relative flex flex-col items-center justify-center overflow-hidden pt-24 pb-16 px-4 md:px-6 text-center w-full"
           style={{ background: 'var(--background)' }}
-          showRadialGradient={true}
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -50,7 +48,7 @@ export default function PricingPage() {
               Start for free, upgrade when you need to handle massive crowds. No hidden fees, ever.
             </p>
           </motion.div>
-        </AuroraBackground>
+        </header>
 
         {/* Pricing Cards */}
         <section className="pb-24 px-6 relative z-10">

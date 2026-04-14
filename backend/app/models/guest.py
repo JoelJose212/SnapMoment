@@ -11,6 +11,7 @@ class Guest(Base):
     __table_args__ = (UniqueConstraint("phone_number", "event_id", name="uq_guest_phone_event"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    full_name: Mapped[str] = mapped_column(String(100), nullable=True)
     phone_number: Mapped[str] = mapped_column(String(20))
     event_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), index=True)
     selfie_s3_key: Mapped[str] = mapped_column(String(500), nullable=True)

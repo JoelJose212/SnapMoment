@@ -100,6 +100,7 @@ export const guestApiEndpoints = {
     }),
   gallery: () => guestApi.get('/api/guest/gallery'),
   report: (photoId: string) => guestApi.post(`/api/guest/gallery/${photoId}/report`),
+  downloadAll: () => guestApi.get('/api/guest/gallery/download-all', { responseType: 'blob' }),
 }
 
 // Admin endpoints

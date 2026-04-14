@@ -152,9 +152,8 @@ body {
   50% { background-position: 100% 50%; }
 }
 .aurora-bg {
-  background: linear-gradient(135deg, #FF6E6C, #FFE1D9, #67568C, #FFE1D9, #FF6E6C);
-  background-size: 300% 300%;
-  animation: aurora-shift 6s ease-in-out infinite;
+  background: linear-gradient(135deg, #FF6E6C, #67568C);
+  background-size: cover;
 }
 
 /* OTP inputs */

@@ -15,7 +15,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="glass sticky top-0 z-50 border-b border-white/10" style={{ backdropFilter: 'blur(20px)' }}>
+    <nav className="glass sticky top-0 z-50 border-b border-white/10 w-full" style={{ backdropFilter: 'blur(20px)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
