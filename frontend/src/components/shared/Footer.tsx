@@ -3,7 +3,7 @@ import { Camera, Heart, Instagram, Twitter, Linkedin } from 'lucide-react'
 
 export default function Footer() {
   return (
-    <footer style={{ background: 'var(--foreground)', color: '#A394A8' }} className="pt-16 pb-8">
+    <footer style={{ background: 'var(--foreground)', color: '#A394A8' }} className="w-full pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-10 border-b border-white/10">
           {/* Brand */}

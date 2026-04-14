@@ -115,7 +115,17 @@ async def get_public_event(qr_token: str, db: AsyncSession = Depends(get_db)):
     event = result.scalar_one_or_none()
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    return PublicEventOut.model_validate(event)
+        
+    # Get photographer brand (optional)
+    res2 = await db.execute(select(Photographer).where(Photographer.id == event.photographer_id))
+    photog = res2.scalar_one_or_none()
+    
+    out = PublicEventOut.model_validate(event)
+    if photog:
+        out.studio_logo_url = photog.studio_logo_url
+        out.studio_name = photog.studio_name
+        
+    return out
 
 
 @router.get("/{event_id}", response_model=EventOut)

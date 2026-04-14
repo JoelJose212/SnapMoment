@@ -12,6 +12,8 @@ export default function OnboardingWizard() {
   
   // Local state for forms
   const [loading, setLoading] = useState(false)
+  const [logoLoading, setLogoLoading] = useState(false)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [step, setStep] = useState(Math.max(2, onboardingStep)) // Step 1 is signup
   
   // Step 2 Form
@@ -53,6 +55,30 @@ export default function OnboardingWizard() {
     }
   }
 
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Show preview
+    const reader = new FileReader()
+    reader.onloadend = () => setLogoPreview(reader.result as string)
+    reader.readAsDataURL(file)
+
+    // Upload
+    setLogoLoading(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    try {
+      const res = await onboardingApi.uploadLogo(formData)
+      setLogoPreview(res.data.logo_url)
+      toast.success('Studio logo optimized! ✨')
+    } catch (err) {
+      toast.error('Logo upload failed')
+    } finally {
+      setLogoLoading(false)
+    }
+  }
+
   const handleStep3 = async () => {
     setLoading(true)
     try {
@@ -74,10 +100,6 @@ export default function OnboardingWizard() {
     try {
       const res = await onboardingApi.step4()
       updateAuthStep(res.data.onboarding_step)
-      if (plan === 'free') {
-        toast.success("Welcome aboard!")
-        navigate('/photographer/events')
-      }
     } catch (err) {
       toast.error('Failed to accept agreement')
     } finally {
@@ -167,6 +189,44 @@ export default function OnboardingWizard() {
               <h1 className="text-3xl font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Tell us about your studio</h1>
               <p className="text-text-muted mb-8">This helps us customize your gallery experience.</p>
               
+              {/* Logo Upload Section */}
+              <div className="mb-10 flex flex-col items-center">
+                <div className="relative group cursor-pointer">
+                  <div className={`w-32 h-32 rounded-full border-2 border-dashed border-border overflow-hidden flex items-center justify-center transition-all ${logoLoading ? 'opacity-50' : 'group-hover:border-primary group-hover:shadow-lg'}`} style={{ background: 'var(--card)' }}>
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Studio Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex flex-col items-center text-text-subtle gap-1">
+                        <Camera size={24} />
+                        <span className="text-[10px] uppercase font-black tracking-widest">Logo</span>
+                      </div>
+                    )}
+                    
+                    {logoLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-sm">
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                    
+                    <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-xs font-black uppercase text-white tracking-widest">Update</span>
+                    </div>
+                  </div>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleLogoChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  {logoPreview && !logoLoading && (
+                    <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center shadow-lg border-4 border-background">
+                      <CheckCircle size={14} />
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted mt-4">Official Studio Branding</p>
+              </div>
+
               <div className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -209,8 +269,8 @@ export default function OnboardingWizard() {
               
               <div className="grid md:grid-cols-3 gap-6 text-left">
                 {[
-                  { id: 'free', name: 'Free', price: '₹0', perks: ['200 photos/event', 'Watermarked', 'Standard AI'] },
-                  { id: 'pro', name: 'Pro', price: '₹1,499', perks: ['2000 photos/event', 'No Watermark', 'Fast AI'] },
+                  { id: 'fresher', name: 'Fresher', price: '₹499', perks: ['5 events total', '200 photos/event', 'Dynamic QR + OTP', 'Studio Branding'] },
+                  { id: 'pro', name: 'Pro', price: '₹1,499', perks: ['50 events total', '2000 photos/event', 'No Watermark', 'Fast AI'] },
                   { id: 'studio', name: 'Studio', price: '₹4,999', perks: ['Unlimited photos', 'Custom branding', 'Priority AI'] }
                 ].map(p => (
                   <div key={p.id} onClick={() => setPlan(p.id)} className={`relative p-6 rounded-2xl cursor-pointer transition-all border-2 ${plan === p.id ? 'border-[#FF6E6C] shadow-coral-sm' : 'border-border hover:border-text-muted'}`} style={{ background: 'var(--card)' }}>
@@ -238,7 +298,7 @@ export default function OnboardingWizard() {
               <div className="p-6 rounded-2xl h-64 overflow-y-auto mb-6 text-sm text-text-muted space-y-4" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
                 <p><strong>1. Acceptable Use</strong><br/>You agree not to upload illicit, copyrighted, or sensitive material without consent.</p>
                 <p><strong>2. Face Recognition Consent</strong><br/>You must collect prior consent from guests before capturing and indexing their biometric facial geometry.</p>
-                <p><strong>3. Data Retention</strong><br/>Free accounts have files automatically purged after 30 days. Pro/Studio retains them for 1 year.</p>
+                <p><strong>3. Data Retention</strong><br/>Fresher accounts have files automatically purged after 30 days. Pro/Studio retains them for 1 year.</p>
                 <p><strong>4. Payments</strong><br/>Subscriptions auto-renew until cancelled. No partial refunds are permitted.</p>
               </div>
 
@@ -262,10 +322,10 @@ export default function OnboardingWizard() {
               <h1 className="text-3xl font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Ready for take-off</h1>
               <p className="text-text-muted mb-8">Complete a secure payment via Stripe to activate your {plan.toUpperCase()} workspace.</p>
               
-              <div className="p-6 rounded-2xl mb-8 flex justify-between items-center" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-                 <span className="font-medium" style={{ color: 'var(--foreground)' }}>{plan.toUpperCase()} Plan</span>
-                 <span className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>₹{plan === 'pro' ? '1,499' : '4,999'}</span>
-              </div>
+               <div className="p-6 rounded-2xl mb-8 flex justify-between items-center" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                  <span className="font-medium" style={{ color: 'var(--foreground)' }}>{plan.toUpperCase()} Plan</span>
+                  <span className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>₹{plan === 'fresher' ? '499' : plan === 'pro' ? '1,499' : '4,999'}</span>
+               </div>
  
               <button disabled={loading} onClick={handleCheckout} className="w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:shadow-coral-lg" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
                  {loading ? 'Connecting to Gateway...' : 'Pay with Stripe'} <ChevronRight size={18} />

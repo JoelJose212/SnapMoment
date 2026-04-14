@@ -82,6 +82,15 @@ export default function EventLandingPage() {
               alt={event.name} 
               className="w-full h-56 object-cover rounded-[2.5rem] relative z-10 photo-print shadow-2xl border-white/40" 
             />
+          ) : event.studio_logo_url ? (
+            <div className="w-full h-56 rounded-[2.5rem] flex items-center justify-center glass border-white/40 shadow-2xl relative z-10 overflow-hidden bg-white/5">
+              <motion.img 
+                whileHover={{ scale: 1.05 }}
+                src={event.studio_logo_url} 
+                alt={event.studio_name || 'Studio Logo'} 
+                className="max-w-[80%] max-h-[70%] object-contain drop-shadow-2xl" 
+              />
+            </div>
           ) : (
             <div className="w-full h-56 rounded-[2.5rem] flex items-center justify-center glass border-white/40 shadow-2xl relative z-10">
               <div className="flex flex-col items-center text-primary/40">

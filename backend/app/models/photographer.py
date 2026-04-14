@@ -15,6 +15,7 @@ class Photographer(Base):
     phone: Mapped[str] = mapped_column(String(20), nullable=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     studio_name: Mapped[str] = mapped_column(String(200), nullable=True)
+    studio_logo_url: Mapped[str] = mapped_column(String(500), nullable=True)
     watermark_url: Mapped[str] = mapped_column(String(500), nullable=True)
     plan: Mapped[str] = mapped_column(String(20), default="free")  # free/pro/studio
     

@@ -53,7 +53,7 @@ export default function SignupPage() {
             <div className="text-xs font-bold text-white mb-2 uppercase tracking-wide">Photographer Perks</div>
             <ul className="text-sm space-y-2" style={{ color: 'rgba(255,255,255,0.85)' }}>
               <li>✓ Instant delivery under 30s</li>
-              <li>✓ Watermarked proofs (Free tier)</li>
+              <li>✓ Watermarked proofs (Fresher tier)</li>
               <li>✓ Unlimited guests support</li>
             </ul>
           </div>
@@ -67,7 +67,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
           <div className="mb-8">
             <h1 style={{ fontFamily: '"Cormorant Garamond"', fontSize: 40, color: 'var(--foreground)', fontWeight: 600 }}>Create your account</h1>
-            <p className="text-text-muted text-sm mt-1">Free forever. No credit card needed.</p>
+            <p className="text-text-muted text-sm mt-1">Start your journey today. No credit card needed.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -113,7 +113,7 @@ export default function SignupPage() {
                className="w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-coral-lg disabled:opacity-60 mt-2"
                style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}
              >
-              {loading ? 'Creating account...' : 'Create Free Account'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 

@@ -10,7 +10,7 @@ import WaveDivider from '../components/shared/WaveDivider'
 
 const FAQ = [
   { q: 'Can I upgrade or downgrade my plan at any time?', a: 'Yes, you can upgrade, downgrade, or cancel your subscription at any time from your dashboard settings. Prorated refunds are standard.' },
-  { q: 'Is there a limit on how long photos are hosted?', a: 'Free and Pro accounts keep photos hosted for 30 days after an event. Studio accounts have unlimited permanent hosting.' },
+  { q: 'Is there a limit on how long photos are hosted?', a: 'Fresher and Pro accounts keep photos hosted for 30 days after an event. Studio accounts have unlimited permanent hosting.' },
   { q: 'What happens if I go over my photo limit?', a: 'If you need to upload an extra batch for a massive event, you can buy a one-time "Event Boost" for ₹500 without needing to upgrade to a higher monthly tier.' },
   { q: 'Do guests need to pay to download photos?', a: 'No! Guests never pay anything to access or download their matched photos.' },
   {q: 'Can I share photos directly on social media?',a: 'Yes! Guests can instantly share their photos on platforms like Instagram and WhatsApp directly from the gallery.'},
@@ -45,7 +45,7 @@ export default function PricingPage() {
               Scale your photography business without limits.
             </h1>
             <p className="mt-6 text-lg max-w-xl mx-auto leading-relaxed" style={{ color: 'var(--muted)' }}>
-              Start for free, upgrade when you need to handle massive crowds. No hidden fees, ever.
+              Start with Fresher, upgrade when you need to handle massive crowds. No hidden fees, ever.
             </p>
           </motion.div>
         </header>
@@ -55,7 +55,7 @@ export default function PricingPage() {
           <div className="max-w-5xl mx-auto">
             <div className="grid md:grid-cols-3 gap-6">
               {[
-                { name: 'Fresher', price: '₹499', delay: 0, features: ['5 events/month', '200 photos/event', 'QR + OTP flow', 'Branded watermark', 'Email support'], cta: 'Start Free', highlighted: false, tag: null },
+                { name: 'Fresher', price: '₹499', delay: 0, features: ['5 events/month', '200 photos/event', 'QR + OTP flow', 'Branded watermark', 'Email support'], cta: 'Fresher', highlighted: false, tag: null },
                 { name: 'Pro', price: '₹1,499', period: '/mo', delay: 0.1, features: ['50 events/month', '4,000 photos/event', 'Custom watermark', 'Bulk download (ZIP)', 'Priority support', 'Analytics dashboard'], cta: 'Go Pro', highlighted: true, tag: 'Most loved ♥♥♥' },
                 { name: 'Studio', price: '₹4,999', period: '/mo', delay: 0.2, features: ['Unlimited events', 'Unlimited photos', 'White-label QR', 'API access', 'Dedicated support', 'Custom domain'], cta: 'Go Studio', highlighted: false, tag: null },
               ].map((plan) => (
@@ -130,7 +130,7 @@ export default function PricingPage() {
                 <tbody className="text-sm">
                   {[
                     ['Events per Month', '5', '50', 'Unlimited'],
-                    ['Photos per Event', '200', '4,000', 'Unlimited'],
+                    ['Photos per Event', '200', '2,000', 'Unlimited'],
                     ['AI Facial Recognition', true, true, true],
                     ['Guest OTP Verification', true, true, true],
                     ['Watermark Type', 'SnapMoment Banner', 'Your Custom Logo', 'Your Custom Logo'],
@@ -194,10 +194,10 @@ export default function PricingPage() {
              <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', fontWeight: 700, color: 'white' }}>
               Stop manual sharing. Start matching.
             </h2>
-            <p className="mt-4 text-white/90 text-lg">Join SnapMoment for free. Upgrade anytime.</p>
+            <p className="mt-4 text-white/90 text-lg">Join SnapMoment today. Upgrade anytime.</p>
             <div className="flex justify-center mt-8">
               <Link to="/signup" className="px-10 py-4 rounded-2xl font-bold text-[#FF6E6C] bg-white hover:scale-105 transition-all shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
-                ✦ Create Free Account ✦
+                ✦ Create Account ✦
               </Link>
             </div>
           </div>

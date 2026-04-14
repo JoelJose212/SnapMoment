@@ -63,7 +63,7 @@ const FEATURES = [
   { icon: Shield, title: '99.8% Accurate', desc: 'ArcFace deep learning model trained on millions of faces.' },
   { icon: QrCode, title: 'QR Entry', desc: 'No app needed. Scan, verify, smile and receive.' },
   { icon: Users, title: 'Any Crowd Size', desc: '1 to 1000+ guests — scales seamlessly.' },
-  { icon: Camera, title: 'Watermarked Proofs', desc: 'Free tier adds your branded watermark automatically.' },
+  { icon: Camera, title: 'Watermarked Proofs', desc: 'Fresher tier adds your branded watermark automatically.' },
   { icon: Shield, title: 'Privacy First', desc: 'Selfies deleted after matching. Guests see only their photos.' },
 ]
 
@@ -87,7 +87,7 @@ const FAQ = [
   { q: 'How accurate is the face recognition?', a: 'We use DeepFace ArcFace model with 99.8% accuracy. Guests can also report incorrect matches.' },
   {q: 'What if a face is not detected correctly?', a: 'Guests can retry with a better selfie or report mismatches, and our system will improve accuracy over time.'},
   { q: 'What happens to selfie data after matching?', a: 'Selfies are processed in real time and deleted immediately after embedding extraction. We never store raw selfie images.' },
-  { q: 'How many photos can I upload per event?', a: 'Free plan supports up to 200 photos. Pro supports 2000 and Studio is unlimited.' },
+  { q: 'How many photos can I upload per event?', a: 'Fresher plan supports up to 200 photos. Pro supports 2000 and Studio is unlimited.' },
   {q: 'How long does it take for guests to receive their photos?', a: 'Photos are delivered instantly after a successful face match. In most cases, guests receive their photos within seconds.'},
   {q: 'Is internet required for this to work?', a: 'Yes, an internet connection is required for uploading photos and matching faces in real time.'},
   {q: 'Can guests download their photos?', a: 'Yes! Guests can view, download, and share their photos directly from their browser.'},
@@ -193,7 +193,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap justify-start gap-3 mt-8">
                 <Link to="/signup" className="text-center px-8 py-3.5 rounded-2xl font-semibold text-white transition-all hover:shadow-coral-lg hover:scale-105" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)', fontSize: 15 }}>
-                  Start for Free <SplashTag text="Free to start" color="coral" rotation={3} className="ml-2" />
+                  Start Fresher <SplashTag text="Start now" color="coral" rotation={3} className="ml-2" />
                 </Link>
                 <Link to="/demo" className="text-center px-8 py-3.5 rounded-2xl font-semibold transition-all hover:bg-white/15" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', fontSize: 15 }}>
                   See Demo →
@@ -348,7 +348,7 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { name: 'Fresher', price: '₹499', features: ['5 events/month', '200 photos/event', 'QR + OTP flow', 'Branded watermark'], cta: 'Start Free', color: '#000000ff', highlighted: true },
+              { name: 'Fresher', price: '₹499', features: ['5 events/month', '200 photos/event', 'QR + OTP flow', 'Branded watermark'], cta: 'Fresher', color: '#000000ff', highlighted: true },
               { name: 'Pro', price: '₹1,499', period: '/mo', features: ['50 events/month', '2,000 photos/event', 'Custom watermark', 'Analytics dashboard'], cta: 'Go Pro', color: '#000000ff', highlighted: true, tag: 'Most loved ♥♥♥', fontSize: 18 },
               { name: 'Studio', price: '₹4,999', period: '/mo', features: ['Unlimited events', 'Unlimited photos', 'White-label QR', 'API access'], cta: 'Go Studio', color: '#000000ff', highlighted: true },
             ].map((plan) => (
@@ -409,7 +409,7 @@ export default function HomePage() {
       <section className="py-20 px-6 text-center" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
         <h2 className="text-4xl md:text-5xl font-bold text-white">Ready to transform your events?</h2>
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10">
-          <Link to="/signup" className="px-10 py-4 rounded-2xl font-bold bg-white text-primary hover:scale-105 transition-transform">Start Free Today</Link>
+          <Link to="/signup" className="px-10 py-4 rounded-2xl font-bold bg-white text-primary hover:scale-105 transition-transform">Start Fresher Today</Link>
           <Link to="/demo" className="px-10 py-4 rounded-2xl font-bold border border-white/30 text-white hover:bg-white/10 transition-all">Watch Demo</Link>
         </div>
       </section>

@@ -11,6 +11,8 @@ from app.services.invoice import generate_invoice_pdf
 from app.services.email import send_invoice_email
 from app.models.invoice import Invoice
 from datetime import datetime, timedelta
+from fastapi import File, UploadFile
+from app.services import s3 as s3_service
 
 router = APIRouter(prefix="/api/onboarding", tags=["onboarding"])
 
@@ -60,8 +62,7 @@ async def onboarding_step4(
     photographer = result.scalar_one_or_none()
     
     photographer.onboarding_step = 5
-    if photographer.plan == "free":
-        photographer.onboarding_step = 6
+    # No plans are free anymore, so we don't skip Step 5 (Payment)
         
     await db.commit()
     return {"message": "Step 4 completed", "onboarding_step": photographer.onboarding_step}
@@ -74,7 +75,12 @@ async def create_stripe_checkout(
     result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(current_user["sub"])))
     photographer = result.scalar_one_or_none()
     
-    amount = 1499 * 100 if photographer.plan == "pro" else 4999 * 100
+    if photographer.plan == "fresher":
+        amount = 499 * 100
+    elif photographer.plan == "pro":
+        amount = 1499 * 100
+    else:
+        amount = 4999 * 100
         
     if not settings.STRIPE_SECRET_KEY or settings.STRIPE_SECRET_KEY == "sk_test_placeholder":
         # Mock session for dev environment without keys
@@ -135,7 +141,12 @@ async def verify_stripe_payment(
         await db.commit()
     
         try:
-            amount_inr = 1499 if photographer.plan == "pro" else 4999
+            if photographer.plan == "fresher":
+                amount_inr = 499
+            elif photographer.plan == "pro":
+                amount_inr = 1499
+            else:
+                amount_inr = 4999
             pdf_path = generate_invoice_pdf(
                 name=photographer.full_name,
                 studio_name=photographer.studio_name or "",
@@ -190,3 +201,31 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
             await db.commit()
             
     return {"status": "success"}
+
+
+@router.post("/studio-logo")
+async def upload_studio_logo(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_photographer),
+    db: AsyncSession = Depends(get_db)
+):
+    photog_id = current_user["sub"]
+    
+    # Check photographer
+    result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(photog_id)))
+    photog = result.scalar_one_or_none()
+    if not photog:
+        raise HTTPException(status_code=404, detail="Photographer not found")
+        
+    # Read file bytes
+    file_bytes = await file.read()
+    
+    # Generate S3 key and upload
+    key = s3_service.generate_key(f"logos/{photog_id}", "png")
+    logo_url = await s3_service.upload_file(file_bytes, key, content_type=file.content_type or "image/png")
+    
+    # Update DB
+    photog.studio_logo_url = logo_url
+    await db.commit()
+    
+    return {"logo_url": logo_url}

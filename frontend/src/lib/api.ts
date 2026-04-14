@@ -64,6 +64,9 @@ export const onboardingApi = {
   step4: () => api.post('/api/onboarding/step4'),
   createOrder: () => api.post('/api/onboarding/create-order'),
   verifyPayment: (data: any) => api.post('/api/onboarding/verify-payment', data),
+  uploadLogo: (formData: FormData) => api.post('/api/onboarding/studio-logo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
 }
 
 // Event endpoints

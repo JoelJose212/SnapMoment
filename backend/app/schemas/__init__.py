@@ -106,11 +106,13 @@ class PublicEventOut(BaseModel):
     id: uuid.UUID
     name: str
     type: str
-    cover_photo_url: Optional[str]
-    is_active: bool
-    photographer_note: Optional[str]
-    location: Optional[str]
-    event_date: Optional[datetime]
+    cover_photo_url: Optional[str] = None
+    studio_logo_url: Optional[str] = None
+    studio_name: Optional[str] = None
+    is_active: bool = True
+    photographer_note: Optional[str] = None
+    location: Optional[str] = None
+    event_date: Optional[datetime] = None
 
     class Config:
         from_attributes = True
