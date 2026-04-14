@@ -23,6 +23,7 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 ## ✨ Key Features
 
 - **⚡ Instant AI Delivery**: Photos reach guests within seconds of upload using autonomous matching.
+- **🖼️ Studio Branding**: Guest galleries are automatically customized with your studio logo and brand identity.
 - **📷 RAW Live Tethering**: Connect your camera's local folder via the **Folder Sync Engine** for instant over-the-air ingestion. Supports `.RAW`, `.CR3`, `.WebP`, and more.
 - **🧠 Neural-Lock Selfie**: Real-time biometric guidance (MediaPipe) ensures guests capture high-quality, matchable selfies.
 - **🔍 Smart Person Clustering**: Uses **DBSCAN** to group faces into distinct personas, improving matching accuracy.
@@ -106,11 +107,13 @@ graph LR
     System -- "QR Code / Analytics" --> Photog
 
     Guest -- "Selfie / OTP Request" --> System
-    System -- "Personal Gallery" --> Guest
-
+    System -- "Branded Gallery / SMS" --> Guest
+    
     System -- "Payment Tracking" <--> Stripe
     System -- "Email Invoices" --> Gmail
     System -- "SMS Pin Request" --> SMS
+    
+    System -- "Studio Branding Data" <--> Pix[Logo Storage]
 
     System -- "Store Media" --> S3
     S3 -- "Image CDN URLs" --> System
@@ -196,6 +199,10 @@ graph TD
     %% Attributes
     sub_exp([subscription_expires_at]) --- Photographer
     p_plan([plan]) --- Photographer
+    p_logo([studio_logo_url]) --- Photographer
+    p_name([studio_name]) --- Photographer
+    
+    g_name([full_name]) --- Guest
     
     inv_pdf([pdf_url]) --- Invoice
     inv_amt([amount]) --- Invoice
@@ -401,7 +408,8 @@ AWS_SECRET_ACCESS_KEY=your-aws-secret
 | `POST` | `/api/events/{id}/process` | Trigger AI face indexing |
 | `POST` | `/api/guest/otp/send` | Request OTP for guest access |
 | `POST` | `/api/guest/selfie` | Upload selfie for instant matching |
-| `GET` | `/api/guest/gallery` | Retrieve personalized matched photos |
+| `POST` | `/api/guest/gallery` | Retrieve personalized matched photos |
+| `POST` | `/api/onboarding/studio-logo` | Upload official studio branding logo |
 
 ---
 
@@ -473,24 +481,24 @@ SnapMoment/
 ## 📖 Comprehensive Data Dictionary
 | S. No | Name of Class | Data Member | Data Type | Method / API | Method Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **1** | **Photographer** | `subscription_expires_at` | DateTime | `suspend_account()` | Automatically hides data after expiry. |
+| **1** | **Photographer** | `studio_logo_url` | String | `upload_studio_logo()` | Updates branding across guest galleries. |
 | | | `plan` | String | `verify_payment()` | Upgrades account capabilities. |
 | **2** | **Event** | `id` | UUID (PK) | `create_event()` | Initializes a new photo event. |
 | **3** | **Invoice** | `pdf_url` | String | `generate_pdf()`| Creates professional billing receipts. |
 | | | `amount` | Float | `send_email()` | Distributes invoices via Gmail SMTP. |
 | **4** | **Photo** | `id` | UUID (PK) | `tether_sync()` | Auto-ingests frames from local folders. |
-| **5** | **Guest** | `id` | UUID (PK) | `verify_otp()` | Finalizes guest session after SMS check. |
+| **5** | **Guest** | `full_name` | String | `verify_otp()` | Finalizes guest session after SMS check. |
 
 ---
 
 ## 📖 Input / Output (I/O) Table
 | S. No | Object | Input Details | Output Details |
 | :--- | :--- | :--- | :--- |
-| **1** | **Studio Onboarding** | Studio Details, Gear, Fav Plan | Profile setup & Pricing selection |
+| **1** | **Studio Onboarding** | Studio Details, Gear, Selected Plan | Profile setup & Pricing activation |
 | **2** | **Payment Checkout** | Stripe Checkout Session | Payment ID & Activated Workspace |
 | **3** | **Invoice Generation** | Payment Event | Automated PDF Receipt & Email |
 | **4** | **RAW Tethering** | Local Folder Handle | Instant Automatic Cloud Sync |
-| **5** | **Biometric Match** | Guest Selfie | List of Matching Personal Photos |
+| **5** | **Biometric Match** | Guest Selfie & Name | List of Matching Personal Photos |
 
 ---
 
