@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Download, Share2, Zap, Heart, Info, ChevronRight, Sparkles, Camera, ShieldAlert } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import toast from 'react-hot-toast'
-import { guestApiEndpoints as guestApi, api } from '../../lib/api'
+import { guestApiEndpoints, guestApi, api } from '../../lib/api'
 
 export default function GalleryPage() {
   const [photos, setPhotos] = useState<any[]>([])
@@ -18,7 +18,7 @@ export default function GalleryPage() {
 
   const fetchGallery = async () => {
     try {
-      const res = await guestApi.gallery()
+      const res = await guestApiEndpoints.gallery()
       setPhotos(res.data)
       if (res.data.length > 0 && !confettiRef.current) {
         confetti({
@@ -39,7 +39,7 @@ export default function GalleryPage() {
   const downloadPhoto = async (photoId: string, format: string = 'original') => {
     const toastId = toast.loading(`Preparing your ${format === 'original' ? 'High-Res' : format} moment...`)
     try {
-      const response = await api.get(`/api/guest/gallery/${photoId}/download`, {
+      const response = await guestApi.get(`/api/guest/gallery/${photoId}/download`, {
         params: { format },
         responseType: 'blob'
       })
@@ -74,7 +74,7 @@ export default function GalleryPage() {
 
   const handleReport = async (photoId: string) => {
     try {
-      await guestApi.report(photoId)
+      await guestApiEndpoints.report(photoId)
       setPhotos(prev => prev.filter(p => p.photo_id !== photoId))
       toast.success('Photo reported and hidden')
     } catch (err) {

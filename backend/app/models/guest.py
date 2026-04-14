@@ -12,7 +12,7 @@ class Guest(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     phone_number: Mapped[str] = mapped_column(String(20))
-    event_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"))
+    event_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), index=True)
     selfie_s3_key: Mapped[str] = mapped_column(String(500), nullable=True)
     face_embedding: Mapped[dict] = mapped_column(JSONB, nullable=True)
     verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)

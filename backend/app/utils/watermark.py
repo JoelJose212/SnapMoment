@@ -16,6 +16,7 @@ def apply_text_watermark(image_bytes: bytes, text: str) -> bytes:
     font = None
     font_paths = [
         "C:\\Windows\\Fonts\\arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
         "/System/Library/Fonts/Helvetica.ttc",
         "arial.ttf"

@@ -10,7 +10,7 @@ class Photo(Base):
     __tablename__ = "photos"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    event_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"))
+    event_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), index=True)
     s3_key: Mapped[str] = mapped_column(String(500))
     s3_url: Mapped[str] = mapped_column(String(1000))
     thumbnail_url: Mapped[str] = mapped_column(String(1000), nullable=True)

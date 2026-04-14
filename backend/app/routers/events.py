@@ -70,20 +70,34 @@ async def create_event(data: EventCreate, current_user: dict = Depends(require_p
 async def list_events(current_user: dict = Depends(require_photographer), db: AsyncSession = Depends(get_db)):
     photographer_id = current_user["sub"]
     if not await check_subscription(photographer_id, db):
-        return [] # Hide data per requirement
-    result = await db.execute(select(Event).where(Event.photographer_id == uuid.UUID(photographer_id)).order_by(Event.created_at.desc()))
-    events = result.scalars().all()
+        return []
+
+    # 🚀 Optimized single-query fetch using scalar subqueries
+    photo_count_sub = (
+        select(func.count(Photo.id))
+        .where(Photo.event_id == Event.id)
+        .scalar_subquery()
+    )
+    guest_count_sub = (
+        select(func.count(Guest.id))
+        .where(Guest.event_id == Event.id)
+        .scalar_subquery()
+    )
+
+    stmt = (
+        select(Event, photo_count_sub, guest_count_sub)
+        .where(Event.photographer_id == uuid.UUID(photographer_id))
+        .order_by(Event.created_at.desc())
+    )
+    
+    result = await db.execute(stmt)
+    rows = result.all()
 
     out_list = []
-    for event in events:
-        photo_result = await db.execute(select(func.count(Photo.id)).where(Photo.event_id == event.id))
-        photo_count = photo_result.scalar() or 0
-        guest_result = await db.execute(select(func.count(Guest.id)).where(Guest.event_id == event.id))
-        guest_count = guest_result.scalar() or 0
-
+    for event, photo_count, guest_count in rows:
         ev_out = EventOut.model_validate(event)
-        ev_out.photo_count = photo_count
-        ev_out.guest_count = guest_count
+        ev_out.photo_count = photo_count or 0
+        ev_out.guest_count = guest_count or 0
         out_list.append(ev_out)
 
     return out_list
@@ -108,19 +122,22 @@ async def get_public_event(qr_token: str, db: AsyncSession = Depends(get_db)):
 async def get_event(event_id: str, current_user: dict = Depends(require_photographer), db: AsyncSession = Depends(get_db)):
     if not await check_subscription(current_user["sub"], db):
         raise HTTPException(status_code=403, detail="Subscription expired")
-    result = await db.execute(select(Event).where(Event.id == uuid.UUID(event_id)))
-    event = result.scalar_one_or_none()
-    if not event:
+
+    # 🚀 Optimized fetch
+    photo_count_sub = select(func.count(Photo.id)).where(Photo.event_id == Event.id).scalar_subquery()
+    guest_count_sub = select(func.count(Guest.id)).where(Guest.event_id == Event.id).scalar_subquery()
+
+    stmt = select(Event, photo_count_sub, guest_count_sub).where(Event.id == uuid.UUID(event_id))
+    result = await db.execute(stmt)
+    row = result.first()
+    
+    if not row:
         raise HTTPException(status_code=404, detail="Event not found")
-
-    photo_result = await db.execute(select(func.count(Photo.id)).where(Photo.event_id == event.id))
-    photo_count = photo_result.scalar() or 0
-    guest_result = await db.execute(select(func.count(Guest.id)).where(Guest.event_id == event.id))
-    guest_count = guest_result.scalar() or 0
-
+    
+    event, photo_count, guest_count = row
     ev_out = EventOut.model_validate(event)
-    ev_out.photo_count = photo_count
-    ev_out.guest_count = guest_count
+    ev_out.photo_count = photo_count or 0
+    ev_out.guest_count = guest_count or 0
     return ev_out
 
 

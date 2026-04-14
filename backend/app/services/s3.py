@@ -79,7 +79,8 @@ async def read_file(key: str) -> bytes:
 
 def get_signed_url(key: str, expiry_seconds: int = 7200) -> str:
     if settings.USE_LOCAL_STORAGE:
-        return f"{settings.LOCAL_STORAGE_BASE_URL}/{key}"
+        import time
+        return f"{settings.LOCAL_STORAGE_BASE_URL}/{key}?v={int(time.time())}"
     import boto3
     s3 = boto3.client(
         "s3",

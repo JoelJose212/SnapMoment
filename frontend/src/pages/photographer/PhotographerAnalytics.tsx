@@ -166,6 +166,5 @@ export default function PhotographerAnalytics() {
         </motion.div>
       </div>
     </div>
-    </div>
   )
 }

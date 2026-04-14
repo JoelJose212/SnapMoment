@@ -84,34 +84,42 @@ def index_event_photos(self, event_id: str):
                                 with Image.open(img_path) as im:
                                     w, h = im.size
                                     
-                                    # Create crops for each face or at least the most prominent one
-                                    # For MVP, we take the largest/first face
-                                    face = results[0]
-                                    fa = face.get("facial_area", {})
-                                    fx = fa.get("x", 0) + fa.get("w", 0) // 2
-                                    fy = fa.get("y", 0) + fa.get("h", 0) // 2
+                                    # Group-Aware Smart-Crop: Calculate bounding box for ALL faces
+                                    min_x = min(f.get("facial_area", {}).get("x", w // 2) for f in results)
+                                    max_x = max(f.get("facial_area", {}).get("x", w // 2) + f.get("facial_area", {}).get("w", 0) for f in results)
+                                    min_y = min(f.get("facial_area", {}).get("y", h // 2) for f in results)
+                                    max_y = max(f.get("facial_area", {}).get("y", h // 2) + f.get("facial_area", {}).get("h", 0) for f in results)
+                                    
+                                    # Midpoint of the entire group
+                                    fx = (min_x + max_x) // 2
+                                    fy = (min_y + max_y) // 2
+                                    
+                                    # Adaptive Margin: expand group area slightly
+                                    gw = max_x - min_x
+                                    gh = max_y - min_y
                                     
                                     crops_dir = Path(settings.LOCAL_STORAGE_PATH) / "crops"
                                     crops_dir.mkdir(parents=True, exist_ok=True)
                                     
                                     # 1:1 Square Crop
                                     size = min(w, h)
+                                    # If group is large, ensure we don't crop into them
                                     left = max(0, min(fx - size // 2, w - size))
                                     top = max(0, min(fy - size // 2, h - size))
-                                    im.crop((left, top, left + size, top + size)).save(crops_dir / f"{photo.id}_1x1.jpg", quality=90)
+                                    im.crop((left, top, left + size, top + size)).convert("RGB").save(crops_dir / f"{photo.id}_1x1.jpg", quality=90)
                                     
-                                    # 9:16 Story Crop
-                                    # Logic: maintain 9:16 ratio based on height
+                                    # 9:16 Story Crop (Vertical)
                                     sw = int(h * (9/16))
-                                    if sw > w: # if image is too narrow, use full width and adjust height
+                                    if sw > w:
                                         sw = w
                                         sh = int(w * (16/9))
                                     else:
                                         sh = h
                                     
+                                    # Centering logic with group preference
                                     left = max(0, min(fx - sw // 2, w - sw))
                                     top = max(0, min(fy - sh // 2, h - sh))
-                                    im.crop((left, top, left + sw, top + sh)).save(crops_dir / f"{photo.id}_9x16.jpg", quality=90)
+                                    im.crop((left, top, left + sw, top + sh)).convert("RGB").save(crops_dir / f"{photo.id}_9x16.jpg", quality=90)
                                     
                                     logger.info(f"✨ Smart-Crops generated for photo {photo.id}")
                             except Exception as crop_err:
