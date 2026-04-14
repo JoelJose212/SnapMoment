@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import CustomCursor from './components/shared/CustomCursor'
 import ProtectedRoute from './components/shared/ProtectedRoute'
 
@@ -42,6 +43,7 @@ export default function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <BrowserRouter>
+        <Toaster position="top-center" reverseOrder={false} />
         <CustomCursor />
       <Routes>
         {/* Public */}

@@ -3,11 +3,27 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '../../lib/api'
 import { Search, CheckCircle, XCircle, ToggleRight, ToggleLeft, Shield, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import ConfirmModal from '../../components/shared/ConfirmModal'
 
 export default function AdminPhotographers() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [planFilter, setPlanFilter] = useState('')
+  const [modal, setModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+    type: 'danger' | 'warning'
+    confirmText: string
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    type: 'warning',
+    confirmText: 'Confirm'
+  })
 
   const { data: photographers = [], isLoading } = useQuery({
     queryKey: ['admin-photographers', search, planFilter],
@@ -33,15 +49,31 @@ export default function AdminPhotographers() {
   })
 
   const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete ${name}? This action will permanently remove their access.`)) {
-      deleteMutation.mutate(id)
-    }
+    setModal({
+      isOpen: true,
+      title: 'Delete Photographer?',
+      message: `Are you sure you want to delete ${name}? This action will permanently remove their access and all associated data.`,
+      confirmText: 'Delete Permanently',
+      type: 'danger',
+      onConfirm: () => {
+        deleteMutation.mutate(id)
+        setModal(prev => ({ ...prev, isOpen: false }))
+      }
+    })
   }
 
   const handleSuspend = (id: string, name: string) => {
-    if (window.confirm(`Suspend ${name}? This will hide all their data until reactivation.`)) {
-      suspendMutation.mutate(id)
-    }
+    setModal({
+      isOpen: true,
+      title: 'Suspend Account?',
+      message: `Suspend ${name}? This will hide all their event data from guests until you manually reactivate the account.`,
+      confirmText: 'Suspend Account',
+      type: 'warning',
+      onConfirm: () => {
+        suspendMutation.mutate(id)
+        setModal(prev => ({ ...prev, isOpen: false }))
+      }
+    })
   }
 
   return (
@@ -132,6 +164,17 @@ export default function AdminPhotographers() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        isOpen={modal.isOpen}
+        onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={modal.onConfirm}
+        title={modal.title}
+        message={modal.message}
+        confirmText={modal.confirmText}
+        type={modal.type}
+        loading={deleteMutation.isPending || suspendMutation.isPending}
+      />
     </div>
   )
 }

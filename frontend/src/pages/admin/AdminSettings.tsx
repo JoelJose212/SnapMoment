@@ -8,7 +8,7 @@ export default function AdminSettings() {
         {[
           { label: 'Platform Name', value: 'SnapMoment' },
           { label: 'Support Email', value: 'support@snapmoment.app' },
-          { label: 'Max Photos/Event (Free)', value: '200' },
+          { label: 'Max Photos/Event (Fresher)', value: '200' },
           { label: 'Max Photos/Event (Pro)', value: '2000' },
           { label: 'OTP Expiry (seconds)', value: '300' },
         ].map(({ label, value }) => (
