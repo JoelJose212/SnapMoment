@@ -55,7 +55,7 @@ export default function PricingPage() {
           <div className="max-w-5xl mx-auto">
             <div className="grid md:grid-cols-3 gap-6">
               {[
-                { name: 'Fresher', price: '₹499', delay: 0, features: ['5 events/month', '200 photos/event', 'QR + OTP flow', 'Branded watermark', 'Email support'], cta: 'Fresher', highlighted: false, tag: null },
+                { name: 'Fresher', price: '₹1', delay: 0, features: ['5 events/month', '200 photos/event', 'QR + OTP flow', 'Branded watermark', 'Email support'], cta: 'Fresher', highlighted: false, tag: null },
                 { name: 'Pro', price: '₹1,499', period: '/mo', delay: 0.1, features: ['50 events/month', '4,000 photos/event', 'Custom watermark', 'Bulk download (ZIP)', 'Priority support', 'Analytics dashboard'], cta: 'Go Pro', highlighted: true, tag: 'Most loved ♥♥♥' },
                 { name: 'Studio', price: '₹4,999', period: '/mo', delay: 0.2, features: ['Unlimited events', 'Unlimited photos', 'White-label QR', 'API access', 'Dedicated support', 'Custom domain'], cta: 'Go Studio', highlighted: false, tag: null },
               ].map((plan) => (

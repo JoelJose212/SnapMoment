@@ -269,7 +269,7 @@ export default function OnboardingWizard() {
               
               <div className="grid md:grid-cols-3 gap-6 text-left">
                 { [
-                  { id: 'fresher', name: 'Fresher', price: '₹499', perks: ['5 events total', '200 photos/event', 'Dynamic QR + OTP', 'Studio Branding'] },
+                  { id: 'fresher', name: 'Fresher', price: '₹1', perks: ['5 events total', '200 photos/event', 'Dynamic QR + OTP', 'Studio Branding'] },
                   { id: 'pro', name: 'Pro', price: '₹1,499', perks: ['50 events total', '2000 photos/event', 'No Watermark', 'Fast AI'] },
                   { id: 'studio', name: 'Studio', price: '₹4,999', perks: ['Unlimited photos', 'Custom branding', 'Priority AI'] }
                 ].map(p => (
@@ -315,7 +315,7 @@ export default function OnboardingWizard() {
 
           {/* STEP 5: CHECKOUT */}
           {step === 5 && (
-            <motion.div key="step5" initial="hidden" animate="visible" exit="exit" variants={variants} transition={{ duration: 0.3 }} className="max-w-md mx-auto text-center">
+            <motion.div key="step5" initial="hidden" animate="visible" exit="exit" variants={variants} transition={{ duration: 0.3 }} className="max-md mx-auto text-center">
               <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6" style={{ background: 'var(--card)', border: '2px solid var(--border)' }}>
                 <CreditCard size={32} color="var(--primary)" />
               </div>
@@ -324,7 +324,7 @@ export default function OnboardingWizard() {
               
                <div className="p-6 rounded-2xl mb-8 flex justify-between items-center" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
                   <span className="font-medium" style={{ color: 'var(--foreground)' }}>{plan.toUpperCase()} Plan</span>
-                  <span className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>₹{plan === 'fresher' ? '499' : plan === 'pro' ? '1,499' : '4,999'}</span>
+                  <span className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>₹{plan === 'fresher' ? '1' : plan === 'pro' ? '1,499' : '4,999'}</span>
                </div>
  
               <button disabled={loading} onClick={handleCheckout} className="w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:shadow-primary-lg shadow-xl" style={{ background: 'var(--primary-gradient)' }}>
