@@ -348,7 +348,7 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { name: 'Fresher', price: '₹1', features: ['5 events/month', '200 photos/event', 'QR + OTP flow', 'Branded watermark'], cta: 'Fresher', color: '#000000ff', highlighted: true },
+              { name: 'Fresher', price: '₹50', features: ['5 events/month', '200 photos/event', 'QR + OTP flow', 'Branded watermark'], cta: 'Fresher', color: '#000000ff', highlighted: true },
               { name: 'Pro', price: '₹1,499', period: '/mo', features: ['50 events/month', '2,000 photos/event', 'Custom watermark', 'Analytics dashboard'], cta: 'Go Pro', color: '#000000ff', highlighted: true, tag: 'Most loved ♥♥♥', fontSize: 18 },
               { name: 'Studio', price: '₹4,999', period: '/mo', features: ['Unlimited events', 'Unlimited photos', 'White-label QR', 'API access'], cta: 'Go Studio', color: '#000000ff', highlighted: true },
             ].map((plan) => (

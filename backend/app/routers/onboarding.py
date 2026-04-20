@@ -76,7 +76,7 @@ async def create_stripe_checkout(
     photographer = result.scalar_one_or_none()
     
     if photographer.plan == "fresher":
-        amount = 1 * 100
+        amount = 50 * 100
     elif photographer.plan == "pro":
         amount = 1499 * 100
     else:
@@ -142,7 +142,7 @@ async def verify_stripe_payment(
     
         try:
             if photographer.plan == "fresher":
-                amount_inr = 1
+                amount_inr = 50
             elif photographer.plan == "pro":
                 amount_inr = 1499
             else:

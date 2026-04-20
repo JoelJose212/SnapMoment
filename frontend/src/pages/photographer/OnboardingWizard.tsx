@@ -269,7 +269,7 @@ export default function OnboardingWizard() {
               
               <div className="grid md:grid-cols-3 gap-6 text-left">
                 { [
-                  { id: 'fresher', name: 'Fresher', price: '₹1', perks: ['5 events total', '200 photos/event', 'Dynamic QR + OTP', 'Studio Branding'] },
+                  { id: 'fresher', name: 'Fresher', price: '₹50', perks: ['5 events total', '200 photos/event', 'Dynamic QR + OTP', 'Studio Branding'] },
                   { id: 'pro', name: 'Pro', price: '₹1,499', perks: ['50 events total', '2000 photos/event', 'No Watermark', 'Fast AI'] },
                   { id: 'studio', name: 'Studio', price: '₹4,999', perks: ['Unlimited photos', 'Custom branding', 'Priority AI'] }
                 ].map(p => (
@@ -324,7 +324,7 @@ export default function OnboardingWizard() {
               
                <div className="p-6 rounded-2xl mb-8 flex justify-between items-center" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
                   <span className="font-medium" style={{ color: 'var(--foreground)' }}>{plan.toUpperCase()} Plan</span>
-                  <span className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>₹{plan === 'fresher' ? '1' : plan === 'pro' ? '1,499' : '4,999'}</span>
+                  <span className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>₹{plan === 'fresher' ? '50' : plan === 'pro' ? '1,499' : '4,999'}</span>
                </div>
  
               <button disabled={loading} onClick={handleCheckout} className="w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:shadow-primary-lg shadow-xl" style={{ background: 'var(--primary-gradient)' }}>
