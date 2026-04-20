@@ -72,16 +72,16 @@ export default function DemoPage() {
                 <div
                   className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all"
                   style={{
-                    background: i <= step ? 'linear-gradient(135deg,#FF6E6C,#67568C)' : 'var(--border)',
-                    color: i <= step ? 'white' : '#A394A8',
+                    background: i <= step ? 'var(--primary-gradient)' : 'var(--border)',
+                    color: i <= step ? 'white' : 'var(--muted)',
                   }}
                 >
                   {i < step ? <CheckCircle size={16} /> : i + 1}
                 </div>
-                <span className="text-xs font-medium whitespace-nowrap" style={{ color: i === step ? '#FF6E6C' : '#A394A8' }}>{s}</span>
+                <span className="text-xs font-medium whitespace-nowrap" style={{ color: i === step ? 'var(--primary)' : 'var(--muted)' }}>{s}</span>
               </button>
               {i < STEPS.length - 1 && (
-                <div className="flex-1 h-px mx-2 min-w-[24px]" style={{ background: i < step ? '#FF6E6C' : 'var(--border)' }} />
+                <div className="flex-1 h-px mx-2 min-w-[24px]" style={{ background: i < step ? 'var(--primary)' : 'var(--border)' }} />
               )}
             </div>
           ))}
@@ -102,7 +102,7 @@ export default function DemoPage() {
               <div>
                 <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 26, color: 'var(--foreground)' }}>Upload Event Photos</h2>
                 <p className="text-sm text-text-muted mt-1 mb-6">Drag & drop your event photos. AI will index all faces.</p>
-                <div {...getRootProps()} className="border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all" style={{ borderColor: isDragActive ? '#FF6E6C' : 'var(--border)', background: isDragActive ? 'var(--background)' : 'var(--background)' }}>
+                <div {...getRootProps()} className="border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all" style={{ borderColor: isDragActive ? 'var(--primary)' : 'var(--border)', background: isDragActive ? 'var(--background)' : 'var(--background)' }}>
                   <input {...getInputProps()} />
                   <Upload size={40} color="#A394A8" className="mx-auto mb-3" />
                   <p className="text-sm font-medium text-text-muted">Drop photos here or click to browse</p>
@@ -112,18 +112,18 @@ export default function DemoPage() {
                   <div className="mt-5">
                     {processing ? (
                       <div className="flex items-center gap-3 text-sm text-primary">
-                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" style={{ borderColor: '#FF6E6C', borderTopColor: 'transparent' }} />
-                        AI indexing faces... <SplashTag text="Powered by AI" color="crimson" rotation={-2} />
+                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
+                        AI indexing faces... <SplashTag text="Powered by AI" color="emerald" rotation={-2} />
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-sm text-[#00C48C]">
+                      <div className="flex items-center gap-2 text-sm text-[#10B981]">
                         <CheckCircle size={16} /> {uploaded.length} photos indexed. {uploaded.length * 3} faces found.
                       </div>
                     )}
                   </div>
                 )}
                 {!processing && uploaded.length > 0 && (
-                  <button onClick={nextStep} className="mt-6 px-8 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-coral-lg" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+                  <button onClick={nextStep} className="mt-6 px-8 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-primary-lg" style={{ background: 'var(--primary-gradient)' }}>
                     Generate QR Code →
                   </button>
                 )}
@@ -139,7 +139,7 @@ export default function DemoPage() {
                   <p className="mt-4 text-xs text-text-muted font-hand text-lg" style={{ fontSize: 26, fontFamily: 'Caveat' }}>Scan to get your photos</p>
                 </div>
                 <div className="mt-8 flex gap-3 justify-center">
-                  <button onClick={nextStep} className="px-8 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-coral-lg" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+                  <button onClick={nextStep} className="px-8 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-primary-lg" style={{ background: 'var(--primary-gradient)' }}>
                     Guest Experience →
                   </button>
                 </div>
@@ -180,8 +180,8 @@ export default function DemoPage() {
                       style={{
                         width: 160,
                         height: 210,
-                        borderColor: faceDetected ? '#00C48C' : '#FF4B4B',
-                        border: `3px solid ${faceDetected ? '#00C48C' : '#FF4B4B'}`,
+                        borderColor: faceDetected ? '#10B981' : 'var(--primary)',
+                        border: `3px solid ${faceDetected ? '#10B981' : 'var(--primary)'}`,
                         animation: faceDetected ? 'none' : undefined,
                       }}
                     />
@@ -193,17 +193,17 @@ export default function DemoPage() {
                       { label: 'Good Lighting', ok: true },
                       { label: 'Looking Forward', ok: faceDetected },
                     ].map(({ label, ok }) => (
-                      <span key={label} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: ok ? '#00C48C' : '#FF4B4B', color: 'white' }}>{label}</span>
+                      <span key={label} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: ok ? '#10B981' : 'var(--primary)', color: 'white' }}>{label}</span>
                     ))}
                   </div>
                 </div>
                 <div className="flex gap-3 mt-6 justify-center">
                   <button
                     onClick={() => { setFaceDetected(true); setTimeout(nextStep, 1500) }}
-                    className="px-8 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-coral-lg"
-                    style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}
+                    className="px-8 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-primary-lg"
+                    style={{ background: 'var(--primary-gradient)' }}
                   >
-                    <SplashTag text="Works on any phone" color="amber" rotation={-2} className="mr-2" />
+                    <SplashTag text="Works on any phone" color="emerald" rotation={-2} className="mr-2" />
                     Capture & Match →
                   </button>
                 </div>
@@ -221,10 +221,10 @@ export default function DemoPage() {
                     <div key={photo.id} className="relative rounded-2xl overflow-hidden photo-print" style={{ transform: `rotate(${photo.id % 2 === 0 ? 1.5 : -1.5}deg)` }}>
                       <img src={photo.src} alt="" className="w-full h-40 object-cover" />
                       <div className="absolute top-2 right-2">
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ background: '#FF6E6C' }}>{photo.confidence}%</span>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ background: 'var(--primary)' }}>{photo.confidence}%</span>
                       </div>
                       <div className="p-2 flex gap-1">
-                        <button className="flex-1 text-xs py-1.5 rounded-lg font-medium text-white" style={{ background: '#FF6E6C' }}>
+                        <button className="flex-1 text-xs py-1.5 rounded-lg font-medium text-white" style={{ background: 'var(--primary)' }}>
                           <Download size={12} className="inline mr-1" />Download
                         </button>
                       </div>

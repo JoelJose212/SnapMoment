@@ -83,7 +83,7 @@ export default function AdminPhotographers() {
       {/* Filters */}
       <div className="flex gap-3 mb-6">
         <div className="relative flex-1 max-w-xs">
-          <Search size={15} color="#A394A8" className="absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search size={15} color="var(--muted)" className="absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -121,14 +121,14 @@ export default function AdminPhotographers() {
                   <td className="px-5 py-4 text-sm font-medium text-text-main">{p.full_name}</td>
                   <td className="px-5 py-4 text-sm text-text-muted">{p.email}</td>
                   <td className="px-5 py-4">
-                    <span className="text-xs px-2.5 py-1 rounded-full font-medium capitalize" style={{ background: p.plan === 'studio' ? '#1A1A24' : p.plan === 'pro' ? 'var(--background)' : '#F0FDF4', color: p.plan === 'studio' ? '#FF6E6C' : p.plan === 'pro' ? '#67568C' : '#00C48C' }}>{p.plan}</span>
+                    <span className="text-xs px-2.5 py-1 rounded-full font-medium capitalize" style={{ background: p.plan === 'studio' ? 'var(--foreground)' : p.plan === 'pro' ? 'var(--background)' : 'var(--primary-light)', color: p.plan === 'studio' ? 'var(--primary)' : p.plan === 'pro' ? 'var(--accent)' : 'var(--success)' }}>{p.plan}</span>
                   </td>
                   <td className="px-5 py-4">
-                    {p.is_verified ? <CheckCircle size={16} color="#00C48C" /> : <XCircle size={16} color="#D1D5DB" />}
+                    {p.is_verified ? <CheckCircle size={16} color="var(--success)" /> : <XCircle size={16} color="#D1D5DB" />}
                   </td>
                   <td className="px-5 py-4">
                     <button onClick={() => updateMutation.mutate({ id: p.id, data: { is_active: !p.is_active } })}>
-                      {p.is_active ? <ToggleRight size={22} color="#FF6E6C" /> : <ToggleLeft size={22} color="#D1D5DB" />}
+                      {p.is_active ? <ToggleRight size={22} color="var(--primary)" /> : <ToggleLeft size={22} color="#D1D5DB" />}
                     </button>
                   </td>
                   <td className="px-5 py-4">
@@ -136,8 +136,8 @@ export default function AdminPhotographers() {
                       {!p.is_verified && (
                         <button
                           onClick={() => updateMutation.mutate({ id: p.id, data: { is_verified: true } })}
-                          className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-all hover:shadow-indigo-sm"
-                          style={{ background: '#67568C' }}
+                          className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-all hover:shadow-accent-sm"
+                          style={{ background: 'var(--accent)' }}
                         >
                           <Shield size={12} />Verify
                         </button>

@@ -60,7 +60,7 @@ export default function AdminMessages() {
                   <td className="px-5 py-4 text-sm text-text-muted">{new Date(m.created_at).toLocaleDateString()}</td>
                   <td className="px-5 py-4">
                     {m.is_resolved ? (
-                      <span className="flex items-center gap-1.5 text-xs font-medium text-green-600 px-2.5 py-1 rounded-full bg-green-50 w-fit">
+                      <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 px-2.5 py-1 rounded-full bg-emerald-50 w-fit">
                         <CheckCircle size={14} /> Resolved
                       </span>
                     ) : (
@@ -74,8 +74,8 @@ export default function AdminMessages() {
                       {!m.is_resolved && (
                         <button
                           onClick={() => resolveMutation.mutate(m.id)}
-                          className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-all hover:shadow-indigo-sm"
-                          style={{ background: '#67568C' }}
+                          className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-all hover:shadow-accent-sm"
+                          style={{ background: 'var(--accent)' }}
                         >
                           <CheckCircle size={12} /> Resolve
                         </button>

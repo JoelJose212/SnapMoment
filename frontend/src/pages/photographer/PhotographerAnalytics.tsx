@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { BarChart3, TrendingUp, Users, Image as ImageIcon, Sparkles } from 'lucide-react'
 import { analyticsApi } from '../../lib/api'
 
-const COLORS = ['#FF6B6B', '#67568C', '#FFD93D', '#4D96FF', '#FF8E53', '#6BCB77']
+const COLORS = ['#14B8A6', '#A78BFA', '#10B981', '#3B82F6', '#F59E0B', '#8B5CF6'] // Teal, Purple, Emerald, Blue, Amber, Violet
 
 export default function PhotographerAnalytics() {
   const { data, isLoading } = useQuery({
@@ -51,8 +51,8 @@ export default function PhotographerAnalytics() {
         className="grid grid-cols-1 sm:grid-cols-3 gap-6"
       >
         {[
-          { label: 'Studio Events', value: data?.total_events || 0, icon: BarChart3, color: '#FF6E6C' },
-          { label: 'Frames Captured', value: data?.total_photos || 0, icon: ImageIcon, color: '#67568C' },
+          { label: 'Studio Events', value: data?.total_events || 0, icon: BarChart3, color: '#14B8A6' },
+          { label: 'Frames Captured', value: data?.total_photos || 0, icon: ImageIcon, color: '#A78BFA' },
           { label: 'Unique Guests', value: data?.total_guests || 0, icon: Users, color: '#FFB800' },
         ].map(({ label, value, icon: Icon, color }) => (
           <motion.div 
@@ -94,8 +94,8 @@ export default function PhotographerAnalytics() {
                 <BarChart data={data.events_per_month}>
                   <defs>
                     <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FF6B6B" />
-                      <stop offset="100%" stopColor="#67568C" />
+                      <stop offset="0%" stopColor="#14B8A6" />
+                      <stop offset="100%" stopColor="#A78BFA" />
                     </linearGradient>
                   </defs>
                   <XAxis 

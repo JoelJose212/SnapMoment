@@ -19,8 +19,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         position="top-right"
         toastOptions={{
           style: { fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '14px' },
-          success: { style: { background: '#FFB800', color: 'white' } },
-          error: { style: { background: '#FF4B4B', color: 'white' } },
+          success: { style: { background: '#10B981', color: 'white' } },
+          error: { style: { background: '#EF4444', color: 'white' } },
         }}
       />
     </QueryClientProvider>

@@ -40,7 +40,7 @@ export default function PhotographerQR() {
       ctx.fillRect(0, 0, 1000, 1000)
       
       // Draw a subtle border
-      ctx.strokeStyle = '#F4F4F6'
+      ctx.strokeStyle = '#F1F5F9' // --foreground-light or similar
       ctx.lineWidth = 40
       ctx.strokeRect(20, 20, 960, 960)
 
@@ -48,7 +48,7 @@ export default function PhotographerQR() {
       ctx.drawImage(img, 150, 150, 700, 700)
       
       // Add text
-      ctx.fillStyle = '#FF6E6C'
+      ctx.fillStyle = '#14B8A6' // Primary Teal
       ctx.font = 'bold 48px "Plus Jakarta Sans"'
       ctx.textAlign = 'center'
       ctx.fillText('SCAN TO GET YOUR PHOTOS', 500, 900)
@@ -175,7 +175,7 @@ export default function PhotographerQR() {
               <div className="relative group">
                 {/* Decorative floating elements */}
                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 blur-3xl animate-pulse" />
-                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500/20 blur-3xl animate-pulse" />
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/20 blur-3xl animate-pulse" />
                 
                 {/* 3D Acrylic Stand Mockup */}
                 <div className="acrylic-box bg-white p-2 rounded-[24px] shadow-2xl relative">
@@ -205,7 +205,7 @@ export default function PhotographerQR() {
                       </div>
                     </div>
 
-                    <h4 className="text-3xl font-bold italic mb-4" style={{ fontFamily: 'Caveat', color: '#FF6E6C' }}>
+                    <h4 className="text-3xl font-bold italic mb-4" style={{ fontFamily: 'Caveat', color: 'var(--primary)' }}>
                       Scan to see your photos!
                     </h4>
                     
@@ -234,7 +234,7 @@ export default function PhotographerQR() {
         <div className="w-[8.5in] h-[11in] flex flex-col items-center justify-center text-center p-20 bg-white">
           <div className="mb-12">
             <h2 className="text-6xl font-black mb-4 tracking-tighter text-black">SnapMoment</h2>
-            <div className="h-2 w-32 bg-[#FF6E6C] mx-auto rounded-full" />
+            <div className="h-2 w-32 mx-auto rounded-full" style={{ background: '#14B8A6' }} />
           </div>
 
           <div className="mb-16 border-[12px] border-black p-12 rounded-[60px]">

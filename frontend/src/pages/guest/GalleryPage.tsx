@@ -25,7 +25,7 @@ export default function GalleryPage() {
           particleCount: 150,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF']
+          colors: ['#14B8A6', '#A78BFA', '#10B981', '#3B82F6'] // Teal, Purple, Emerald, Blue
         })
         confettiRef.current = true
       }
@@ -120,7 +120,7 @@ export default function GalleryPage() {
     <div className="min-h-screen bg-background px-6 py-12 md:py-24 relative overflow-hidden">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-coral/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <header className="mb-20">
@@ -273,7 +273,7 @@ function PhotoCard({ photo, i, downloadPhoto, handleShare, handleReport, isSugge
         <div className="flex items-center gap-2">
            <button 
              onClick={() => setHeart(!heart)}
-             className={`p-3 rounded-xl transition-all ${heart ? 'bg-coral/20 text-coral' : 'bg-white/5 text-muted hover:bg-white/10'}`}
+             className={`p-3 rounded-xl transition-all ${heart ? 'bg-primary/20 text-primary' : 'bg-white/5 text-muted hover:bg-white/10'}`}
            >
              <Heart size={18} fill={heart ? "currentColor" : "none"} />
            </button>

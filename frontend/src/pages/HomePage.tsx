@@ -48,7 +48,7 @@ function StatCounter({ value, suffix, label, color }: { value: number; suffix: s
   }, [])
   return (
     <div ref={ref} className="text-center">
-      <div style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 56, fontWeight: 700, color: color || '#FF6E6C', lineHeight: 1 }}>
+      <div style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 56, fontWeight: 700, color: color || 'var(--primary)', lineHeight: 1 }}>
         {count.toLocaleString()}{suffix}
       </div>
       <div className="text-sm mt-2 font-medium text-text-muted">{label}</div>
@@ -122,7 +122,7 @@ export const TestimonialsColumn = (props: {
                 style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
               >
                 <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="#F59E0B" color="#F59E0B" />)}
+                  {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="var(--accent)" color="var(--accent)" />)}
                 </div>
                 <div className="text-sm leading-relaxed text-text-muted mb-6">"{text}"</div>
                 <div className="flex items-center gap-3">
@@ -166,8 +166,8 @@ export default function HomePage() {
         style={{ background: 'var(--background)' }}
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute w-72 h-72 rounded-full opacity-20" style={{ background: '#FF6E6C', filter: 'blur(80px)', top: '10%', left: '5%', animation: 'blob 8s ease-in-out infinite' }} />
-          <div className="absolute w-96 h-96 rounded-full opacity-15" style={{ background: '#67568C', filter: 'blur(100px)', top: '40%', right: '10%', animation: 'blob 10s ease-in-out infinite 2s' }} />
+          <div className="absolute w-72 h-72 rounded-full opacity-20" style={{ background: 'var(--primary)', filter: 'blur(80px)', top: '10%', left: '5%', animation: 'blob 8s ease-in-out infinite' }} />
+          <div className="absolute w-96 h-96 rounded-full opacity-15" style={{ background: 'var(--accent)', filter: 'blur(100px)', top: '40%', right: '10%', animation: 'blob 10s ease-in-out infinite 2s' }} />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-0 relative z-10">
@@ -182,20 +182,20 @@ export default function HomePage() {
                 <span style={{ position: 'relative', display: 'inline-block' }}>
                   heartbeat
                   <svg viewBox="0 0 200 20" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', bottom: -6, left: 0, width: '100%', height: 18, fill: 'none' }}>
-                    <path d="M5,15 Q50,0 100,12 Q150,22 195,8" stroke="#FFB800" strokeWidth="3" strokeLinecap="round" fill="none" />
+                    <path d="M5,15 Q50,0 100,12 Q150,22 195,8" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" fill="none" />
                   </svg>
                 </span>
               </h1>
-              <p className="text-base mt-7 leading-relaxed max-w-md" style={{ color: '#A394A8', fontFamily: '"Plus Jakarta Sans"' }}>
+              <p className="text-base mt-7 leading-relaxed max-w-md" style={{ color: 'var(--muted)', fontFamily: '"Plus Jakarta Sans"' }}>
                 Photographers upload, guests scan & selfie — AI delivers{' '}
-                <span style={{ fontFamily: 'Caveat', fontSize: 22, color: '#F59E0B', verticalAlign: 'baseline' }}>instantly</span>.
+                <span style={{ fontFamily: 'Caveat', fontSize: 22, color: 'var(--primary)', verticalAlign: 'baseline' }}>instantly</span>.
                 No more shared drives. No more "where's my photo?"
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap justify-start gap-3 mt-8">
-                <Link to="/signup" className="text-center px-8 py-3.5 rounded-2xl font-semibold text-white transition-all hover:shadow-coral-lg hover:scale-105" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)', fontSize: 15 }}>
-                  Start Fresher <SplashTag text="Start now" color="coral" rotation={3} className="ml-2" />
+                <Link to="/signup" className="text-center px-8 py-3.5 rounded-2xl font-semibold text-white transition-all hover:shadow-primary-lg hover:scale-105" style={{ background: 'var(--primary-gradient)', fontSize: 15 }}>
+                  Start Fresher <SplashTag text="Start now" color="emerald" rotation={3} className="ml-2" />
                 </Link>
-                <Link to="/demo" className="text-center px-8 py-3.5 rounded-2xl font-semibold transition-all hover:bg-white/15" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', fontSize: 15 }}>
+                <Link to="/demo" className="text-center px-8 py-3.5 rounded-2xl font-semibold transition-all hover:bg-white/15" style={{ background: 'var(--primary-gradient)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', fontSize: 15 }}>
                   See Demo →
                 </Link>
               </div>
@@ -210,14 +210,14 @@ export default function HomePage() {
             {/* Phone Mockup */}
             <div className="relative flex justify-center mt-8 md:mt-0">
               <div className="relative" style={{ perspective: '1000px' }}>
-                <div className="relative rounded-[36px] overflow-hidden" style={{ width: 'min(260px, 80vw)', height: 'min(520px, 65vw)', minHeight: 380, background: '#241630', border: '8px solid rgba(255,255,255,0.08)', boxShadow: '0 40px 80px rgba(91,33,182,0.4)' }}>
+                <div className="relative rounded-[36px] overflow-hidden" style={{ width: 'min(260px, 80vw)', height: 'min(520px, 65vw)', minHeight: 380, background: 'var(--card)', border: '8px solid var(--border)', boxShadow: '0 40px 80px rgba(20,184,166,0.4)' }}>
                   <div className="absolute inset-0 p-5 flex flex-col gap-3">
                     <div className="text-center mt-4">
-                      <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-3" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+                      <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-3" style={{ background: 'var(--primary-gradient)' }}>
                         <Camera size={28} color="white" />
                       </div>
-                      <div style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 18, color: 'white', fontWeight: 600 }}>Your Gallery</div>
-                      <div style={{ fontSize: 10, color: '#9B9BA6', marginTop: 2 }}>12 photos found · 99.8% match</div>
+                      <div style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 18, color: 'var(--foreground)', fontWeight: 600 }}>Your Gallery</div>
+                      <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>12 photos found · 99.8% match</div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-3">
                       {['/home-gallery-1.jpg', '/home-gallery-2.jpg', '/home-gallery-3.jpg', '/home-gallery-4.jpg', '/home-gallery-5.jpg', '/home-gallery-6.jpg'].map((src, idx) => (
@@ -226,7 +226,7 @@ export default function HomePage() {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-3 rounded-xl py-2.5 text-center text-xs font-semibold text-white" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+                    <div className="mt-3 rounded-xl py-2.5 text-center text-xs font-semibold text-white" style={{ background: 'var(--primary-gradient)' }}>
                       Download All Photos
                     </div>
                   </div>
@@ -263,8 +263,8 @@ export default function HomePage() {
                 className="relative z-10 rounded-3xl p-8 text-center"
                 style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
               >
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: 'linear-gradient(135deg,var(--background),#FFE1D9)' }}>
-                  <Icon size={24} color="#FF6E6C" />
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: 'var(--accent-light)' }}>
+                  <Icon size={24} color="var(--primary)" />
                 </div>
                 <h3 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 20, color: 'var(--foreground)' }}>{title}</h3>
                 <p className="text-sm text-text-muted mt-2 leading-relaxed">{desc}</p>
@@ -300,8 +300,8 @@ export default function HomePage() {
                     <SplashTag text="Privacy Verified ✓" color="amber" rotation={3} />
                   </div>
                 )}
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'rgba(0, 196, 140, 0.1)', border: '1px solid rgba(0, 196, 140, 0.2)' }}>
-                  <f.icon size={26} color="#00C48C" />
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'var(--primary-light)', border: '1px solid var(--primary)' }}>
+                  <f.icon size={26} color="var(--primary)" />
                 </div>
                 <h3 className="font-bold text-xl mb-3" style={{ color: 'var(--foreground)' }}>{f.title}</h3>
                 <p className="text-sm leading-relaxed text-text-muted">{f.desc}</p>
@@ -314,10 +314,10 @@ export default function HomePage() {
       {/* Stats Section */}
       <section className="py-24 px-6" style={{ background: 'var(--background)' }}>
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          <StatCounter value={200} suffix="+" label="Photographers" color="#00C48C" />
-          <StatCounter value={50000} suffix="+" label="Photos Delivered" color="#00C48C" />
-          <StatCounter value={1200} suffix="+" label="Events Hosted" color="#00C48C" />
-          <StatCounter value={99} suffix="%" label="AI Accuracy" color="#00C48C" />
+          <StatCounter value={200} suffix="+" label="Photographers" color="var(--primary)" />
+          <StatCounter value={50000} suffix="+" label="Photos Delivered" color="var(--primary)" />
+          <StatCounter value={1200} suffix="+" label="Events Hosted" color="var(--primary)" />
+          <StatCounter value={99} suffix="%" label="AI Accuracy" color="var(--primary)" />
         </div>
       </section>
 
@@ -326,7 +326,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', color: 'var(--foreground)' }}>
-              Trusted by Pros. <SplashTag text="Real users ✦✦✦" color="coral" rotation={-2} fontSize={18} />
+              Trusted by Pros. <SplashTag text="Real users ✦✦✦" color="emerald" rotation={-2} fontSize={18} />
             </h2>
           </div>
 
@@ -356,7 +356,7 @@ export default function HomePage() {
                 key={plan.name}
                 className="rounded-3xl p-8 relative flex flex-col"
                 style={{
-                  background: plan.highlighted ? 'linear-gradient(135deg,#FF6E6C,#67568C)' : 'var(--card)',
+                  background: plan.highlighted ? 'var(--primary-gradient)' : 'var(--card)',
                   border: plan.highlighted ? 'none' : '1px solid var(--border)',
                   transform: plan.highlighted ? 'scale(1.05)' : 'none',
                   zIndex: plan.highlighted ? 10 : 1
@@ -393,12 +393,12 @@ export default function HomePage() {
           </div>
           <div className="space-y-3">
             {FAQ.map((item, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden" style={{ background: '#241630', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div key={i} className="rounded-2xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
                 <button className="w-full flex items-center justify-between p-6 text-left" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                  <span className="font-medium text-white text-sm">{item.q}</span>
-                  <ChevronDown size={18} color="#A394A8" style={{ transform: openFaq === i ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
+                  <span className="font-medium text-sm" style={{ color: 'var(--foreground)' }}>{item.q}</span>
+                  <ChevronDown size={18} color="var(--muted)" style={{ transform: openFaq === i ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
                 </button>
-                {openFaq === i && <div className="px-6 pb-6 text-sm leading-relaxed text-text-muted">{item.a}</div>}
+                {openFaq === i && <div className="px-6 pb-6 text-sm leading-relaxed opacity-70" style={{ color: 'var(--foreground)' }}>{item.a}</div>}
               </div>
             ))}
           </div>
@@ -406,7 +406,7 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 px-6 text-center" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+      <section className="py-20 px-6 text-center" style={{ background: 'var(--primary-gradient)' }}>
         <h2 className="text-4xl md:text-5xl font-bold text-white">Ready to transform your events?</h2>
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10">
           <Link to="/signup" className="px-10 py-4 rounded-2xl font-bold bg-white text-primary hover:scale-105 transition-transform">Start Fresher Today</Link>

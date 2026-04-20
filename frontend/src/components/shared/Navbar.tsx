@@ -19,7 +19,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--primary-gradient)' }}>
             <Camera size={18} color="white" />
           </div>
           <span style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 22, fontWeight: 600, color: 'var(--foreground)' }}>
@@ -63,8 +63,8 @@ export default function Navbar() {
               </Link>
               <Link
                 to="/signup"
-                className="text-sm font-semibold text-white px-5 py-2 rounded-xl transition-all hover:shadow-coral-lg"
-                style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}
+                className="text-sm font-semibold text-white px-5 py-2 rounded-xl transition-all hover:shadow-primary-lg"
+                style={{ background: 'var(--primary-gradient)' }}
               >
                 Get Started
               </Link>
@@ -95,7 +95,7 @@ export default function Navbar() {
           ) : (
             <>
               <Link to="/login" className="text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>Login</Link>
-              <Link to="/signup" className="text-sm font-semibold text-white px-4 py-2.5 rounded-xl text-center" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }} onClick={() => setMenuOpen(false)}>Get Started</Link>
+              <Link to="/signup" className="text-sm font-semibold text-white px-4 py-2.5 rounded-xl text-center" style={{ background: 'var(--primary-gradient)' }} onClick={() => setMenuOpen(false)}>Get Started</Link>
             </>
           )}
           </div>

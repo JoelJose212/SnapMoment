@@ -38,11 +38,11 @@ export default function AdminEvents() {
                   <td className="px-5 py-4 text-sm font-medium text-text-main max-w-[200px] truncate">{event.name}</td>
                   <td className="px-5 py-4 text-sm text-text-muted">{event.photographer_name}</td>
                   <td className="px-5 py-4">
-                    <span className="text-xs px-2.5 py-1 rounded-full capitalize" style={{ background: 'var(--background)', color: '#FF6E6C' }}>{event.type}</span>
+                    <span className="text-xs px-2.5 py-1 rounded-full capitalize" style={{ background: 'var(--background)', color: 'var(--primary)' }}>{event.type}</span>
                   </td>
                   <td className="px-5 py-4 text-xs text-text-muted">{event.event_date ? new Date(event.event_date).toLocaleDateString('en-IN') : '—'}</td>
                   <td className="px-5 py-4">
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: event.is_active ? '#F0FDF4' : '#F9FAFB', color: event.is_active ? '#00C48C' : '#A394A8' }}>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: event.is_active ? 'var(--primary-light)' : 'var(--background)', color: event.is_active ? 'var(--success)' : 'var(--muted)' }}>
                       {event.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>

@@ -21,7 +21,7 @@ export default function AdminLayout() {
       <aside className="w-60 flex-shrink-0 flex flex-col" style={{ background: 'var(--foreground)', minHeight: '100vh' }}>
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--primary-gradient)' }}>
               <Camera size={18} color="white" />
             </div>
             <span style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 20, fontWeight: 600, color: 'white' }}>Admin</span>
@@ -32,7 +32,7 @@ export default function AdminLayout() {
           {NAV.map(({ to, icon: Icon, label, end }) => (
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-[#FF6E6C] text-white shadow-coral-sm' : 'text-text-subtle hover:text-white hover:bg-white/5'}`
+                `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-[var(--primary)] text-white shadow-primary-sm' : 'text-text-subtle hover:text-white hover:bg-white/5'}`
               }
             >
               <Icon size={17} />

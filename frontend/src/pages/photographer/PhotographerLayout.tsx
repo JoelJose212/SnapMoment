@@ -16,8 +16,8 @@ export default function PhotographerLayout() {
   return (
     <div className="flex min-h-screen relative overflow-hidden" style={{ background: 'var(--background)' }}>
       {/* Background Orbs */}
-      <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full opacity-20 blur-[120px]" style={{ background: '#FF6E6C' }} />
-      <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] rounded-full opacity-10 blur-[100px]" style={{ background: '#67568C' }} />
+      <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full opacity-20 blur-[120px]" style={{ background: 'var(--primary)' }} />
+      <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] rounded-full opacity-10 blur-[100px]" style={{ background: 'var(--accent)' }} />
 
       {/* Sidebar */}
       <aside className="w-72 flex-shrink-0 flex flex-col p-6 z-10">
@@ -94,7 +94,7 @@ export default function PhotographerLayout() {
             
             <button
               onClick={() => { logout(); navigate('/') }}
-              className="flex items-center justify-center gap-2 text-xs font-bold text-white aurora-bg w-full py-3.5 rounded-xl hover:shadow-coral shadow-md transition-all active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 text-xs font-bold text-white aurora-bg w-full py-3.5 rounded-xl hover:shadow-primary shadow-md transition-all active:scale-[0.98]"
             >
               <LogOut size={14} />
               End Session
@@ -110,7 +110,7 @@ export default function PhotographerLayout() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             className="mb-6 rounded-[2rem] p-4 flex items-center justify-between text-white shadow-xl px-8"
-            style={{ background: 'linear-gradient(135deg, #FF6E6C, #67568C)' }}
+            style={{ background: 'var(--primary-gradient)' }}
           >
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -123,7 +123,7 @@ export default function PhotographerLayout() {
             </div>
             <button 
               onClick={() => navigate('/onboarding')}
-              className="px-6 py-2 rounded-xl bg-white text-[#FF6E6C] text-xs font-black uppercase tracking-widest hover:scale-105 transition-transform"
+              className="px-6 py-2 rounded-xl bg-white text-primary text-xs font-black uppercase tracking-widest hover:scale-105 transition-transform"
             >
               Reactivate Now
             </button>

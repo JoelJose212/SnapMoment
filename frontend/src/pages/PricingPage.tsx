@@ -39,7 +39,7 @@ export default function PricingPage() {
             className="max-w-3xl mx-auto"
           >
             <div className="mb-6 flex justify-center">
-              <SplashTag text="✦ Simple & Transparent" color="coral" rotation={-4} fontSize={18} />
+              <SplashTag text="✦ Simple & Transparent" color="emerald" rotation={-4} fontSize={18} />
             </div>
             <h1 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(40px, 5vw, 64px)', fontWeight: 700, color: 'var(--foreground)', lineHeight: 1.1 }}>
               Scale your photography business without limits.
@@ -66,8 +66,8 @@ export default function PricingPage() {
                   key={plan.name}
                   className="rounded-3xl p-8 relative overflow-hidden flex flex-col"
                   style={{
-                    background: plan.highlighted ? 'linear-gradient(135deg,#FF6E6C,#67568C)' : 'var(--card)',
-                    boxShadow: plan.highlighted ? '0 16px 48px rgba(255,110,108,0.35)' : '0 4px 24px rgba(28,16,24,0.08)',
+                    background: plan.highlighted ? 'var(--primary-gradient)' : 'var(--card)',
+                    boxShadow: plan.highlighted ? 'var(--primary-lg)' : 'var(--card)',
                     border: plan.highlighted ? 'none' : '1px solid var(--border)',
                     transform: plan.highlighted ? 'scale(1.04)' : 'none',
                     zIndex: plan.highlighted ? 10 : 1
@@ -86,9 +86,9 @@ export default function PricingPage() {
                   </div>
                   <ul className="space-y-3 flex-1">
                     {plan.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-sm font-medium" style={{ color: plan.highlighted ? 'rgba(255,255,255,0.9)' : '#4B5563' }}>
-                        <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: plan.highlighted ? 'rgba(255,255,255,0.2)' : '#FFE1D9' }}>
-                          <Check size={12} color={plan.highlighted ? 'var(--card)' : '#FF6E6C'} strokeWidth={3} />
+                      <li key={f} className="flex items-center gap-2 text-sm font-medium" style={{ color: plan.highlighted ? 'rgba(255,255,255,0.9)' : 'var(--muted)' }}>
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: plan.highlighted ? 'rgba(255,255,255,0.2)' : 'var(--primary-light)' }}>
+                          <Check size={12} color={plan.highlighted ? 'white' : 'var(--primary)'} strokeWidth={3} />
                         </div>
                         {f}
                       </li>
@@ -98,9 +98,9 @@ export default function PricingPage() {
                     to="/signup"
                     className="mt-8 block text-center py-3.5 rounded-2xl text-sm font-bold transition-all hover:scale-105"
                     style={{
-                      background: plan.highlighted ? 'var(--card)' : 'linear-gradient(135deg,#FF6E6C,#67568C)',
-                      color: plan.highlighted ? '#FF6E6C' : 'var(--card)',
-                      boxShadow: plan.highlighted ? '0 4px 14px rgba(0,0,0,0.1)' : '0 4px 14px rgba(255,110,108,0.3)'
+                      background: plan.highlighted ? 'white' : 'var(--primary-gradient)',
+                      color: plan.highlighted ? 'var(--primary)' : 'white',
+                      boxShadow: plan.highlighted ? '0 4px 14px rgba(0,0,0,0.1)' : 'var(--primary-sm)'
                     }}
                   >
                     {plan.cta}
@@ -123,7 +123,7 @@ export default function PricingPage() {
                   <tr>
                     <th className="py-4 px-6 border-b-2 border-[var(--border)] text-[var(--foreground)] font-bold text-lg w-1/4">Features</th>
                     <th className="py-4 px-6 border-b-2 border-[var(--border)] text-[var(--muted)] font-semibold text-center w-1/4">Fresher</th>
-                    <th className="py-4 px-6 border-b-2 border-[var(--border)] text-[#FF6E6C] font-bold text-center w-1/4">Pro</th>
+                    <th className="py-4 px-6 border-b-2 border-[var(--border)] text-[var(--primary)] font-bold text-center w-1/4">Pro</th>
                     <th className="py-4 px-6 border-b-2 border-[var(--border)] text-[var(--foreground)] font-bold text-center w-1/4">Studio</th>
                   </tr>
                 </thead>
@@ -144,9 +144,9 @@ export default function PricingPage() {
                       {row.slice(1).map((val, j) => (
                         <td key={j} className="py-4 px-6 text-center text-[#4B5563]">
                           {typeof val === 'boolean' ? (
-                            val ? <CheckCircle2 className="mx-auto" size={20} color="#FF6E6C" /> : <XCircle className="mx-auto" size={20} color="#D1D5DB" />
+                            val ? <CheckCircle2 className="mx-auto" size={20} color="var(--primary)" /> : <XCircle className="mx-auto" size={20} color="#D1D5DB" />
                           ) : (
-                            <span className={j === 1 ? 'font-semibold text-[#FF6E6C]' : ''}>{val}</span>
+                            <span className={j === 1 ? 'font-semibold text-[var(--primary)]' : ''}>{val}</span>
                           )}
                         </td>
                       ))}
@@ -169,7 +169,7 @@ export default function PricingPage() {
             </div>
             <div className="space-y-3">
               {FAQ.map((item, i) => (
-                <div key={i} className="rounded-2xl overflow-hidden" style={{ background: '#241630', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div key={i} className="rounded-2xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
                   <button
                     className="w-full flex items-center justify-between p-6 text-left"
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
@@ -178,7 +178,7 @@ export default function PricingPage() {
                     <ChevronDown size={18} color="#A394A8" style={{ transform: openFaq === i ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s', flexShrink: 0 }} />
                   </button>
                   {openFaq === i && (
-                    <div className="px-6 pb-6 text-sm leading-relaxed" style={{ color: '#9B9BA6' }}>
+                    <div className="px-6 pb-6 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
                       {item.a}
                     </div>
                   )}
@@ -189,14 +189,14 @@ export default function PricingPage() {
         </section>
 
         {/* CTA Banner */}
-        <section className="py-20 px-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+        <section className="py-20 px-6 relative overflow-hidden" style={{ background: 'var(--primary-gradient)' }}>
           <div className="max-w-3xl mx-auto text-center relative z-10">
              <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', fontWeight: 700, color: 'white' }}>
               Stop manual sharing. Start matching.
             </h2>
             <p className="mt-4 text-white/90 text-lg">Join SnapMoment today. Upgrade anytime.</p>
             <div className="flex justify-center mt-8">
-              <Link to="/signup" className="px-10 py-4 rounded-2xl font-bold text-[#FF6E6C] bg-white hover:scale-105 transition-all shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
+              <Link to="/signup" className="px-10 py-4 rounded-2xl font-bold text-primary bg-white hover:scale-105 transition-all shadow-primary">
                 ✦ Create Account ✦
               </Link>
             </div>

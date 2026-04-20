@@ -35,26 +35,28 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--background)' }}>
       {/* Left panel */}
-      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden noise-overlay" style={{ width: '45%', background: 'linear-gradient(135deg,#1A1A24,#1E1E24)' }}>
+      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden noise-overlay" style={{ width: '45%', background: 'var(--primary-gradient)' }}>
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/20 backdrop-blur-md border border-white/30">
               <Camera size={18} color="white" />
             </div>
             <span style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 22, fontWeight: 600, color: 'white' }}>SnapMoment</span>
           </Link>
         </div>
         <div className="relative z-10">
-          <blockquote style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 28, color: 'white', lineHeight: 1.4 }}>
+          <blockquote style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 28, color: 'white', lineHeight: 1.4 }} className="font-light opacity-95">
             "The best camera is the one that recognises your face."
           </blockquote>
-          <blockquote style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 24, color: 'white', lineHeight: 1.4 }}>
-            "Admin Email: admin@snapmoment.app <br />Password: Admin@123"
-          </blockquote>
-          <div className="mt-4 text-sm" style={{ color: 'var(--muted)' }}>— SnapMoment, 2024</div>
+          <div className="mt-8 p-6 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl">
+            <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-3">Demo Access</p>
+            <p className="text-white font-medium mb-1">Email: admin@snapmoment.app</p>
+            <p className="text-white font-medium">Password: Admin@123</p>
+          </div>
+          <div className="mt-8 text-sm font-medium text-white/50 tracking-wide">— SnapMoment, 2024</div>
         </div>
         {/* Decorative blobs */}
-        <div className="absolute w-64 h-64 rounded-full" style={{ background: '#FF6E6C', opacity: 0.15, filter: 'blur(80px)', bottom: '10%', right: '-10%' }} />
+        <div className="absolute w-64 h-64 rounded-full" style={{ background: 'white', opacity: 0.1, filter: 'blur(80px)', bottom: '10%', right: '-10%' }} />
       </div>
 
       {/* Right panel - form */}
@@ -72,7 +74,7 @@ export default function LoginPage() {
                 key={label}
                 className="flex-1 py-2.5 text-sm font-medium transition-all"
                 style={(!isAdmin && i === 0) || (isAdmin && i === 1)
-                  ? { background: '#FF6E6C', color: 'white' }
+                  ? { background: 'var(--primary)', color: 'white' }
                   : { background: 'var(--card)', color: 'var(--muted)' }}
                 onClick={() => setIsAdmin(i === 1)}
               >
@@ -113,8 +115,8 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-coral-lg disabled:opacity-60"
-              style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}
+              className="w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-primary-lg disabled:opacity-60"
+              style={{ background: 'var(--primary-gradient)' }}
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>

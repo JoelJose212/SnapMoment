@@ -82,7 +82,7 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.15 }}
-                whileHover={{ y: -8, boxShadow: '0 12px 40px rgba(255, 110, 108, 0.15)', borderColor: 'rgba(255,110,108,0.5)' }}
+                whileHover={{ y: -8, boxShadow: 'var(--primary-lg)', borderColor: 'var(--primary)' }}
               >
                 <h3 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 22, color: 'var(--foreground)', marginBottom: 8 }}>{v.title}</h3>
                 <p className="text-sm leading-relaxed text-muted">{v.desc}</p>
@@ -130,7 +130,7 @@ export default function AboutPage() {
 
         <div className="relative z-10 mx-auto max-w-7xl">
           <div className="mx-auto mb-16 flex max-w-5xl flex-col items-center px-6 text-center">
-            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl shadow-coral" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl shadow-primary" style={{ background: 'var(--primary-gradient)' }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.051 12.616a1 1 0 0 1 1.909.024l.737 1.452a1 1 0 0 0 .737.535l1.634.256a1 1 0 0 1 .588 1.806l-1.172 1.168a1 1 0 0 0-.282.866l.259 1.613a1 1 0 0 1-1.541 1.134l-1.465-.75a1 1 0 0 0-.912 0l-1.465.75a1 1 0 0 1-1.539-1.133l.258-1.613a1 1 0 0 0-.282-.866l-1.156-1.153a1 1 0 0 1 .572-1.822l1.633-.256a1 1 0 0 0 .737-.535z"/><path d="M8 15H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/></svg>
             </div>
 
@@ -160,7 +160,7 @@ export default function AboutPage() {
                       <h3 className="font-bold text-foreground text-lg" style={{ fontFamily: '"Plus Jakarta Sans"' }}>
                         {member.name}
                       </h3>
-                      <p className="text-[#FF6E6C] font-medium text-sm mt-1">
+                      <p className="text-primary font-medium text-sm mt-1">
                         {member.role}
                       </p>
                     </div>

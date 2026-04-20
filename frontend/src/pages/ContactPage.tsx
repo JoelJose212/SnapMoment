@@ -52,7 +52,7 @@ export default function ContactPage() {
           {/* Form */}
           <div>
             {success ? (
-              <div className="rounded-3xl p-10 text-center" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+              <div className="rounded-3xl p-10 text-center" style={{ background: 'var(--primary-gradient)' }}>
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: 'rgba(255,255,255,0.2)' }}>
                   <Mail size={28} color="white" />
                 </div>
@@ -78,7 +78,7 @@ export default function ContactPage() {
                   <textarea rows={4} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-border text-sm outline-none focus:border-primary transition-colors resize-none" placeholder="Tell us how we can help..." style={{ background: 'var(--background)' }} />
                 </div>
-                <button type="submit" disabled={loading} className="w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-coral-lg disabled:opacity-60" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+                <button type="submit" disabled={loading} className="w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-primary-lg disabled:opacity-60" style={{ background: 'var(--primary-gradient)' }}>
                   {loading ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
@@ -96,7 +96,7 @@ export default function ContactPage() {
                   { icon: Phone, text: '+91 98765 43210' },
                 ].map(({ icon: Icon, text }) => (
                   <div key={text} className="flex items-start gap-3 text-sm text-text-muted">
-                    <Icon size={16} color="#FF6E6C" className="mt-0.5 shrink-0" />
+                    <Icon size={16} color="var(--primary)" className="mt-0.5 shrink-0" />
                     {text}
                   </div>
                 ))}

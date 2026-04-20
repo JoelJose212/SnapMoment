@@ -196,8 +196,8 @@ export default function SelfiePage() {
 
   // ── Oval border color based on face state ─────────────────────────
   const ovalColor =
-    faceState === 'ready' ? '#00C48C' :
-    faceState === 'detected' ? '#FFB800' : '#FF4B4B'
+    faceState === 'ready' ? '#10B981' : // Success Emerald
+    faceState === 'detected' ? '#FFB800' : '#EF4444' // Warning Amber, Error Red
 
   const faceStateLabel =
     faceState === 'ready' ? 'Face Locked ✓' :
@@ -277,7 +277,7 @@ export default function SelfiePage() {
                 disabled={uploading || faceState === 'none'}
                 className={`w-20 h-20 rounded-full flex items-center justify-center p-1 border-4 shadow-2xl transition-all ${
                   faceState === 'ready' && !uploading
-                    ? 'border-white aurora-bg hover:shadow-coral'
+                    ? 'border-white aurora-bg hover:shadow-primary'
                     : 'border-white/30 bg-white/10 opacity-50 cursor-not-allowed'
                 }`}
               >

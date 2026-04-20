@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { adminApi } from '../../lib/api'
 
-const COLORS = ['#FF6E6C', '#67568C', '#FFB800', '#00C48C', '#FF4B4B', '#FFE1D9']
+const COLORS = ['#14B8A6', '#A78BFA', '#10B981', '#3B82F6', '#F59E0B', '#8B5CF6']
 
 export default function AdminAnalytics() {
   const { data: stats, isLoading } = useQuery({
@@ -25,7 +25,7 @@ export default function AdminAnalytics() {
                   <XAxis dataKey="day" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#FF6E6C" radius={[4,4,0,0]} name="Photos" />
+                  <Bar dataKey="count" fill="#14B8A6" radius={[4,4,0,0]} name="Photos" />
                 </BarChart>
               </ResponsiveContainer>
             ) : <div className="h-48 flex items-center justify-center text-sm text-text-muted">No data yet</div>}
@@ -53,11 +53,11 @@ export default function AdminAnalytics() {
           <div className="space-y-3">
             {stats.top_photographers.map((p: any, i: number) => (
               <div key={i} className="flex items-center gap-4">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: '#67568C' }}>{i + 1}</div>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: 'var(--accent)' }}>{i + 1}</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-text-main truncate">{p.name}</div>
                   <div className="w-full h-1.5 rounded-full mt-1 overflow-hidden" style={{ background: 'var(--border)' }}>
-                    <div className="h-full rounded-full" style={{ width: `${Math.min(100, (p.photo_count / (stats.total_photos || 1)) * 100)}%`, background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }} />
+                    <div className="h-full rounded-full" style={{ width: `${Math.min(100, (p.photo_count / (stats.total_photos || 1)) * 100)}%`, background: 'var(--primary-gradient)' }} />
                   </div>
                 </div>
                 <div className="text-sm font-semibold text-text-muted shrink-0">{p.photo_count}</div>

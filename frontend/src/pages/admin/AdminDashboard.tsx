@@ -10,10 +10,10 @@ export default function AdminDashboard() {
   })
 
   const CARDS = [
-    { label: 'Total Photographers', value: stats?.total_photographers || 0, icon: Users, color: '#67568C' },
+    { label: 'Total Photographers', value: stats?.total_photographers || 0, icon: Users, color: '#A78BFA' }, // Accent
     { label: 'Active Events', value: stats?.active_events || 0, icon: CalendarDays, color: '#FFB800' },
-    { label: 'Total Photos', value: stats?.total_photos || 0, icon: Camera, color: '#FF6E6C' },
-    { label: 'Matches Today', value: '—', icon: BarChart2, color: '#00C48C' },
+    { label: 'Total Photos', value: stats?.total_photos || 0, icon: Camera, color: '#14B8A6' }, // Primary
+    { label: 'Matches Today', value: '—', icon: BarChart2, color: '#10B981' }, // Success
   ]
 
   return (
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="count" stroke="#FF6E6C" strokeWidth={2} dot={false} name="Photos" />
+              <Line type="monotone" dataKey="count" stroke="#14B8A6" strokeWidth={2} dot={false} name="Photos" />
             </LineChart>
           </ResponsiveContainer>
         ) : (
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
             {stats.top_photographers.map((p: any, i: number) => (
               <div key={i} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: '#67568C' }}>{i + 1}</div>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'var(--accent)' }}>{i + 1}</div>
                   <span className="text-sm font-medium text-text-main">{p.name}</span>
                 </div>
                 <span className="text-sm text-text-muted">{p.photo_count} photos</span>

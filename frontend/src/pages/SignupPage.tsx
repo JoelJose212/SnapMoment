@@ -33,10 +33,10 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--background)' }}>
       {/* Left panel */}
-      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden noise-overlay" style={{ width: '45%', background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+      <div className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden noise-overlay" style={{ width: '45%', background: 'var(--primary-gradient)' }}>
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#67568C,#FF6E6C)' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--primary-gradient)', transform: 'rotate(180deg)' }}>
               <Camera size={18} color="white" />
             </div>
             <span style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 22, fontWeight: 600, color: 'white' }}>SnapMoment</span>
@@ -59,7 +59,7 @@ export default function SignupPage() {
           </div>
         </div>
         {/* Decorative blobs */}
-        <div className="absolute w-64 h-64 rounded-full" style={{ background: '#FFE1D9', opacity: 0.15, filter: 'blur(80px)', bottom: '10%', right: '-10%' }} />
+        <div className="absolute w-64 h-64 rounded-full" style={{ background: 'var(--primary)', opacity: 0.15, filter: 'blur(80px)', bottom: '10%', right: '-10%' }} />
       </div>
 
       {/* Right panel */}
@@ -110,8 +110,8 @@ export default function SignupPage() {
             <button
                type="submit"
                disabled={loading}
-               className="w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-coral-lg disabled:opacity-60 mt-2"
-               style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}
+               className="w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-primary-lg disabled:opacity-60 mt-2"
+               style={{ background: 'var(--primary-gradient)' }}
              >
               {loading ? 'Creating account...' : 'Create Account'}
             </button>

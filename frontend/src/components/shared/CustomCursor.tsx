@@ -15,7 +15,7 @@ export default function CustomCursor() {
       el.style.background = 'rgba(255,255,255,0.9)'
       el.style.mixBlendMode = 'difference'
     } else {
-      el.style.background = '#FF6E6C'
+      el.style.background = 'var(--primary)'
       el.style.mixBlendMode = 'multiply'
     }
   }, [resolvedTheme])

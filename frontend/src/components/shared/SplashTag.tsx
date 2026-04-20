@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 interface SplashTagProps {
   text: string
-  color?: 'amber' | 'coral' | 'indigo' | 'crimson'
+  color?: 'amber' | 'teal' | 'purple' | 'emerald'
   rotation?: number
   fontSize?: number
   className?: string
@@ -10,9 +10,9 @@ interface SplashTagProps {
 
 const colorMap = {
   amber: '#FFB800',
-  coral: '#FF6E6C',
-  indigo: '#67568C',
-  crimson: '#FF4B4B',
+  teal: '#14B8A6',
+  purple: '#A78BFA',
+  emerald: '#10B981',
 }
 
 export default function SplashTag({ text, color = 'amber', rotation = -3, fontSize = 11, className = '' }: SplashTagProps) {

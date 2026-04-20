@@ -17,7 +17,7 @@ export default function AdminSettings() {
             <input defaultValue={value} className="w-full px-4 py-3 rounded-xl border border-border text-sm outline-none focus:border-primary" style={{ background: 'var(--background)' }} />
           </div>
         ))}
-        <button onClick={() => toast.success('Settings saved! (UI mock)')} className="px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-coral" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+        <button onClick={() => toast.success('Settings saved! (UI mock)')} className="px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:shadow-primary" style={{ background: 'var(--primary-gradient)' }}>
           Save Settings
         </button>
       </div>

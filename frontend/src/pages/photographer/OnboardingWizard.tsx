@@ -165,19 +165,19 @@ export default function OnboardingWizard() {
   }
 
   return (
-    <div className="min-h-screen border-t-4" style={{ background: 'var(--background)', borderTopColor: '#FF6E6C' }}>
+    <div className="min-h-screen border-t-4" style={{ background: 'var(--background)', borderTopColor: 'var(--primary)' }}>
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--primary-gradient)' }}>
               <Camera size={16} color="white" />
             </div>
             <span style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 20, fontWeight: 600, color: 'var(--foreground)' }}>SnapMoment</span>
           </div>
           <div className="flex gap-2">
             {[2, 3, 4, 5].map((s) => (
-              <div key={s} className={`h-2 rounded-full transition-all duration-500`} style={{ width: 40, background: s <= step ? '#FF6E6C' : 'var(--border)' }} />
+              <div key={s} className={`h-2 rounded-full transition-all duration-500`} style={{ width: 40, background: s <= step ? 'var(--primary)' : 'var(--border)' }} />
             ))}
           </div>
         </div>
@@ -255,7 +255,7 @@ export default function OnboardingWizard() {
                   <input type="url" placeholder="https://" value={studioForm.portfolio_url} onChange={e => setStudioForm({...studioForm, portfolio_url: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-border outline-none focus:border-primary" style={{ background: 'var(--card)' }} />
                 </div>
               </div>
-              <button disabled={loading} onClick={handleStep2} className="mt-8 w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:opacity-90" style={{ background: '#FF6E6C' }}>
+              <button disabled={loading} onClick={handleStep2} className="mt-8 w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:opacity-90 shadow-primary-sm" style={{ background: 'var(--primary)' }}>
                  {loading ? 'Saving...' : 'Continue'} <ChevronRight size={18} />
               </button>
             </motion.div>
@@ -268,13 +268,13 @@ export default function OnboardingWizard() {
               <p className="text-text-muted mb-10">Select the plan that scales with your events.</p>
               
               <div className="grid md:grid-cols-3 gap-6 text-left">
-                {[
+                { [
                   { id: 'fresher', name: 'Fresher', price: '₹499', perks: ['5 events total', '200 photos/event', 'Dynamic QR + OTP', 'Studio Branding'] },
                   { id: 'pro', name: 'Pro', price: '₹1,499', perks: ['50 events total', '2000 photos/event', 'No Watermark', 'Fast AI'] },
                   { id: 'studio', name: 'Studio', price: '₹4,999', perks: ['Unlimited photos', 'Custom branding', 'Priority AI'] }
                 ].map(p => (
-                  <div key={p.id} onClick={() => setPlan(p.id)} className={`relative p-6 rounded-2xl cursor-pointer transition-all border-2 ${plan === p.id ? 'border-[#FF6E6C] shadow-coral-sm' : 'border-border hover:border-text-muted'}`} style={{ background: 'var(--card)' }}>
-                    {plan === p.id && <div className="absolute top-4 right-4 text-[#FF6E6C]"><CheckCircle size={20} /></div>}
+                  <div key={p.id} onClick={() => setPlan(p.id)} className={`relative p-6 rounded-2xl cursor-pointer transition-all border-2 ${plan === p.id ? 'border-[var(--primary)] shadow-primary-sm' : 'border-border hover:border-text-muted'}`} style={{ background: 'var(--card)' }}>
+                    {plan === p.id && <div className="absolute top-4 right-4 text-[var(--primary)]"><CheckCircle size={20} /></div>}
                     <h3 className="font-semibold text-lg" style={{ color: 'var(--foreground)' }}>{p.name}</h3>
                     <div className="text-2xl font-bold mt-2 mb-4" style={{ color: 'var(--foreground)' }}>{p.price}<span className="text-sm font-normal text-text-muted">/mo</span></div>
                     <ul className="space-y-3 text-sm text-text-muted">
@@ -283,7 +283,7 @@ export default function OnboardingWizard() {
                   </div>
                 ))}
               </div>
-              <button disabled={loading} onClick={handleStep3} className="mt-10 max-w-sm w-full py-4 rounded-xl text-white font-semibold flex mx-auto justify-center items-center gap-2 hover:opacity-90" style={{ background: '#FF6E6C' }}>
+              <button disabled={loading} onClick={handleStep3} className="mt-10 max-w-sm w-full py-4 rounded-xl text-white font-semibold flex mx-auto justify-center items-center gap-2 hover:opacity-90 shadow-primary-sm" style={{ background: 'var(--primary)' }}>
                  {loading ? 'Processing...' : 'Select Plan & Continue'} <ChevronRight size={18} />
               </button>
             </motion.div>
@@ -307,7 +307,7 @@ export default function OnboardingWizard() {
                 <span className="text-sm" style={{ color: 'var(--foreground)' }}>I agree to the Terms of Service and Privacy Policy</span>
               </label>
 
-              <button disabled={loading} onClick={handleStep4} className="w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:opacity-90" style={{ background: '#FF6E6C', opacity: agreed ? 1 : 0.5 }}>
+              <button disabled={loading} onClick={handleStep4} className="w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:opacity-90 shadow-primary-sm" style={{ background: 'var(--primary)', opacity: agreed ? 1 : 0.5 }}>
                  {loading ? 'Accepting...' : 'I Agree'} <ChevronRight size={18} />
               </button>
             </motion.div>
@@ -317,7 +317,7 @@ export default function OnboardingWizard() {
           {step === 5 && (
             <motion.div key="step5" initial="hidden" animate="visible" exit="exit" variants={variants} transition={{ duration: 0.3 }} className="max-w-md mx-auto text-center">
               <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6" style={{ background: 'var(--card)', border: '2px solid var(--border)' }}>
-                <CreditCard size={32} color="#FF6E6C" />
+                <CreditCard size={32} color="var(--primary)" />
               </div>
               <h1 className="text-3xl font-semibold mb-2" style={{ color: 'var(--foreground)' }}>Ready for take-off</h1>
               <p className="text-text-muted mb-8">Complete a secure payment via Stripe to activate your {plan.toUpperCase()} workspace.</p>
@@ -327,7 +327,7 @@ export default function OnboardingWizard() {
                   <span className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>₹{plan === 'fresher' ? '499' : plan === 'pro' ? '1,499' : '4,999'}</span>
                </div>
  
-              <button disabled={loading} onClick={handleCheckout} className="w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:shadow-coral-lg" style={{ background: 'linear-gradient(135deg,#FF6E6C,#67568C)' }}>
+              <button disabled={loading} onClick={handleCheckout} className="w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:shadow-primary-lg shadow-xl" style={{ background: 'var(--primary-gradient)' }}>
                  {loading ? 'Connecting to Gateway...' : 'Pay with Stripe'} <ChevronRight size={18} />
               </button>
               <div className="mt-4 text-xs text-text-subtle flex justify-center items-center gap-1">
