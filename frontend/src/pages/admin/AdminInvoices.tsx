@@ -9,6 +9,21 @@ export default function AdminInvoices() {
     queryFn: () => adminApi.invoices().then((r) => r.data),
   })
 
+  const handleDownload = async (invId: string, paymentId: string) => {
+    try {
+      const response = await adminApi.downloadInvoice(invId)
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `SnapMoment_Invoice_${paymentId}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode?.removeChild(link)
+    } catch (err) {
+      console.error('Download failed:', err)
+    }
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
@@ -51,9 +66,9 @@ export default function AdminInvoices() {
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full aurora-bg flex items-center justify-center text-white text-[10px] font-bold">
-                        {inv.photographer_id.substring(0, 2).toUpperCase()}
+                        {(inv.photographer_name || inv.photographer_id).substring(0, 2).toUpperCase()}
                       </div>
-                      <span className="text-sm font-semibold">{inv.photographer_id}</span>
+                      <span className="text-sm font-semibold">{inv.photographer_name || inv.photographer_id}</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">
@@ -70,14 +85,12 @@ export default function AdminInvoices() {
                     </span>
                   </td>
                   <td className="px-6 py-5">
-                    <a 
-                      href={inv.pdf_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-lg hover:shadow-coral transition-all"
+                    <button
+                      onClick={() => handleDownload(inv.id, inv.payment_id)}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-lg hover:shadow-primary-lg transition-all"
                     >
                       <Download size={16} />
-                    </a>
+                    </button>
                   </td>
                 </tr>
               ))

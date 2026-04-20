@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from app.database import get_db
@@ -140,8 +141,69 @@ async def list_invoices(
     current_user: dict = Depends(require_admin),
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(Invoice).order_by(Invoice.created_at.desc()))
-    return result.scalars().all()
+    result = await db.execute(
+        select(Invoice, Photographer.full_name.label("photographer_name"))
+        .join(Photographer, Invoice.photographer_id == Photographer.id)
+        .order_by(Invoice.created_at.desc())
+    )
+    rows = result.all()
+    invoices = []
+    for inv, photog_name in rows:
+        d = {
+            "id": str(inv.id),
+            "photographer_id": str(inv.photographer_id),
+            "photographer_name": photog_name,
+            "payment_id": inv.payment_id,
+            "amount": inv.amount,
+            "status": inv.status,
+            "created_at": inv.created_at.isoformat() if inv.created_at else None,
+            "pdf_url": inv.pdf_url
+        }
+        invoices.append(d)
+    return invoices
+
+@router.get("/invoices/{invoice_id}/download")
+async def download_invoice(
+    invoice_id: str,
+    current_user: dict = Depends(require_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    import os
+    from app.services.invoice import generate_invoice_pdf
+    
+    result = await db.execute(
+        select(Invoice, Photographer)
+        .join(Photographer, Invoice.photographer_id == Photographer.id)
+        .where(Invoice.id == uuid.UUID(invoice_id))
+    )
+    row = result.first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    
+    inv, photog = row
+    
+    # Path inside container
+    pdf_path = inv.pdf_url
+    
+    # Re-generate if missing (since /tmp is ephemeral)
+    if not pdf_path or not os.path.exists(pdf_path):
+        pdf_path = generate_invoice_pdf(
+            name=photog.full_name,
+            studio_name=photog.studio_name or "",
+            email=photog.email,
+            plan_name=photog.plan,
+            amount_inr=int(inv.amount),
+            payment_id=inv.payment_id
+        )
+        # Update DB with new path if it changed (though it shouldn't)
+        inv.pdf_url = pdf_path
+        await db.commit()
+
+    return FileResponse(
+        path=pdf_path,
+        filename=f"SnapMoment_Invoice_{inv.payment_id}.pdf",
+        media_type="application/pdf"
+    )
 
 @router.get("/stats")
 async def get_stats(current_user: dict = Depends(require_admin), db: AsyncSession = Depends(get_db)):

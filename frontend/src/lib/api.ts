@@ -116,6 +116,7 @@ export const adminApi = {
   deleteEvent: (id: string) => api.delete(`/api/admin/events/${id}`),
   stats: () => api.get('/api/admin/stats'),
   invoices: () => api.get('/api/admin/invoices'),
+  downloadInvoice: (id: string) => api.get(`/api/admin/invoices/${id}/download`, { responseType: 'blob' }),
   messages: () => api.get('/api/admin/messages'),
   resolveMessage: (id: string) => api.patch(`/api/admin/messages/${id}/resolve`),
   deleteMessage: (id: string) => api.delete(`/api/admin/messages/${id}`),
