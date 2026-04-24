@@ -36,14 +36,12 @@ services:
     restart: always
     ports:
       - "8000:8000"
-    environment:
-      - TF_ENABLE_ONEDNN_OPTS=0
     env_file:
       - .env
     volumes:
       - ./backend:/app
       - uploads_data:/app/uploads
-      - deepface_weights:/root/.deepface
+      - insightface_models:/root/.insightface
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,14 +61,12 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: always
-    environment:
-      - TF_ENABLE_ONEDNN_OPTS=0
     env_file:
       - .env
     volumes:
       - ./backend:/app
       - uploads_data:/app/uploads
-      - deepface_weights:/root/.deepface
+      - insightface_models:/root/.insightface
     depends_on:
       postgres:
         condition: service_healthy
@@ -104,4 +100,4 @@ services:
 volumes:
   postgres_data:
   uploads_data:
-  deepface_weights:
+  insightface_models:

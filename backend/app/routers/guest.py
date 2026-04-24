@@ -124,15 +124,15 @@ async def upload_selfie(
         from app.models.face_index import FaceIndex
         from sqlalchemy import delete
         
-        THRESHOLD = 0.40
-        logger.info(f"Performing comprehensive match for event {event_id} (threshold: {THRESHOLD})")
+        THRESHOLD = 0.48
+        logger.info(f"Performing Buffalo_L match for event {event_id} (threshold: {THRESHOLD})")
         
         # Search every indexed face in the event, including non-clustered faces
         search_query = (
             select(FaceIndex.photo_id, FaceIndex.embedding.cosine_distance(selfie_embedding).label("distance"))
             .where(FaceIndex.event_id == uuid.UUID(event_id))
             .order_by("distance")
-            .limit(200) # Increased limit to ensure coverage in large events
+            .limit(200) 
         )
         
         results = await db.execute(search_query)
@@ -141,20 +141,21 @@ async def upload_selfie(
         matches = []
         seen_photos = set()
         
-        PRECISION_BASELINE = 0.34
+        # TIERED CLASSIFICATION FOR BUFFALO_L
+        PRECISION_BASELINE = 0.36 # Highly likely same person 
+        
         for photo_id, distance in matches_raw:
             if distance <= THRESHOLD:
-                # Deduplicate: if multiple faces match in one photo, take the best one
                 if photo_id not in seen_photos:
                     is_suggested = distance > PRECISION_BASELINE
                     
-                    # If suggested, we normalize confidence to 0-80% to manage expectations
-                    if is_suggested:
-                        # 0.34 -> 80%, 0.40 -> 20%
-                        confidence_score = max(20.0, (1.0 - (distance - 0.34) / (0.40 - 0.34)) * 80)
+                    # Recalibrated confidence mapping for ResNet-100 signatures:
+                    if not is_suggested:
+                        # 0.0 -> 100%, 0.36 -> 90%
+                        confidence_score = (1.0 - (distance / PRECISION_BASELINE) * 0.1) * 100
                     else:
-                        # 0.0 -> 100%, 0.34 -> 90%
-                        confidence_score = max(90.0, (1.0 - distance / 0.34) * 100)
+                        # 0.36 -> 85%, 0.48 -> 15%
+                        confidence_score = (0.85 - ((distance - PRECISION_BASELINE) / (THRESHOLD - PRECISION_BASELINE)) * 0.70) * 100
                     
                     matches.append({
                         "photo_id": str(photo_id),
