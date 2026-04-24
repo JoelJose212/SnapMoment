@@ -97,7 +97,7 @@ def extract_all_embeddings(image_path: str) -> List[Dict[str, Any]]:
     
     for face in faces:
         # Quality filter
-        if face.det_score > 0.50:
+        if face.det_score > 0.35:
             results.append({
                 "embedding": face.normed_embedding.tolist(),
                 "bbox": face.bbox.astype(int).tolist(),
@@ -115,10 +115,10 @@ def match_selfie_to_event(selfie_embedding: list, event_photos: list) -> list:
         return []
 
     # Buffalo_L (ArcFace ResNet-100) Thresholds:
-    # < 0.42: Precise match (Highly likely same person)
-    # 0.42 - 0.55: Suggested match (Likely same person with variation like specs/pose)
-    THRESHOLD = 0.55
-    PRECISION_ZONE = 0.42
+    # < 0.50: Precise match (Highly likely same person)
+    # 0.50 - 0.60: Suggested match (Likely same person with variation like specs/pose)
+    THRESHOLD = 0.60
+    PRECISION_ZONE = 0.50
     
     face_data = [] # List of (photo_id, embedding)
     for photo in event_photos:
@@ -211,7 +211,7 @@ def match_selfie_to_clusters(selfie_embedding: list, clusters: list) -> list:
     if not clusters:
         return []
 
-    THRESHOLD = 0.55
+    THRESHOLD = 0.60
     selfie_vec = l2_normalize(np.array(selfie_embedding, dtype=np.float32))
     centroids  = np.array([c["centroid"] for c in clusters], dtype=np.float32)
 
@@ -222,10 +222,10 @@ def match_selfie_to_clusters(selfie_embedding: list, clusters: list) -> list:
     for i, dist in enumerate(distances):
         if dist < THRESHOLD:
             # Map confidence similarly to match_selfie_to_event
-            if dist < 0.42:
-                conf = (1.0 - (dist / 0.42) * 0.1) * 100
+            if dist < 0.50:
+                conf = (1.0 - (dist / 0.50) * 0.1) * 100
             else:
-                conf = (0.85 - ((dist - 0.42) / (0.55 - 0.42)) * 0.75) * 100
+                conf = (0.85 - ((dist - 0.50) / (0.60 - 0.50)) * 0.75) * 100
                 
             matches.append({
                 "photo_ids":        clusters[i]["photo_ids"],
