@@ -2,7 +2,7 @@
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
-[![DeepFace](https://img.shields.io/badge/DeepFace-AI-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://github.com/serengil/deepface)
+[![InsightFace](https://img.shields.io/badge/InsightFace-AI-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://github.com/deepinsight/insightface)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
 > **Building for the moments that matter most.**  
@@ -48,7 +48,7 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 
 ## 🏆 Competitive Advantages
 
-- **State-of-the-Art Accuracy**: Leverages the **ArcFace** model (99.8% LFW Accuracy), outperforming standard facial recognition algorithms.
+- **State-of-the-Art Accuracy**: Leverages the high-performance **InsightFace Buffalo_L** model (SCRFD detector + ResNet-100 embeddings) for robust occlusion handling and 99.8% LFW Accuracy.
 - **Scalable Architecture**: Built on **FastAPI** and **Celery**, allowing the system to handle thousands of concurrent uploads without lag.
 - **Self-Healing Infrastructure**: Includes custom utilities for disk space management (VHDX compaction) to ensure long-term stability in local environments.
 - **Cost-Efficiency**: Uses high-performance open-source AI models, eliminating the recurring costs of commercial facial recognition APIs.
@@ -78,9 +78,9 @@ SnapMoment was born from a simple frustration: why do event photos take days (or
 - **Authentication**: JWT (OTP-based sessions)
 
 ### AI & Computer Vision
-- **Core Engine**: DeepFace
-- **Biometric Model**: ArcFace (ResNet-100)
-- **Real-time Detection**: MediaPipe BlazeFace (Frontend) / RetinaFace (Backend)
+- **Core Engine**: InsightFace
+- **Biometric Model**: Buffalo_L (ResNet-100)
+- **Real-time Detection**: MediaPipe BlazeFace (Frontend) / SCRFD (Backend)
 - **Vector Search**: Cosine Similarity via pgvector
 - **Logic**: Two-Stage Matching (Fast Centroid + Exhaustive Fallback)
 
@@ -270,7 +270,7 @@ flowchart TD
     RAW -- Manual --> Upload[Bulk Drag-and-Drop]
     RAW -- Tether --> Folder[Folder Sync Engine]
     
-    Upload --> AI_Proc[AI: ArcFace Feature Extraction]
+    Upload --> AI_Proc[AI: InsightFace Buffalo_L Feature Extraction]
     Folder --> AI_Proc
     
     AI_Proc --> Cluster[DBSCAN Clustering]
@@ -312,7 +312,7 @@ stateDiagram-v2
 ### For Photographers
 1. **Create Event**: Set up a new event (Wedding, Corporate, etc.) in the dashboard.
 2. **Bulk Upload**: Upload hundreds of photos at once. Click **"Process AI"**.
-3. **Face Indexing**: The Celery worker runs the ArcFace engine to extract and index face embeddings for every person in every photo.
+3. **Face Indexing**: The Celery worker runs the InsightFace Buffalo_L engine to extract and index face embeddings for every person in every photo.
 4. **Share QR**: Print or display the unique event QR code.
 
 ### For Guests
@@ -387,8 +387,7 @@ USE_LOCAL_STORAGE=True
 LOCAL_STORAGE_PATH=/app/uploads
 
 # AI Settings
-DEEPFACE_MODEL=ArcFace
-FACE_DETECTION_BACKEND=retinaface
+INSIGHTFACE_MODEL=buffalo_l
 
 # External Services (Optional)
 MSG91_AUTH_KEY=your-msg91-key
@@ -511,7 +510,7 @@ SnapMoment/
 ---
 
 ## 📈 Performance & Accuracy
-- **Model**: ArcFace (Achieving 99.8% LFW accuracy).
+- **Model**: InsightFace Buffalo_L (Achieving 99.8% LFW accuracy).
 - **Matching Speed**: Fast cosine-similarity search allows matching a selfie against 10,000+ photos in under 500ms using **pgvector HNSW**.
 - **Accuracy**: Enhanced via **DBSCAN Clustering** to improve precision in varied lighting.
 
@@ -521,6 +520,7 @@ SnapMoment/
 - **Done ✅**: 
     - Real-time face alignment guidance for guests (MediaPipe).
     - Hardened biometric matching with DBSCAN.
+    - Upgraded AI Engine to InsightFace Buffalo_L for robust occlusion handling.
     - Automated Subscription Billing (Stripe).
     - Professional RAW Live Tethering Engine.
     - Automated Multi-Recipient Invoice PDFs.
@@ -544,6 +544,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 ## 🙏 Acknowledgements
-- [DeepFace](https://github.com/serengil/deepface) for the incredible AI engine.
+- [InsightFace](https://github.com/deepinsight/insightface) for the incredible AI engine.
 - [Lucide Icons](https://lucide.dev/) for the crisp visuals.
 - [FastAPI](https://fastapi.tiangolo.com/) for the high-performance backend.

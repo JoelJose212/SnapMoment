@@ -124,7 +124,7 @@ async def upload_selfie(
         from app.models.face_index import FaceIndex
         from sqlalchemy import delete
         
-        THRESHOLD = 0.48
+        THRESHOLD = 0.55
         logger.info(f"Performing Buffalo_L match for event {event_id} (threshold: {THRESHOLD})")
         
         # Search every indexed face in the event, including non-clustered faces
@@ -142,7 +142,7 @@ async def upload_selfie(
         seen_photos = set()
         
         # TIERED CLASSIFICATION FOR BUFFALO_L
-        PRECISION_BASELINE = 0.36 # Highly likely same person 
+        PRECISION_BASELINE = 0.42 # Highly likely same person 
         
         for photo_id, distance in matches_raw:
             if distance <= THRESHOLD:
@@ -151,10 +151,10 @@ async def upload_selfie(
                     
                     # Recalibrated confidence mapping for ResNet-100 signatures:
                     if not is_suggested:
-                        # 0.0 -> 100%, 0.36 -> 90%
+                        # 0.0 -> 100%, 0.42 -> 90%
                         confidence_score = (1.0 - (distance / PRECISION_BASELINE) * 0.1) * 100
                     else:
-                        # 0.36 -> 85%, 0.48 -> 15%
+                        # 0.42 -> 85%, 0.55 -> 15%
                         confidence_score = (0.85 - ((distance - PRECISION_BASELINE) / (THRESHOLD - PRECISION_BASELINE)) * 0.70) * 100
                     
                     matches.append({
