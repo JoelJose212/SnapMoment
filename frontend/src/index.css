@@ -244,11 +244,11 @@ body {
 
 /* FAQ item */
 .faq-item {
-  background: var(--card);
+  background: transparent;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  transition: border-color 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .faq-item:hover { border-color: rgba(20,184,166,0.4); }
 .faq-item.open { border-color: rgba(20,184,166,0.5); }
