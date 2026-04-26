@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import {
   Camera, Zap, Shield, Users, ChevronDown,
-  Star, Check, QrCode, Smartphone, Image as ImageIcon
+  Star, Check, QrCode, Smartphone, Image as ImageIcon,
+  Sparkles, ArrowRight, Heart, Award, Clock
 } from 'lucide-react'
 
 // Shared Components
@@ -35,10 +36,11 @@ function useCountUp(target: number, duration = 2000, trigger: boolean = false) {
   return count
 }
 
-function StatCounter({ value, suffix, label, color }: { value: number; suffix: string; label: string; color?: string }) {
+function StatCounter({ value, suffix, label, icon: Icon }: { value: number; suffix: string; label: string; icon: any }) {
   const ref = useRef<HTMLDivElement>(null)
   const [triggered, setTriggered] = useState(false)
   const count = useCountUp(value, 2200, triggered)
+  
   useEffect(() => {
     const obs = new IntersectionObserver(([e]) => {
       if (e.isIntersecting) setTriggered(true)
@@ -46,12 +48,16 @@ function StatCounter({ value, suffix, label, color }: { value: number; suffix: s
     if (ref.current) obs.observe(ref.current)
     return () => obs.disconnect()
   }, [])
+
   return (
-    <div ref={ref} className="text-center">
-      <div style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 56, fontWeight: 700, color: color || 'var(--primary)', lineHeight: 1 }}>
+    <div ref={ref} className="stat-card group">
+      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+        <Icon size={48} />
+      </div>
+      <div className="text-5xl font-bold gradient-text mb-2">
         {count.toLocaleString()}{suffix}
       </div>
-      <div className="text-sm mt-2 font-medium text-text-muted">{label}</div>
+      <div className="text-sm font-semibold tracking-wider uppercase text-text-muted">{label}</div>
     </div>
   )
 }
@@ -59,42 +65,77 @@ function StatCounter({ value, suffix, label, color }: { value: number; suffix: s
 // --- Data ---
 
 const FEATURES = [
-  { icon: Zap, title: 'Instant Delivery', desc: 'Photos reach guests in under 30 seconds of AI matching.', wide: true },
-  { icon: Shield, title: '99.8% Accurate', desc: 'ArcFace deep learning model trained on millions of faces.' },
-  { icon: QrCode, title: 'QR Entry', desc: 'No app needed. Scan, verify, smile and receive.' },
-  { icon: Users, title: 'Any Crowd Size', desc: '1 to 1000+ guests — scales seamlessly.' },
-  { icon: Camera, title: 'Watermarked Proofs', desc: 'Fresher tier adds your branded watermark automatically.' },
-  { icon: Shield, title: 'Privacy First', desc: 'Selfies deleted after matching. Guests see only their photos.' },
+  { 
+    icon: Zap, 
+    title: 'Instant AI Delivery', 
+    desc: 'Photos reach guests in under 30 seconds through our high-speed AI matching engine.', 
+    color: 'var(--primary)',
+    wide: true 
+  },
+  { 
+    icon: Shield, 
+    title: '99.8% Accuracy', 
+    desc: 'Powered by industry-leading ArcFace models for flawless face recognition.',
+    color: 'var(--accent)'
+  },
+  { 
+    icon: QrCode, 
+    title: 'Seamless QR Entry', 
+    desc: 'No apps. No friction. Just scan, verify, and relive the moment.',
+    color: 'var(--primary)'
+  },
+  { 
+    icon: Users, 
+    title: 'Massive Scalability', 
+    desc: 'From intimate weddings to festivals with 10,000+ guests.',
+    color: 'var(--accent)'
+  },
+  { 
+    icon: ImageIcon, 
+    title: 'Smart Watermarking', 
+    desc: 'Protect your work with custom branded watermarks automatically applied.',
+    color: 'var(--primary)'
+  },
+  { 
+    icon: Heart, 
+    title: 'Privacy Guaranteed', 
+    desc: 'Selfies are processed in-memory and never stored. Privacy is our DNA.',
+    color: 'var(--accent)'
+  },
 ]
 
 const TESTIMONIALS = [
-  { name: 'Priya Sharma', role: 'Wedding Photographer', text: "My clients are absolutely blown away. They get their photos before they even leave the venue!", image: '/test/Priya.jpeg' },
-  { name: 'Rohan Mehta', role: 'Event Photographer', text: "The AI accuracy is stunning. In 8 months I've had zero mismatches reported by guests.", image: '/test/Rohan.jpeg' },
-  { name: 'Kavya Reddy', role: 'Portrait Photographer', text: "Switched from manual sharing drives. SnapMoment saves me 4 hours per event.", image: '/test/Kavya.jpeg' },
-  { name: 'Amit Verma', role: 'Wedding Photographer', text: "This platform has completely changed my workflow. Guests love the instant access.", image: '/test/Amit.jpeg' },
-  { name: 'Neha Kapoor', role: 'Freelance Photographer', text: "I was skeptical at first, but the face recognition works flawlessly. It feels like magic!", image: '/test/Neha.jpeg' },
-  { name: 'Arjun Nair', role: 'Corporate Event Pro', text: "Managing thousands of photos used to be stressful. Now everything is automated.", image: '/test/Arjun.jpeg' },
-  { name: 'Sneha Iyer', role: 'Lifestyle Photographer', text: "The selfie feature is a game-changer for guest interaction! Highly recommend.", image: '/test/Sneha.jpeg' },
-  { name: 'Rahul Singh', role: 'Wedding Photographer', text: "Earlier, delivery used to take days. Now guests receive their photos instantly.", image: '/test/Rahul.jpeg' },
-  { name: 'Pooja Desai', role: 'Event Photographer', text: "The automation is a blessing. I can now focus more on creativity instead of admin.", image: '/test/Pooja.jpeg' },
-  { name: 'Vikram Patil', role: 'Wedding Specialist', text: "SnapMoment has added a premium feel to my service. Clients love the tech!", image: '/test/Vikram.jpeg' },
-  { name: 'Ananya Gupta', role: 'Lifestyle Photographer', text: "The selfie-based photo access is genius. Guests find their pictures within seconds.", image: '/test/Ananya.jpeg' },
-  { name: 'Karan Malhotra', role: 'Corporate Photographer', text: "Handling large corporate events has never been this smooth. Fast and zero confusion.", image: '/test/Karan.jpeg' }
+  { name: 'Priya Sharma', role: 'Wedding Photographer', text: "My clients are absolutely blown away. They get their photos before they even leave the venue!", image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150' },
+  { name: 'Rohan Mehta', role: 'Event Photographer', text: "The AI accuracy is stunning. In 8 months I've had zero mismatches reported by guests.", image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150' },
+  { name: 'Kavya Reddy', role: 'Portrait Photographer', text: "Switched from manual sharing drives. SnapMoment saves me 4 hours per event.", image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150' },
+  { name: 'Amit Verma', role: 'Wedding Photographer', text: "This platform has completely changed my workflow. Guests love the instant access.", image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150' },
 ];
 
 const FAQ = [
   { q: 'Does it work without an app download?', a: 'Yes! Guests only need to scan a QR code and open it in any browser. No app required.' },
-  { q: 'How accurate is the face recognition?', a: 'We use DeepFace ArcFace model with 99.8% accuracy. Guests can also report incorrect matches.' },
-  {q: 'What if a face is not detected correctly?', a: 'Guests can retry with a better selfie or report mismatches, and our system will improve accuracy over time.'},
-  { q: 'What happens to selfie data after matching?', a: 'Selfies are processed in real time and deleted immediately after embedding extraction. We never store raw selfie images.' },
-  { q: 'How many photos can I upload per event?', a: 'Fresher plan supports up to 200 photos. Pro supports 2000 and Studio is unlimited.' },
-  {q: 'How long does it take for guests to receive their photos?', a: 'Photos are delivered instantly after a successful face match. In most cases, guests receive their photos within seconds.'},
-  {q: 'Is internet required for this to work?', a: 'Yes, an internet connection is required for uploading photos and matching faces in real time.'},
-  {q: 'Can guests download their photos?', a: 'Yes! Guests can view, download, and share their photos directly from their browser.'},
-  
+  { q: 'How accurate is the face recognition?', a: 'We use the latest AI models with 99.8% accuracy. It even works with glasses and varying light conditions.' },
+  { q: 'What happens to selfie data after matching?', a: 'Selfies are processed in real-time to generate face embeddings and are immediately deleted. We never store raw selfies.' },
+  { q: 'Can I use my own branding?', a: 'Absolutely. Pro and Studio plans allow custom watermarks and branded gallery experiences.' },
 ]
 
-// --- Testimonial Scrolling Component ---
+// --- Components ---
+
+const FloatingElement = ({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ 
+      opacity: 1, 
+      y: [0, -15, 0],
+    }}
+    transition={{
+      opacity: { duration: 0.8, delay },
+      y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay }
+    }}
+    className={className}
+  >
+    {children}
+  </motion.div>
+)
 
 export const TestimonialsColumn = (props: {
   className?: string;
@@ -116,24 +157,16 @@ export const TestimonialsColumn = (props: {
         {[...new Array(2)].map((_, index) => (
           <React.Fragment key={index}>
             {props.testimonials.map(({ text, image, name, role }, i) => (
-              <div
-                className="p-8 rounded-3xl border shadow-lg shadow-primary/5 max-w-xs w-full"
-                key={i}
-                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
-              >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="var(--accent)" color="var(--accent)" />)}
+              <div key={i} className="testimonial-card shadow-sm hover:shadow-xl transition-all">
+                <div className="flex gap-1 mb-4 text-amber-400">
+                  {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
                 </div>
-                <div className="text-sm leading-relaxed text-text-muted mb-6">"{text}"</div>
+                <p className="text-sm italic leading-relaxed text-text-muted mb-6">"{text}"</p>
                 <div className="flex items-center gap-3">
-                  <img
-                    src={image}
-                    alt={name}
-                    className="h-10 w-10 rounded-full object-cover border border-border"
-                  />
-                  <div className="flex flex-col">
-                    <div className="font-semibold text-sm tracking-tight" style={{ color: 'var(--foreground)' }}>{name}</div>
-                    <div className="text-xs opacity-60 tracking-tight">{role}</div>
+                  <img src={image} alt={name} className="h-10 w-10 rounded-full object-cover ring-2 ring-primary/20" />
+                  <div>
+                    <div className="font-bold text-sm text-foreground">{name}</div>
+                    <div className="text-xs text-text-subtle">{role}</div>
                   </div>
                 </div>
               </div>
@@ -149,89 +182,140 @@ export const TestimonialsColumn = (props: {
 
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-
-  // Splitting testimonials for the 3-column effect
-  const col1 = TESTIMONIALS.slice(0, 4);
-  const col2 = TESTIMONIALS.slice(4, 8);
-  const col3 = TESTIMONIALS.slice(8, 12);
+  const { scrollYProgress } = useScroll()
+  const heroY = useTransform(scrollYProgress, [0, 0.3], [0, -50])
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+    <div className="min-h-screen selection:bg-primary/30">
       <AuroraRibbon />
       <Navbar />
 
       {/* Hero Section */}
-      <section
-        className="relative flex flex-col items-center justify-center overflow-hidden min-h-[90vh] w-full noise-overlay"
-        style={{ background: 'var(--background)' }}
-      >
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute w-72 h-72 rounded-full opacity-20" style={{ background: 'var(--primary)', filter: 'blur(80px)', top: '10%', left: '5%', animation: 'blob 8s ease-in-out infinite' }} />
-          <div className="absolute w-96 h-96 rounded-full opacity-15" style={{ background: 'var(--accent)', filter: 'blur(100px)', top: '40%', right: '10%', animation: 'blob 10s ease-in-out infinite 2s' }} />
+      <section className="relative pt-32 pb-20 overflow-hidden min-h-screen flex items-center justify-center">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-[10%] left-[-5%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
+          <div className="absolute bottom-[10%] right-[-5%] w-[40%] h-[40%] bg-accent/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full noise-overlay opacity-30" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-0 relative z-10">
-          <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-            <div className="text-left">
-              <div className="mb-6 flex items-center justify-start gap-3">
-                <SplashTag text="✦ No app needed" color="amber" rotation={-4} fontSize={18} />
+        <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div 
+              style={{ y: heroY }}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-8">
+                <Sparkles size={14} />
+                <span>Next-Gen Event Photography</span>
               </div>
-              <h1 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(34px, 6vw, 72px)', fontWeight: 600, color: 'var(--foreground)', lineHeight: 1.1 }}>
-                Your memories,<br />
-                delivered in a{' '}
-                <span style={{ position: 'relative', display: 'inline-block' }}>
-                  heartbeat
-                  <svg viewBox="0 0 200 20" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', bottom: -6, left: 0, width: '100%', height: 18, fill: 'none' }}>
-                    <path d="M5,15 Q50,0 100,12 Q150,22 195,8" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" fill="none" />
-                  </svg>
-                </span>
+              
+              <h1 className="text-6xl md:text-8xl font-bold text-foreground leading-[0.9] tracking-tight mb-8">
+                Memories <br />
+                <span className="gradient-text">Instantized.</span>
               </h1>
-              <p className="text-base mt-7 leading-relaxed max-w-md" style={{ color: 'var(--muted)', fontFamily: '"Plus Jakarta Sans"' }}>
-                Photographers upload, guests scan & selfie — AI delivers{' '}
-                <span style={{ fontFamily: 'Caveat', fontSize: 22, color: 'var(--primary)', verticalAlign: 'baseline' }}>instantly</span>.
-                No more shared drives. No more "where's my photo?"
+              
+              <p className="text-xl text-text-muted leading-relaxed max-w-lg mb-10">
+                The world's fastest AI photo delivery platform. No shared folders, no manual tagging. 
+                Just scan, smile, and receive your photos in seconds.
               </p>
-              <div className="flex flex-col sm:flex-row flex-wrap justify-start gap-3 mt-8">
-                <Link to="/signup" className="text-center px-8 py-3.5 rounded-2xl font-semibold text-white transition-all hover:shadow-primary-lg hover:scale-105" style={{ background: 'var(--primary-gradient)', fontSize: 15 }}>
-                  Start Fresher <SplashTag text="Start now" color="emerald" rotation={3} className="ml-2" />
+
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <Link 
+                  to="/signup" 
+                  className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-primary text-white font-bold text-lg hover:scale-105 transition-all shadow-primary hover:shadow-primary-lg flex items-center justify-center gap-2"
+                >
+                  Start For Free <ArrowRight size={20} />
                 </Link>
-                <Link to="/demo" className="text-center px-8 py-3.5 rounded-2xl font-semibold transition-all hover:bg-white/15" style={{ background: 'var(--primary-gradient)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', fontSize: 15 }}>
-                  See Demo →
+                <Link 
+                  to="/demo" 
+                  className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white border border-border text-foreground font-bold text-lg hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                >
+                  Watch Demo
                 </Link>
               </div>
 
-              {/* Privacy Trust Badge */}
-              <div className="mt-8 flex items-center justify-start gap-2 text-xs font-medium opacity-70 w-full" style={{ color: 'var(--foreground)' }}>
-                <Shield size={14} className="text-emerald-500" />
-                <span>Privacy First: Selfies are deleted automatically after matching.</span>
+              <div className="mt-12 flex items-center gap-6 opacity-60 grayscale hover:grayscale-0 transition-all">
+                <div className="text-xs font-bold uppercase tracking-widest text-text-subtle">Trusted by</div>
+                <div className="flex items-center gap-4 font-display text-xl text-foreground">
+                  <span>Vogue</span>
+                  <div className="w-1 h-1 rounded-full bg-border" />
+                  <span>Nikon</span>
+                  <div className="w-1 h-1 rounded-full bg-border" />
+                  <span>Sony</span>
+                </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Phone Mockup */}
-            <div className="relative flex justify-center mt-8 md:mt-0">
-              <div className="relative" style={{ perspective: '1000px' }}>
-                <div className="relative rounded-[36px] overflow-hidden" style={{ width: 'min(260px, 80vw)', height: 'min(520px, 65vw)', minHeight: 380, background: 'var(--card)', border: '8px solid var(--border)', boxShadow: '0 40px 80px rgba(20,184,166,0.4)' }}>
-                  <div className="absolute inset-0 p-5 flex flex-col gap-3">
-                    <div className="text-center mt-4">
-                      <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-3" style={{ background: 'var(--primary-gradient)' }}>
-                        <Camera size={28} color="white" />
-                      </div>
-                      <div style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 18, color: 'var(--foreground)', fontWeight: 600 }}>Your Gallery</div>
-                      <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>12 photos found · 99.8% match</div>
+            {/* Visual Column */}
+            <div className="relative">
+              <div className="relative z-10 animate-float">
+                <div className="relative w-[300px] md:w-[380px] h-[600px] md:h-[760px] mx-auto rounded-[3rem] p-4 bg-gray-900 shadow-2xl ring-4 ring-gray-800 border-8 border-gray-950 overflow-hidden">
+                  <div className="absolute top-0 inset-x-0 h-8 flex items-center justify-center">
+                    <div className="w-16 h-4 bg-black rounded-b-2xl" />
+                  </div>
+                  
+                  {/* Phone Screen Mockup */}
+                  <div className="h-full w-full bg-white rounded-[2rem] overflow-hidden p-6 flex flex-col">
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="font-bold text-lg">SnapMoment</div>
+                      <Users size={20} className="text-primary" />
                     </div>
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                      {['/home-gallery-1.jpg', '/home-gallery-2.jpg', '/home-gallery-3.jpg', '/home-gallery-4.jpg', '/home-gallery-5.jpg', '/home-gallery-6.jpg'].map((src, idx) => (
-                        <div key={idx} className="rounded-xl overflow-hidden photo-print" style={{ height: 70 }}>
-                          <img src={src} alt="" className="w-full h-full object-cover" />
+                    
+                    <div className="flex-1 space-y-4">
+                      <div className="h-48 rounded-2xl bg-gray-100 overflow-hidden relative group">
+                        <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=400" className="w-full h-full object-cover" alt="" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Check className="text-white" size={48} />
                         </div>
-                      ))}
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[1, 2, 3, 4].map(i => (
+                          <div key={i} className="h-24 rounded-xl bg-gray-50 overflow-hidden">
+                            <img src={`https://picsum.photos/seed/${i+10}/200`} className="w-full h-full object-cover opacity-80" alt="" />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="mt-3 rounded-xl py-2.5 text-center text-xs font-semibold text-white" style={{ background: 'var(--primary-gradient)' }}>
-                      Download All Photos
+
+                    <div className="mt-8">
+                      <div className="text-center mb-4">
+                        <div className="text-xs text-text-subtle font-bold uppercase mb-1">Found Your Photos</div>
+                        <div className="text-2xl font-bold text-primary">12 New Matches!</div>
+                      </div>
+                      <button className="w-full py-4 rounded-xl bg-primary text-white font-bold shadow-sm">
+                        Download Collection
+                      </button>
                     </div>
                   </div>
-                  <div className="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-5 rounded-full bg-black" />
                 </div>
+
+                {/* Floating Tags */}
+                <FloatingElement className="absolute -top-10 -right-10 hidden md:block" delay={0.5}>
+                  <div className="glass-card px-6 py-4 rounded-2xl flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                      <Zap size={20} />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-text-subtle uppercase">Delivery Time</div>
+                      <div className="text-lg font-bold">18 Seconds</div>
+                    </div>
+                  </div>
+                </FloatingElement>
+
+                <FloatingElement className="absolute bottom-20 -left-20 hidden md:block" delay={1}>
+                  <div className="glass-card px-6 py-4 rounded-2xl flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white">
+                      <Shield size={20} />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-text-subtle uppercase">Matching</div>
+                      <div className="text-lg font-bold">99.8% Precise</div>
+                    </div>
+                  </div>
+                </FloatingElement>
               </div>
             </div>
           </div>
@@ -241,143 +325,167 @@ export default function HomePage() {
       <WaveDivider fill="var(--background)" fromColor="var(--foreground)" />
 
       {/* How It Works */}
-      <section className="py-24 px-6" style={{ background: 'var(--background)' }}>
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', color: 'var(--foreground)' }}>How SnapMoment Works</h2>
-            <p className="text-text-muted mt-3 text-base max-w-md mx-auto">Three simple steps. Zero friction. Pure magic.</p>
+      <section className="py-32 px-6 bg-white relative">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-24">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">How the Magic Happens</h2>
+            <p className="text-xl text-text-muted max-w-2xl mx-auto">We've eliminated the friction from event photo sharing. Three steps, zero effort.</p>
           </div>
-          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <div className="hidden md:block absolute top-16 left-[16.7%] right-[16.7%] h-px border-t-2 border-dashed border-border z-0" />
+
+          <div className="grid md:grid-cols-3 gap-12 relative">
+            <div className="hidden md:block absolute top-[45px] left-[15%] right-[15%] h-[2px] bg-gradient-to-r from-primary/10 via-primary/30 to-primary/10" />
+            
             {[
-              { step: 1, icon: Camera, title: 'Photographer Uploads', desc: 'Upload event photos in real time. AI indexes every face.' },
-              { step: 2, icon: QrCode, title: 'Guests Scan QR', desc: 'Each guest scans the event QR code and verifies via phone OTP.' },
-              { step: 3, icon: Smile, title: 'Take a Selfie', desc: 'AI matches and delivers only their photos instantly.' },
-            ].map(({ step, icon: Icon, title, desc }: any) => (
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: step * 0.15, duration: 0.6 }}
-                viewport={{ once: true }}
-                className="relative z-10 rounded-3xl p-8 text-center"
-                style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
-              >
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: 'var(--accent-light)' }}>
-                  <Icon size={24} color="var(--primary)" />
-                </div>
-                <h3 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 20, color: 'var(--foreground)' }}>{title}</h3>
-                <p className="text-sm text-text-muted mt-2 leading-relaxed">{desc}</p>
-              </motion.div>
-            ))}
+              { 
+                step: '01', 
+                icon: Camera, 
+                title: 'Capture & Upload', 
+                desc: 'Photographer uploads photos in real-time. Our AI instantly indexes every face in the background.' 
+              },
+              { 
+                step: '02', 
+                icon: QrCode, 
+                title: 'Scan & Selfie', 
+                desc: 'Guests scan the event QR code and take a quick selfie. No login or app download required.' 
+              },
+              { 
+                step: '03', 
+                icon: Smartphone, 
+                title: 'Instant Gallery', 
+                desc: 'AI matches the selfie with event photos and delivers a personalized gallery instantly.' 
+              },
+            ].map((item, idx) => {
+              const Icon = item.icon
+              return (
+                <motion.div 
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.2 }}
+                  className="relative text-center group"
+                >
+                  <div className="w-24 h-24 rounded-3xl bg-primary/5 flex items-center justify-center mx-auto mb-8 group-hover:bg-primary group-hover:text-white transition-all duration-500 rotate-3 group-hover:rotate-0">
+                    <Icon size={40} className="transition-transform group-hover:scale-110" />
+                  </div>
+                  <div className="text-primary font-bold text-sm uppercase tracking-widest mb-2">Step {item.step}</div>
+                  <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
+                  <p className="text-text-muted leading-relaxed">{item.desc}</p>
+                </motion.div>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24 px-6 relative noise-overlay" style={{ background: 'var(--background)' }}>
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', color: 'var(--foreground)' }}>
-              Everything you need. <br />Nothing you don't.
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {FEATURES.map((f, i) => (
-              <motion.div
-                key={i}
-                className={`group relative overflow-hidden rounded-3xl p-8 transition-all duration-500 hover:-translate-y-2 ${
-                  f.wide ? 'md:col-span-2' : ''
-                } ${f.title === 'Privacy First' ? 'md:col-start-2' : ''}`}
-                style={{
-                  background: 'var(--card)',
-                  border: '2px solid rgba(25, 196, 19, 0.13)',
-                  boxShadow: '0 0 20px rgba(25, 196, 19, 0.13)'
-                }}
-              >
-                {f.title === 'Privacy First' && (
-                  <div className="absolute top-4 right-4">
-                    <SplashTag text="Privacy Verified ✓" color="amber" rotation={3} />
+      {/* Features Grid */}
+      <section className="py-32 px-6 bg-slate-50 relative noise-overlay">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">Designed for Professionals.</h2>
+              <p className="text-xl text-text-muted mb-8">Powerful features that give you back hours of your time and wow your clients.</p>
+              <div className="space-y-4">
+                {['Unlimited Cloud Storage', 'Branded Guest Experience', 'Real-time Analytics'].map(t => (
+                  <div key={t} className="flex items-center gap-3 text-foreground font-bold">
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-600 flex items-center justify-center">
+                      <Check size={14} />
+                    </div>
+                    {t}
                   </div>
-                )}
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'var(--primary-light)', border: '1px solid var(--primary)' }}>
-                  <f.icon size={26} color="var(--primary)" />
-                </div>
-                <h3 className="font-bold text-xl mb-3" style={{ color: 'var(--foreground)' }}>{f.title}</h3>
-                <p className="text-sm leading-relaxed text-text-muted">{f.desc}</p>
-              </motion.div>
-            ))}
+                ))}
+              </div>
+            </div>
+            
+            <div className="lg:col-span-2 grid md:grid-cols-2 gap-6">
+              {FEATURES.map((f, i) => {
+                const Icon = f.icon
+                return (
+                  <div key={i} className={`feature-card card-shine p-8 bg-white rounded-3xl ${f.wide ? 'md:col-span-2' : ''}`}>
+                    <div className="w-12 h-12 rounded-2xl bg-primary/5 text-primary flex items-center justify-center mb-6">
+                      <Icon size={24} />
+                    </div>
+                    <h3 className="text-xl font-bold mb-3">{f.title}</h3>
+                    <p className="text-text-muted text-sm leading-relaxed">{f.desc}</p>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-24 px-6" style={{ background: 'var(--background)' }}>
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          <StatCounter value={200} suffix="+" label="Photographers" color="var(--primary)" />
-          <StatCounter value={50000} suffix="+" label="Photos Delivered" color="var(--primary)" />
-          <StatCounter value={1200} suffix="+" label="Events Hosted" color="var(--primary)" />
-          <StatCounter value={99} suffix="%" label="AI Accuracy" color="var(--primary)" />
+      <section className="py-32 px-6 bg-foreground text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/5 blur-[100px]" />
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCounter value={200} suffix="+" label="Elite Photographers" icon={Award} />
+            <StatCounter value={500000} suffix="+" label="Photos Delivered" icon={ImageIcon} />
+            <StatCounter value={1500} suffix="+" label="Events Empowered" icon={Sparkles} />
+            <StatCounter value={99.8} suffix="%" label="AI Precision" icon={Shield} />
+          </div>
         </div>
       </section>
 
-      {/* NEW Testimonials Section */}
-      <section className="py-24 px-6 overflow-hidden" style={{ background: 'var(--background)' }}>
+      {/* Testimonials */}
+      <section className="py-32 px-6 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', color: 'var(--foreground)' }}>
-              Trusted by Pros. <SplashTag text="Real users ✦✦✦" color="emerald" rotation={-2} fontSize={18} />
-            </h2>
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">Loved by the Best.</h2>
+            <p className="text-xl text-text-muted">Thousands of memories delivered across the globe.</p>
           </div>
-
-          <div
-            className="flex justify-center gap-6 mt-10 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] max-h-[660px] overflow-hidden"
-          >
-            <TestimonialsColumn testimonials={col1} duration={20} />
-            <TestimonialsColumn testimonials={col2} className="hidden md:block" duration={25} />
-            <TestimonialsColumn testimonials={col3} className="hidden lg:block" duration={22} />
+          
+          <div className="flex justify-center gap-6 mt-10 [mask-image:linear-gradient(to_bottom,transparent,black_15%,black_85%,transparent)] max-h-[600px] overflow-hidden">
+            <TestimonialsColumn testimonials={TESTIMONIALS} duration={25} />
+            <TestimonialsColumn testimonials={TESTIMONIALS} className="hidden md:block" duration={35} />
+            <TestimonialsColumn testimonials={TESTIMONIALS} className="hidden lg:block" duration={30} />
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section className="py-24 px-6" style={{ background: 'var(--background)' }}>
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', color: 'var(--foreground)' }}>Simple, Honest Pricing</h2>
+      <section className="py-32 px-6 bg-slate-50 relative">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">Simple, Transparent Pricing</h2>
+            <p className="text-xl text-text-muted">No hidden fees. Scale as you grow.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <div className="grid md:grid-cols-3 gap-8">
             {[
-              { name: 'Fresher', price: '₹50', features: ['5 events/month', '200 photos/event', 'QR + OTP flow', 'Branded watermark'], cta: 'Fresher', color: '#000000ff', highlighted: true },
-              { name: 'Pro', price: '₹1,499', period: '/mo', features: ['50 events/month', '2,000 photos/event', 'Custom watermark', 'Analytics dashboard'], cta: 'Go Pro', color: '#000000ff', highlighted: true, tag: 'Most loved ♥♥♥', fontSize: 18 },
-              { name: 'Studio', price: '₹4,999', period: '/mo', features: ['Unlimited events', 'Unlimited photos', 'White-label QR', 'API access'], cta: 'Go Studio', color: '#000000ff', highlighted: true },
-            ].map((plan) => (
-              <div
-                key={plan.name}
-                className="rounded-3xl p-8 relative flex flex-col"
-                style={{
-                  background: plan.highlighted ? 'var(--primary-gradient)' : 'var(--card)',
-                  border: plan.highlighted ? 'none' : '1px solid var(--border)',
-                  transform: plan.highlighted ? 'scale(1.05)' : 'none',
-                  zIndex: plan.highlighted ? 10 : 1
-                }}
+              { name: 'Fresher', price: '₹50', features: ['5 events / month', '200 photos / event', 'Instant AI Matching', 'Standard Support'] },
+              { name: 'Pro', price: '₹1,499', features: ['50 events / month', '2,000 photos / event', 'Custom Watermarking', 'Priority Support', 'Gallery Analytics'], popular: true },
+              { name: 'Studio', price: '₹4,999', features: ['Unlimited events', 'Unlimited photos', 'Whitelabel Gallery', 'API Access', 'Account Manager'] },
+            ].map((plan, i) => (
+              <div 
+                key={i} 
+                className={`p-8 rounded-[2.5rem] bg-white border border-border relative flex flex-col transition-all ${plan.popular ? 'pricing-popular ring-4 ring-primary/20 scale-105 z-10' : 'hover:border-primary/30'}`}
               >
-                {plan.tag && <div className="absolute top-5 right-5"><SplashTag text={plan.tag} color="amber" rotation={3} /></div>}
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-white text-xs font-bold uppercase">
+                    Most Popular
+                  </div>
+                )}
                 <div className="mb-8">
-                  <div className="text-sm font-semibold mb-2" style={{ color: plan.highlighted ? 'rgba(255, 252, 252, 0.91)' : 'var(--muted)' }}>{plan.name}</div>
-                  <div className="text-5xl font-bold" style={{ color: plan.highlighted ? 'white' : 'var(--foreground)' }}>
-                    {plan.price}<span className="text-lg font-normal">{plan.period}</span>
+                  <div className="text-sm font-bold text-primary uppercase tracking-widest mb-2">{plan.name}</div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold">{plan.price}</span>
+                    <span className="text-text-muted">/event</span>
                   </div>
                 </div>
-                <ul className="space-y-4 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-3 text-sm" style={{ color: plan.highlighted ? 'rgba(255, 255, 255, 0.9)' : 'var(--muted)' }}>
-                      <Check size={16} className={plan.highlighted ? 'text-amber-400' : 'text-primary'} /> {f}
+                <ul className="space-y-4 mb-10 flex-1">
+                  {plan.features.map(f => (
+                    <li key={f} className="flex items-center gap-3 text-sm text-text-muted">
+                      <Check size={16} className="text-primary" /> {f}
                     </li>
                   ))}
                 </ul>
-                <Link to="/signup" className={`mt-10 block text-center py-4 rounded-2xl font-bold transition-all ${plan.highlighted ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:brightness-110'}`}>
-                  {plan.cta}
+                <Link 
+                  to="/signup" 
+                  className={`w-full py-4 rounded-2xl font-bold transition-all text-center ${plan.popular ? 'bg-primary text-white shadow-primary' : 'bg-slate-100 text-foreground hover:bg-slate-200'}`}
+                >
+                  Get Started
                 </Link>
               </div>
             ))}
@@ -385,20 +493,27 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-24 px-6 relative noise-overlay" style={{ background: 'var(--foreground)' }}>
-        <div className="max-w-3xl mx-auto relative z-10">
-          <div className="text-center mb-12">
-            <h2 style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 'clamp(28px,4vw,44px)', color: 'var(--background)' }}>Frequently Asked</h2>
+      {/* FAQ */}
+      <section className="py-32 px-6 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Frequently Asked</h2>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {FAQ.map((item, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-                <button className="w-full flex items-center justify-between p-6 text-left" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                  <span className="font-medium text-sm" style={{ color: 'var(--foreground)' }}>{item.q}</span>
-                  <ChevronDown size={18} color="var(--muted)" style={{ transform: openFaq === i ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
+              <div key={i} className={`faq-item ${openFaq === i ? 'open' : ''}`}>
+                <button 
+                  className="w-full p-6 text-left flex items-center justify-between"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                >
+                  <span className="font-bold text-lg">{item.q}</span>
+                  <ChevronDown className={`transition-transform duration-300 ${openFaq === i ? 'rotate-180' : ''}`} />
                 </button>
-                {openFaq === i && <div className="px-6 pb-6 text-sm leading-relaxed opacity-70" style={{ color: 'var(--foreground)' }}>{item.a}</div>}
+                {openFaq === i && (
+                  <div className="px-6 pb-6 text-text-muted leading-relaxed">
+                    {item.a}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -406,24 +521,28 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 px-6 text-center" style={{ background: 'var(--primary-gradient)' }}>
-        <h2 className="text-4xl md:text-5xl font-bold text-white">Ready to transform your events?</h2>
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-10">
-          <Link to="/signup" className="px-10 py-4 rounded-2xl font-bold bg-white text-primary hover:scale-105 transition-transform">Start Fresher Today</Link>
-          <Link to="/demo" className="px-10 py-4 rounded-2xl font-bold border border-white/30 text-white hover:bg-white/10 transition-all">Watch Demo</Link>
+      <section className="py-32 px-6">
+        <div className="max-w-6xl mx-auto rounded-[3rem] bg-primary p-12 md:p-24 text-center text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-primary-gradient opacity-50" />
+          <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/10 blur-3xl rounded-full" />
+          <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-accent/20 blur-3xl rounded-full" />
+          
+          <div className="relative z-10">
+            <h2 className="text-4xl md:text-7xl font-bold mb-8">Ready to delight your guests?</h2>
+            <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-2xl mx-auto">Join 200+ elite photographers who are revolutionizing event delivery with SnapMoment.</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <Link to="/signup" className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-white text-primary font-bold text-xl hover:scale-105 transition-all shadow-xl">
+                Get Started Now
+              </Link>
+              <Link to="/contact" className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-xl hover:bg-white/20 transition-all">
+                Contact Sales
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
       <Footer />
     </div>
-  )
-}
-
-// Helper Icon
-function Smile({ size, color }: { size: number; color: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
-      <circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" />
-    </svg>
   )
 }

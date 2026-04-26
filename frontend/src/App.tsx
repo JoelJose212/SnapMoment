@@ -41,7 +41,7 @@ import { ThemeProvider } from './components/shared/ThemeProvider'
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
       <BrowserRouter>
         <Toaster position="top-center" reverseOrder={false} />
         <CustomCursor />

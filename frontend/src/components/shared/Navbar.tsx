@@ -1,6 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Camera, LogOut, Menu, X } from 'lucide-react'
-import ThemeSwitch from './ThemeSwitch'
 import { useState } from 'react'
 import { useAuthStore } from '../../store/authStore'
 
@@ -70,7 +69,6 @@ export default function Navbar() {
               </Link>
             </>
           )}
-          <ThemeSwitch className="hidden md:flex ml-2" />
         </div>
 
         {/* Mobile menu toggle */}
@@ -98,10 +96,6 @@ export default function Navbar() {
               <Link to="/signup" className="text-sm font-semibold text-white px-4 py-2.5 rounded-xl text-center" style={{ background: 'var(--primary-gradient)' }} onClick={() => setMenuOpen(false)}>Get Started</Link>
             </>
           )}
-          </div>
-          <div className="border-t border-border pt-3 flex items-center justify-between">
-            <span className="text-xs text-muted">Appearance</span>
-            <ThemeSwitch />
           </div>
         </div>
       )}
