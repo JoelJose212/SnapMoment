@@ -18,6 +18,7 @@ class Event(Base):
     description: Mapped[str] = mapped_column(Text, nullable=True)
     cover_photo_url: Mapped[str] = mapped_column(String(500), nullable=True)
     qr_token: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    vip_token: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), unique=True, default=uuid.uuid4)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     photographer_note: Mapped[str] = mapped_column(Text, nullable=True)

@@ -163,6 +163,39 @@ export default function PhotographerQR() {
                   Print Professional Sign
                 </button>
               </div>
+
+              <div className="glass rounded-[32px] p-8 border border-white/20 shadow-xl">
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                   <span className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm">3</span>
+                   VIP & Family Sharing
+                </h3>
+                <p className="text-muted text-sm mb-6 leading-relaxed">
+                   Share this <strong>Master Link</strong> with family and close friends. It allows them to see <strong>ALL photos</strong> without uploading a selfie.
+                </p>
+                <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/50 mb-6">
+                   <div className="flex items-center justify-between gap-4">
+                      <code className="text-[10px] text-amber-700 truncate flex-1 font-mono">{event ? `${window.location.origin}/vip/${event.vip_token}` : ''}</code>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/vip/${event?.vip_token}`)
+                          toast.success('VIP Link copied!')
+                        }}
+                        className="p-2 rounded-lg bg-amber-100 text-amber-600 hover:bg-amber-200 transition-colors"
+                      >
+                         <Copy size={16} />
+                      </button>
+                   </div>
+                </div>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/vip/${event?.vip_token}`)
+                    toast.success('VIP Link copied!')
+                  }}
+                  className="w-full flex items-center justify-center gap-3 bg-slate-900 text-white p-4 rounded-2xl font-bold hover:scale-[1.02] transition-all shadow-xl"
+                >
+                   <Share2 size={20} /> Copy Master VIP Link
+                </button>
+              </div>
             </motion.div>
 
             {/* Right: Mockup */}

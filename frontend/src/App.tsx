@@ -18,6 +18,7 @@ import EventLandingPage from './pages/guest/EventLandingPage'
 import OTPPage from './pages/guest/OTPPage'
 import SelfiePage from './pages/guest/SelfiePage'
 import GalleryPage from './pages/guest/GalleryPage'
+import VIPLandingPage from './pages/guest/VIPLandingPage'
 
 // Photographer
 import PhotographerLayout from './pages/photographer/PhotographerLayout'
@@ -27,6 +28,10 @@ import PhotographerQR from './pages/photographer/PhotographerQR'
 import PhotographerAnalytics from './pages/photographer/PhotographerAnalytics'
 import PhotographerProfile from './pages/photographer/PhotographerProfile'
 import OnboardingWizard from './pages/photographer/OnboardingWizard'
+import GlobalDelivery from './pages/photographer/GlobalDelivery'
+import NotificationCenter from './pages/photographer/NotificationCenter'
+import GuestIntelligence from './pages/photographer/GuestIntelligence'
+import PhotographerShowcase from './pages/photographer/PhotographerShowcase'
 
 // Admin
 import AdminLayout from './pages/admin/AdminLayout'
@@ -53,12 +58,15 @@ export default function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/p/:slug" element={<PhotographerShowcase />} />
 
         {/* Guest flow */}
         <Route path="/event/:token" element={<EventLandingPage />} />
         <Route path="/event/:token/otp" element={<OTPPage />} />
         <Route path="/event/:token/selfie" element={<SelfiePage />} />
         <Route path="/event/:token/gallery" element={<GalleryPage />} />
+        <Route path="/vip/:vipToken" element={<VIPLandingPage />} />
+        <Route path="/gallery" element={<GalleryPage />} />
 
         {/* Onboarding - protected but not dashboard */}
         <Route path="/onboarding" element={<ProtectedRoute requiredRole="photographer"><OnboardingWizard /></ProtectedRoute>} />
@@ -70,7 +78,10 @@ export default function App() {
           <Route path="events/:id/upload" element={<PhotographerUpload />} />
           <Route path="events/:id/qr" element={<PhotographerQR />} />
           <Route path="analytics" element={<PhotographerAnalytics />} />
+          <Route path="engagement" element={<GuestIntelligence />} />
           <Route path="profile" element={<PhotographerProfile />} />
+          <Route path="delivery" element={<GlobalDelivery />} />
+          <Route path="notifications" element={<NotificationCenter />} />
         </Route>
 
         {/* Admin - protected */}

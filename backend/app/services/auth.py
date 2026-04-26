@@ -53,6 +53,6 @@ def get_guest_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_sc
     if not credentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     payload = decode_token(credentials.credentials)
-    if payload.get("role") != "guest":
+    if payload.get("role") not in ("guest", "guest_vip"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Guest access required")
     return payload

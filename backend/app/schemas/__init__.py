@@ -91,6 +91,7 @@ class EventOut(BaseModel):
     description: Optional[str]
     cover_photo_url: Optional[str]
     qr_token: str
+    vip_token: uuid.UUID
     is_active: bool
     expires_at: Optional[datetime]
     photographer_note: Optional[str]
@@ -156,6 +157,7 @@ class GuestTokenResponse(BaseModel):
 class GalleryPhotoOut(BaseModel):
     match_id: str
     photo_id: str
+    event_id: str
     photo_url: str
     thumbnail_url: Optional[str]
     crop_1x1_url: Optional[str] = None

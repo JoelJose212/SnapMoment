@@ -87,6 +87,21 @@ async def verify_otp_route(data: OTPVerifyRequest, db: AsyncSession = Depends(ge
     return GuestTokenResponse(access_token=token, guest_id=str(guest.id), event_id=data.event_id)
 
 
+@router.get("/vip/{vip_token}")
+async def vip_login(vip_token: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Event).where(Event.vip_token == vip_token))
+    event = result.scalar_one_or_none()
+    if not event or not event.is_active:
+        raise HTTPException(status_code=404, detail="VIP access link invalid or expired")
+
+    # Generate a VIP token (no specific guest ID, just the event and role)
+    token = create_token(
+        {"sub": "VIP", "role": "guest_vip", "event_id": str(event.id)},
+        expires_hours=48, # VIPs get longer access
+    )
+    return {"access_token": token, "event_name": event.name, "event_id": str(event.id)}
+
+
 @router.post("/selfie")
 async def upload_selfie(
     file: UploadFile = File(...),
@@ -240,7 +255,33 @@ async def download_all(
 @router.get("/gallery", response_model=list[GalleryPhotoOut])
 async def get_gallery(current_guest: dict = Depends(get_guest_user), db: AsyncSession = Depends(get_db)):
     guest_id = current_guest["sub"]
+    event_id = current_guest["event_id"]
+    is_vip = current_guest.get("role") == "guest_vip"
 
+    if is_vip:
+        # VIPs see ALL photos
+        result = await db.execute(
+            select(Photo).where(Photo.event_id == uuid.UUID(event_id))
+            .order_by(Photo.uploaded_at.desc())
+        )
+        photos = result.scalars().all()
+        
+        gallery = []
+        for photo in photos:
+            gallery.append(GalleryPhotoOut(
+                match_id=str(photo.id),
+                photo_id=str(photo.id),
+                event_id=str(photo.event_id),
+                photo_url=s3_service.get_signed_url(photo.s3_key),
+                thumbnail_url=s3_service.get_signed_url(photo.s3_key) if photo.thumbnail_url else None,
+                confidence_score=100.0,
+                is_reported=False,
+                is_suggested=False,
+                matched_at=datetime.utcnow(),
+            ))
+        return gallery
+
+    # Standard guest face-match flow
     result = await db.execute(
         select(PhotoMatch, Photo).join(Photo, PhotoMatch.photo_id == Photo.id)
         .where(PhotoMatch.guest_id == uuid.UUID(guest_id))
@@ -260,6 +301,7 @@ async def get_gallery(current_guest: dict = Depends(get_guest_user), db: AsyncSe
         gallery.append(GalleryPhotoOut(
             match_id=str(match.id),
             photo_id=str(photo.id),
+            event_id=str(photo.event_id),
             photo_url=s3_service.get_signed_url(photo.s3_key),
             thumbnail_url=s3_service.get_signed_url(photo.s3_key) if photo.thumbnail_url else None,
             crop_1x1_url=crop_1x1,

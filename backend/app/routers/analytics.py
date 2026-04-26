@@ -2,7 +2,7 @@ import uuid
 from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, String
 from app.database import get_db
 from app.models.event import Event
 from app.models.photo import Photo
@@ -72,6 +72,84 @@ async def photographer_analytics(current_user: dict = Depends(require_photograph
     }
 
 
+@router.get("/analytics/engagement/guests")
+async def guest_engagement(current_user: dict = Depends(require_photographer), db: AsyncSession = Depends(get_db)):
+    photographer_id = current_user["sub"]
+    
+    # Get all events for this photographer
+    events_result = await db.execute(select(Event.id).where(Event.photographer_id == uuid.UUID(photographer_id)))
+    event_ids = [r[0] for r in events_result.all()]
+    
+    if not event_ids:
+        return []
+        
+    # Get guests and their interaction counts
+    query = (
+        select(
+            Guest.full_name, 
+            Guest.phone_number, 
+            Event.name.label("event_name"),
+            Guest.joined_at,
+            func.count(AnalyticsEvent.id).label("interactions")
+        )
+        .join(Event, Guest.event_id == Event.id)
+        .outerjoin(AnalyticsEvent, AnalyticsEvent.guest_id == Guest.id)
+        .where(Guest.event_id.in_(event_ids))
+        .group_by(Guest.id, Event.name)
+        .order_by(Guest.joined_at.desc())
+    )
+    
+    result = await db.execute(query)
+    return [
+        {
+            "name": r.full_name,
+            "phone": r.phone_number,
+            "event": r.event_name,
+            "accessed": r.joined_at,
+            "interactions": r.interactions
+        } for r in result.all()
+    ]
+
+@router.get("/analytics/engagement/top-photos")
+async def top_photos(current_user: dict = Depends(require_photographer), db: AsyncSession = Depends(get_db)):
+    photographer_id = current_user["sub"]
+    
+    # Get all event IDs
+    events_result = await db.execute(select(Event.id).where(Event.photographer_id == uuid.UUID(photographer_id)))
+    event_ids = [r[0] for r in events_result.all()]
+    
+    if not event_ids:
+        return []
+        
+    # Get top downloaded and viewed photos
+    # We use the metadata->'photo_id' to group
+    query = (
+        select(
+            Photo,
+            func.count(AnalyticsEvent.id).filter(AnalyticsEvent.action_type == 'DOWNLOAD').label("downloads"),
+            func.count(AnalyticsEvent.id).filter(AnalyticsEvent.action_type == 'VIEW').label("views"),
+            func.count(AnalyticsEvent.id).filter(AnalyticsEvent.action_type == 'LIKE').label("likes")
+        )
+        .join(AnalyticsEvent, Photo.id.cast(String) == AnalyticsEvent.metadata_['photo_id'].astext)
+        .where(Photo.event_id.in_(event_ids))
+        .group_by(Photo.id)
+        .order_by(func.count(AnalyticsEvent.id).desc())
+        .limit(10)
+    )
+    
+    result = await db.execute(query)
+    # We need signed URLs
+    from app.services import s3 as s3_service
+    return [
+        {
+            "id": str(r.Photo.id),
+            "url": s3_service.get_signed_url(r.Photo.s3_key),
+            "downloads": r.downloads,
+            "views": r.views,
+            "likes": r.likes
+        } for r in result.all()
+    ]
+
 @router.post("/analytics/log")
 async def log_event(
     event_id: uuid.UUID,
@@ -79,7 +157,10 @@ async def log_event(
     photo_id: Optional[uuid.UUID] = None,
     db: AsyncSession = Depends(get_db)
 ):
-    """Log guest interaction (VIEW, DOWNLOAD, SHARE)."""
+    """Log guest interaction (VIEW, DOWNLOAD, SHARE, LIKE)."""
+    # Note: We try to get guest identity if possible, but logging should not fail if not present
+    # In a real scenario, we might use a separate dependency or just rely on the frontend passing it
+    
     log = AnalyticsEvent(
         id=uuid.uuid4(),
         event_id=event_id,

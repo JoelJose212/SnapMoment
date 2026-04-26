@@ -2,15 +2,21 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { 
   Camera, CalendarDays, BarChart2, User, LogOut, 
   ArrowRight, AlertTriangle, Zap, ShieldCheck, 
-  Sparkles, Bell, Settings, Globe
+  Sparkles, Bell, Settings, Globe, Users
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
 
 const NAV = [
   { to: '/photographer/events', icon: CalendarDays, label: 'My Events' },
+  { to: '/photographer/engagement', icon: Users, label: 'Engagement' },
   { to: '/photographer/analytics', icon: BarChart2, label: 'Analytics' },
   { to: '/photographer/profile', icon: User, label: 'Profile' },
+]
+
+const INTEL_NAV = [
+  { to: '/photographer/delivery', icon: Globe, label: 'Global Delivery' },
+  { to: '/photographer/notifications', icon: Bell, label: 'Notifications' },
 ]
 
 export default function PhotographerLayout() {
@@ -87,14 +93,42 @@ export default function PhotographerLayout() {
             ))}
 
             <div className="pt-10 px-4 mb-6 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Intelligence</div>
-            <button className="w-full flex items-center gap-4 px-6 py-5 rounded-[1.75rem] text-sm font-black text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all">
-               <Globe size={20} className="text-slate-300" />
-               <span>Global Delivery</span>
-            </button>
-            <button className="w-full flex items-center gap-4 px-6 py-5 rounded-[1.75rem] text-sm font-black text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all">
-               <Bell size={20} className="text-slate-300" />
-               <span>Notifications</span>
-            </button>
+            {INTEL_NAV.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `group relative flex items-center gap-4 px-6 py-5 rounded-[1.75rem] text-sm font-black transition-all duration-500 ${
+                    isActive 
+                      ? 'text-white' 
+                      : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <AnimatePresence>
+                      {isActive && (
+                        <motion.div
+                          layoutId="nav-active"
+                          className="absolute inset-0 rounded-[1.75rem] bg-slate-900 shadow-xl shadow-slate-900/20"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                        />
+                      )}
+                    </AnimatePresence>
+                    
+                    <Icon size={20} className={`relative z-10 transition-transform duration-500 group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-300 group-hover:text-primary'}`} />
+                    <span className="relative z-10 tracking-tight">{label}</span>
+                    
+                    {!isActive && (
+                      <ArrowRight size={14} className="ml-auto opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
+                    )}
+                  </>
+                )}
+              </NavLink>
+            ))}
           </nav>
 
           {/* Creative Partner Card */}

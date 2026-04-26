@@ -56,6 +56,7 @@ export default function GalleryPage() {
       link.parentNode?.removeChild(link)
       
       toast.success('Downloaded with Studio Mark! 📸', { id: toastId })
+      logInteraction(photoId, 'DOWNLOAD')
     } catch (err) {
       toast.error('Download failed.', { id: toastId })
     }
@@ -112,6 +113,17 @@ export default function GalleryPage() {
     setSelectedPhotoIndex(newIndex)
   }
 
+  const logInteraction = async (photoId: string, action: string) => {
+    try {
+      const eventId = photos[0]?.event_id || photos.find(p => p.photo_id === photoId)?.event_id
+      if (eventId) {
+        await api.post('/api/analytics/log', null, {
+          params: { event_id: eventId, action_type: action, photo_id: photoId }
+        })
+      }
+    } catch (err) {}
+  }
+
   const verifiedPhotos = photos.filter(p => !p.is_suggested)
   const suggestedPhotos = photos.filter(p => p.is_suggested)
 
@@ -138,7 +150,9 @@ export default function GalleryPage() {
             <div className="p-3 rounded-2xl bg-primary/15 border border-primary/20">
               <Sparkles className="text-primary" size={20} />
             </div>
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-primary">Your Private Gallery</span>
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-primary">
+              {localStorage.getItem('snapmoment_role') === 'guest_vip' ? 'Master Gallery Access' : 'Your Private Gallery'}
+            </span>
           </motion.div>
           
           <motion.h1 
@@ -169,7 +183,7 @@ export default function GalleryPage() {
         <section className="mb-32">
           <div className="flex items-center justify-between mb-12 px-2">
             <h2 className="text-2xl font-black text-foreground flex items-center gap-3">
-              Perfect Matches <ChevronRight className="text-primary" />
+              {localStorage.getItem('snapmoment_role') === 'guest_vip' ? 'Full Event Story' : 'Perfect Matches'} <ChevronRight className="text-primary" />
             </h2>
             <div className="flex items-center gap-2 text-xs font-bold text-muted bg-white/5 px-4 py-2 rounded-full border border-white/10">
               <Camera size={14} className="text-primary" /> {verifiedPhotos.length} High Confidence
@@ -187,6 +201,7 @@ export default function GalleryPage() {
                   downloadPhoto={downloadPhoto} 
                   handleShare={handleShare} 
                   handleReport={handleReport}
+                  logInteraction={logInteraction}
                 />
               )
             ))}
@@ -213,6 +228,7 @@ export default function GalleryPage() {
                           downloadPhoto={downloadPhoto} 
                           handleShare={handleShare} 
                           handleReport={handleReport}
+                          logInteraction={logInteraction}
                           isSuggested={true}
                         />
                       )
@@ -302,7 +318,7 @@ export default function GalleryPage() {
   )
 }
 
-function PhotoCard({ photo, i, onClick, downloadPhoto, handleShare, handleReport, isSuggested = false }: any) {
+function PhotoCard({ photo, i, onClick, downloadPhoto, handleShare, handleReport, logInteraction, isSuggested = false }: any) {
   const [heart, setHeart] = useState(false)
   
   return (
@@ -344,7 +360,10 @@ function PhotoCard({ photo, i, onClick, downloadPhoto, handleShare, handleReport
       <div className="p-5 flex items-center justify-between">
         <div className="flex items-center gap-2">
            <button 
-             onClick={() => setHeart(!heart)}
+             onClick={() => {
+               setHeart(!heart)
+               if (!heart) logInteraction(photo.photo_id, 'LIKE')
+             }}
              className={`p-3 rounded-xl transition-all ${heart ? 'bg-primary/20 text-primary' : 'bg-white/5 text-muted hover:bg-white/10'}`}
            >
              <Heart size={18} fill={heart ? "currentColor" : "none"} />
