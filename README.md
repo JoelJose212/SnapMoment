@@ -21,32 +21,10 @@ SnapMoment has evolved into a comprehensive telemetry dashboard, providing photo
 
 ---
 
-## 🧠 AI & Neural Architecture (The Core)
-
-SnapMoment leverages a high-performance, two-stage AI pipeline for biometric identification and clustering.
-
-### 1. Neural Models
-- **Facial Detection**: **SCRFD (Sample and Computation Redistribution for Efficient Face Detection)**. A state-of-the-art detector that handles extreme occlusions (glasses, masks) and varied orientations.
-- **Facial Recognition**: **Buffalo_L (ResNet-100)**. A deep residual network that extracts 512-dimensional feature vectors (embeddings) with a 99.8% LFW accuracy.
-- **Frontend Guidance**: **MediaPipe BlazeFace**. Lightweight, sub-millisecond detection running in the guest's browser to provide real-time biometric alignment feedback.
-
-### 2. Clustering & Intelligence
-- **Unsupervised Learning**: **DBSCAN (Density-Based Spatial Clustering of Applications with Noise)**. Groups millions of detected faces into distinct "Personas" without prior labeling. This allows the system to recognize a guest even if they change outfits or move between different lighting zones.
-- **Vector Search Engine**: **pgvector (PostgreSQL Extension)**.
-  - **Algorithm**: **HNSW (Hierarchical Navigable Small World)**.
-  - **Distance Metric**: **Cosine Similarity**.
-  - **Performance**: Sub-500ms matching latency across libraries of 10,000+ high-resolution frames.
-
-### 3. Matching Logic
-- **Stage 1 (Fast Match)**: Initial vector search against the "Persona Centroids" created by DBSCAN.
-- **Stage 2 (Exhaustive Verification)**: High-confidence refinement against individual frame embeddings to ensure zero false-positives in guest galleries.
-
----
-
 ## ✨ Key Features
 
 - **⚡ Instant AI Delivery**: Photos reach guests within seconds of upload using autonomous matching.
-- **🖼️ Studio Branding**: Guest galleries are automatically customized with your studio logo and brand identity.
+- **🖼️ Studio Branding**: Guest galleries are automatically wrapped in your high-fidelity studio identity and custom watermarks.
 - **📷 RAW Live Tethering**: Direct over-the-air ingestion from professional cameras via the **Folder Sync Engine**.
 - **🧠 Neural-Lock Selfie**: Real-time biometric guidance (MediaPipe) ensures guests capture high-quality, matchable selfies.
 - **💳 Pro Billing & Subscriptions**: Integrated **Stripe** checkout with automated **PDF Invoice** generation and Gmail distribution.
@@ -77,7 +55,6 @@ SnapMoment leverages a high-performance, two-stage AI pipeline for biometric ide
 
 ### Backend (Neural Core)
 - **Framework**: FastAPI (Python 3.10+)
-- **AI Libraries**: **InsightFace**, **ONNX Runtime (GPU Optimized)**, **Scikit-Learn**
 - **Billing**: Stripe API Integration
 - **Invoicing**: FPDF (Automated PDF Engine)
 - **Emails**: Gmail SMTP Integration
@@ -85,6 +62,16 @@ SnapMoment leverages a high-performance, two-stage AI pipeline for biometric ide
 - **Background Tasks**: Celery + Redis 7
 - **Database**: PostgreSQL 15 + pgvector (HNSW Indexing)
 - **Authentication**: JWT Stateless Sessions (Guest/VIP/Pro Roles)
+
+### AI & Neural Engine
+- **Primary Engine**: InsightFace (DeepInsight)
+- **Detection Model**: **SCRFD (Sample and Computation Redistribution)** for extreme occlusion handling.
+- **Recognition Model**: **Buffalo_L (ResNet-100)** extracting 512-dimensional embeddings.
+- **Clustering**: **DBSCAN** for unsupervised persona grouping.
+- **Vector Search**: **pgvector** with **HNSW (Hierarchical Navigable Small World)** indexing.
+- **Guidance**: **MediaPipe BlazeFace** for real-time browser-based biometric alignment.
+- **Optimization**: **ONNX Runtime** for high-performance CPU/GPU execution.
+- **Metric**: **Cosine Similarity** for sub-millisecond identity verification.
 
 ---
 
