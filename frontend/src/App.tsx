@@ -44,7 +44,6 @@ export default function App() {
     <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
       <BrowserRouter>
         <Toaster position="top-center" reverseOrder={false} />
-        <CustomCursor />
       <Routes>
         {/* Public */}
         <Route path="/" element={<HomePage />} />
