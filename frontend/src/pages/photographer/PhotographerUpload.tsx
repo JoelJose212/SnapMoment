@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Upload, Trash2, Brain, CheckCircle, Image, X, Sparkles, CloudUpload, Zap, FolderSync, Play, Pause } from 'lucide-react'
+import { Upload, Trash2, Brain, CheckCircle, Image, X, Sparkles, CloudUpload, Zap, FolderSync, Play, Pause, QrCode } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import toast from 'react-hot-toast'
 import { photosApi } from '../../lib/api'
 
@@ -151,32 +152,51 @@ export default function PhotographerUpload() {
           <p className="text-muted font-medium mt-2">Feed your AI-powered gallery</p>
         </div>
 
-        {/* RAW Tethering Button */}
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleTetherToggle}
-          className={`relative overflow-hidden flex items-center gap-4 px-8 py-5 rounded-[2rem] border-2 transition-all shadow-2xl ${
-            isTethering 
-              ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-600' 
-              : 'border-white/10 bg-white/5 text-subtle hover:text-foreground'
-          }`}
-        >
-          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isTethering ? 'bg-emerald-500 text-white shadow-emerald-xl' : 'bg-white/10'}`}>
-            {isTethering ? <FolderSync className="animate-spin-slow" size={20} /> : <Play size={20} />}
-          </div>
-          <div className="text-left">
-            <div className="text-sm font-black uppercase tracking-widest">
-              {isTethering ? 'RAW Tether Active' : 'Enable RAW Sync'}
-            </div>
-            <div className="text-[10px] font-bold opacity-60">
-              {isTethering ? 'Watching: ' + tetherFolder?.name : 'Connect local camera folder'}
+        {/* Action Hub */}
+        <div className="flex items-center gap-4">
+          {/* Mobile Upload QR (New) */}
+          <div className="group relative">
+            <button className="p-5 rounded-[2rem] bg-slate-900 text-white shadow-xl hover:scale-105 transition-all">
+              <QrCode size={24} />
+            </button>
+            <div className="absolute right-0 top-full mt-4 p-8 bg-white rounded-[3rem] shadow-3xl border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] w-[320px] text-center">
+              <div className="bg-slate-50 p-4 rounded-3xl mb-6 inline-block">
+                <QRCodeSVG value={window.location.href} size={200} />
+              </div>
+              <h4 className="text-xl font-black text-slate-900 tracking-tight mb-2">Mobile Ingestion</h4>
+              <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                Scan to start uploading from your phone's gallery. Perfect for Wi-Fi camera transfers or SD-to-mobile readers.
+              </p>
             </div>
           </div>
-          {isTethering && (
-            <div className="ml-4 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          )}
-        </motion.button>
+
+          {/* RAW Tethering Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleTetherToggle}
+            className={`relative overflow-hidden flex items-center gap-4 px-8 py-5 rounded-[2rem] border-2 transition-all shadow-2xl ${
+              isTethering 
+                ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-600' 
+                : 'border-white/10 bg-white/5 text-subtle hover:text-foreground'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isTethering ? 'bg-emerald-500 text-white shadow-emerald-xl' : 'bg-white/10'}`}>
+              {isTethering ? <FolderSync className="animate-spin-slow" size={20} /> : <Play size={20} />}
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-black uppercase tracking-widest">
+                {isTethering ? 'Live Sync Active' : 'Enable Live Sync'}
+              </div>
+              <div className="text-[10px] font-bold opacity-60">
+                {isTethering ? 'Watching: ' + tetherFolder?.name : 'Connect local or Wi-Fi folder'}
+              </div>
+            </div>
+            {isTethering && (
+              <div className="ml-4 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            )}
+          </motion.button>
+        </div>
       </header>
 
       {/* Dropzone Area */}

@@ -25,8 +25,10 @@ async def init_db():
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
         
-        # Manual migration for is_suggested column
+        # Manual migrations
         try:
             await conn.execute(text("ALTER TABLE photo_matches ADD COLUMN IF NOT EXISTS is_suggested BOOLEAN DEFAULT FALSE"))
+            await conn.execute(text("ALTER TABLE events ADD COLUMN IF NOT EXISTS ftp_password VARCHAR(100)"))
+            await conn.execute(text("ALTER TABLE events ADD COLUMN IF NOT EXISTS ftp_enabled BOOLEAN DEFAULT TRUE"))
         except Exception:
             pass

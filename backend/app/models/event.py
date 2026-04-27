@@ -22,4 +22,9 @@ class Event(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     photographer_note: Mapped[str] = mapped_column(Text, nullable=True)
+    
+    # FTP Gateway
+    ftp_password: Mapped[str] = mapped_column(String(100), nullable=True)
+    ftp_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -50,7 +50,8 @@ def generate_invoice_pdf(name: str, studio_name: str, email: str, plan_name: str
     pdf.cell(50, 10, f"INR {amount_inr}.00", align="R", ln=True)
     
     # Save
-    os.makedirs("/tmp/invoices", exist_ok=True)
-    file_path = f"/tmp/invoices/sm_invoice_{payment_id}.pdf"
+    invoice_dir = os.path.join(os.getcwd(), "invoices")
+    os.makedirs(invoice_dir, exist_ok=True)
+    file_path = os.path.join(invoice_dir, f"sm_invoice_{payment_id}.pdf")
     pdf.output(file_path)
     return file_path

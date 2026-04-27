@@ -23,7 +23,8 @@ async def check_subscription(photographer_id: str, db: AsyncSession):
     if not p: return False
     # If is_active is specifically False and sub is still active, we block.
     # But if sub is expired, we block data management.
-    if p.subscription_expires_at and p.subscription_expires_at < datetime.utcnow():
+    from datetime import timezone
+    if p.subscription_expires_at and p.subscription_expires_at < datetime.now(timezone.utc):
         return False
     if not p.is_active:
         return False
@@ -55,6 +56,7 @@ async def create_event(data: EventCreate, current_user: dict = Depends(require_p
         qr_token=qr_token,
         is_active=True,
         expires_at=expires_at,
+        ftp_password=secrets.token_urlsafe(12),
     )
     db.add(event)
     await db.commit()

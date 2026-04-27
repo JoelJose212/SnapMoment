@@ -79,6 +79,8 @@ class EventUpdate(BaseModel):
     photographer_note: Optional[str] = None
     is_active: Optional[bool] = None
     cover_photo_url: Optional[str] = None
+    ftp_password: Optional[str] = None
+    ftp_enabled: Optional[bool] = None
 
 
 class EventOut(BaseModel):
@@ -96,6 +98,8 @@ class EventOut(BaseModel):
     expires_at: Optional[datetime]
     photographer_note: Optional[str]
     created_at: datetime
+    ftp_password: Optional[str] = None
+    ftp_enabled: bool = True
     photo_count: int = 0
     guest_count: int = 0
 

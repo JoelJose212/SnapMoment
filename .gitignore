@@ -34,6 +34,14 @@ pip_err*.txt
 errors.txt
 errors*.txt
 
-# Temporary scripts
+# Temporary scripts & artifacts
 tmp_rebrand.py
 tmp_revert.py
+backend/scratch/
+backend/invoices/
+backend/joel.jpg
+backend/check_status.py
+backend/list_events.py
+backend/remap_matches.py
+backend/test_match.py
+backend/trigger_task.py

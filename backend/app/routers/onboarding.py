@@ -34,6 +34,7 @@ async def onboarding_step2(
     photographer.services = data.get("services", [])
     photographer.primary_gear = data.get("primary_gear", "")
     photographer.portfolio_url = data.get("portfolio_url", "")
+    photographer.experience_level = data.get("experience_level", "Hobbyist")
     photographer.onboarding_step = 3
     
     await db.commit()

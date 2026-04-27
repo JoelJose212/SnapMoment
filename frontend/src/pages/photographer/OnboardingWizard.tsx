@@ -23,6 +23,7 @@ export default function OnboardingWizard() {
     primary_gear: '',
     portfolio_url: '',
     services: 'Weddings, Portraits',
+    experience_level: 'Hobbyist',
   })
   
   // Step 3 Form
@@ -253,6 +254,15 @@ export default function OnboardingWizard() {
                 <div>
                   <label className="text-sm font-medium text-text-main block mb-1.5">Portfolio URL</label>
                   <input type="url" placeholder="https://" value={studioForm.portfolio_url} onChange={e => setStudioForm({...studioForm, portfolio_url: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-border outline-none focus:border-primary" style={{ background: 'var(--card)' }} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-text-main block mb-1.5">Experience Level</label>
+                  <select value={studioForm.experience_level} onChange={e => setStudioForm({...studioForm, experience_level: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-border outline-none focus:border-primary" style={{ background: 'var(--card)' }}>
+                    <option value="Hobbyist">Hobbyist</option>
+                    <option value="Part-time Pro">Part-time Pro</option>
+                    <option value="Full-time Pro">Full-time Pro</option>
+                    <option value="Studio Owner">Studio Owner</option>
+                  </select>
                 </div>
               </div>
               <button disabled={loading} onClick={handleStep2} className="mt-8 w-full py-4 rounded-xl text-white font-semibold flex justify-center items-center gap-2 hover:opacity-90 shadow-primary-sm" style={{ background: 'var(--primary)' }}>

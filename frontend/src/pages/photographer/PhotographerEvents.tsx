@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   Plus, QrCode, Upload, Trash2, Calendar, Image as ImageIcon, 
   Users, X, MapPin, Sparkles, ChevronRight, Activity, 
-  MoreHorizontal, Share2, Eye, LayoutGrid, Clock
+  MoreHorizontal, Share2, Eye, LayoutGrid, Clock, Server
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
@@ -255,6 +255,12 @@ export default function PhotographerEvents() {
                      className="flex-1 py-4 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center gap-2 hover:bg-slate-100 hover:text-slate-900 transition-all border border-slate-100"
                    >
                      <QrCode size={18} />
+                   </Link>
+                   <Link 
+                     to={`/photographer/events/${event.id}/ftp`} 
+                     className="flex-1 py-4 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center gap-2 hover:bg-slate-100 hover:text-slate-900 transition-all border border-slate-100"
+                   >
+                     <Server size={18} />
                    </Link>
                    <button 
                      onClick={() => setShowCollabModal(event)}

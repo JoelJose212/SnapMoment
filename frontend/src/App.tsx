@@ -28,6 +28,7 @@ import PhotographerQR from './pages/photographer/PhotographerQR'
 import PhotographerAnalytics from './pages/photographer/PhotographerAnalytics'
 import PhotographerProfile from './pages/photographer/PhotographerProfile'
 import OnboardingWizard from './pages/photographer/OnboardingWizard'
+import PhotographerFTP from './pages/photographer/PhotographerFTP'
 import GlobalDelivery from './pages/photographer/GlobalDelivery'
 import NotificationCenter from './pages/photographer/NotificationCenter'
 import GuestIntelligence from './pages/photographer/GuestIntelligence'
@@ -77,6 +78,7 @@ export default function App() {
           <Route path="events" element={<PhotographerEvents />} />
           <Route path="events/:id/upload" element={<PhotographerUpload />} />
           <Route path="events/:id/qr" element={<PhotographerQR />} />
+          <Route path="events/:id/ftp" element={<PhotographerFTP />} />
           <Route path="analytics" element={<PhotographerAnalytics />} />
           <Route path="engagement" element={<GuestIntelligence />} />
           <Route path="profile" element={<PhotographerProfile />} />

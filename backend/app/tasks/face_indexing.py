@@ -30,7 +30,7 @@ def index_event_photos(self, event_id: str):
         async with Session() as session:
             result = await session.execute(
                 select(Photo).where(
-                    Photo.event_id == event_id,
+                    Photo.event_id == uuid.UUID(event_id),
                     Photo.face_indexed == False
                 )
             )
@@ -85,10 +85,11 @@ def index_event_photos(self, event_id: str):
                                     w, h = im.size
                                     
                                     # Group-Aware Smart-Crop: Calculate bounding box for ALL faces
-                                    min_x = min(f.get("facial_area", {}).get("x", w // 2) for f in results)
-                                    max_x = max(f.get("facial_area", {}).get("x", w // 2) + f.get("facial_area", {}).get("w", 0) for f in results)
-                                    min_y = min(f.get("facial_area", {}).get("y", h // 2) for f in results)
-                                    max_y = max(f.get("facial_area", {}).get("y", h // 2) + f.get("facial_area", {}).get("h", 0) for f in results)
+                                    # Buffalo_L uses 'bbox' = [x1, y1, x2, y2]
+                                    min_x = min(f.get("bbox", [w//2, h//2, w//2, h//2])[0] for f in results)
+                                    max_x = max(f.get("bbox", [w//2, h//2, w//2, h//2])[2] for f in results)
+                                    min_y = min(f.get("bbox", [w//2, h//2, w//2, h//2])[1] for f in results)
+                                    max_y = max(f.get("bbox", [w//2, h//2, w//2, h//2])[3] for f in results)
                                     
                                     # Midpoint of the entire group
                                     fx = (min_x + max_x) // 2
@@ -133,7 +134,7 @@ def index_event_photos(self, event_id: str):
                                 photo_id=photo.id,
                                 event_id=photo.event_id,
                                 embedding=face["embedding"],
-                                metadata_json={"bbox": face.get("facial_area", {})}
+                                metadata_json={"bbox": face.get("bbox", [])}
                             )
                             session.add(fi)
 
@@ -189,7 +190,7 @@ def index_event_photos(self, event_id: str):
             from sqlalchemy import delete as sa_delete
 
             fi_result = await session.execute(
-                select(FaceIndex).where(FaceIndex.event_id == event_id)
+                select(FaceIndex).where(FaceIndex.event_id == uuid.UUID(event_id))
             )
             all_face_indices = fi_result.scalars().all()
 
@@ -202,13 +203,13 @@ def index_event_photos(self, event_id: str):
 
             # Delete old clusters for this event
             await session.execute(
-                sa_delete(FaceCluster).where(FaceCluster.event_id == event_id)
+                sa_delete(FaceCluster).where(FaceCluster.event_id == uuid.UUID(event_id))
             )
 
             for c in clusters:
                 fc = FaceCluster(
                     id=uuid.uuid4(),
-                    event_id=event_id,
+                    event_id=uuid.UUID(event_id),
                     cluster_label=c["cluster_label"],
                     centroid=c["centroid"],
                     photo_ids=c["photo_ids"],

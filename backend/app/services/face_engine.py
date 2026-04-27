@@ -115,17 +115,17 @@ def match_selfie_to_event(selfie_embedding: list, event_photos: list) -> list:
         return []
 
     # Buffalo_L (ArcFace ResNet-100) Thresholds:
-    # < 0.50: Precise match (Highly likely same person)
-    # 0.50 - 0.60: Suggested match (Likely same person with variation like specs/pose)
-    THRESHOLD = 0.60
-    PRECISION_ZONE = 0.50
+    # < 0.55: Precise match (Verified / Perfect Match)
+    # 0.55 - 0.65: Suggested match (Similar Frames)
+    THRESHOLD = 0.65
+    PRECISION_ZONE = 0.55
     
     face_data = [] # List of (photo_id, embedding)
     for photo in event_photos:
         photo_id = photo["photo_id"]
         for face in photo.get("embeddings", []):
             emb = face.get("embedding")
-            if emb:
+            if emb is not None:
                 face_data.append((photo_id, emb))
     
     if not face_data:
@@ -150,10 +150,10 @@ def match_selfie_to_event(selfie_embedding: list, event_photos: list) -> list:
     for pid, best_dist in photo_best_matches.items():
         # Recalibrated confidence mapping for Buffalo_L:
         if best_dist < PRECISION_ZONE:
-            # 0.00 -> 100%, 0.36 -> 90%
+            # 0.00 -> 100%, PRECISION_ZONE -> 90%
             confidence = (1.0 - (best_dist / PRECISION_ZONE) * 0.1) * 100
         else:
-            # 0.36 -> 85%, 0.48 -> 10%
+            # PRECISION_ZONE -> 85%, THRESHOLD -> 10%
             confidence = (0.85 - ((best_dist - PRECISION_ZONE) / (THRESHOLD - PRECISION_ZONE)) * 0.75) * 100
             
         matches.append({
@@ -211,7 +211,7 @@ def match_selfie_to_clusters(selfie_embedding: list, clusters: list) -> list:
     if not clusters:
         return []
 
-    THRESHOLD = 0.60
+    THRESHOLD = 0.65
     selfie_vec = l2_normalize(np.array(selfie_embedding, dtype=np.float32))
     centroids  = np.array([c["centroid"] for c in clusters], dtype=np.float32)
 
@@ -222,10 +222,10 @@ def match_selfie_to_clusters(selfie_embedding: list, clusters: list) -> list:
     for i, dist in enumerate(distances):
         if dist < THRESHOLD:
             # Map confidence similarly to match_selfie_to_event
-            if dist < 0.50:
-                conf = (1.0 - (dist / 0.50) * 0.1) * 100
+            if dist < 0.55:
+                conf = (1.0 - (dist / 0.55) * 0.1) * 100
             else:
-                conf = (0.85 - ((dist - 0.50) / (0.60 - 0.50)) * 0.75) * 100
+                conf = (0.85 - ((dist - 0.55) / (0.65 - 0.55)) * 0.75) * 100
                 
             matches.append({
                 "photo_ids":        clusters[i]["photo_ids"],
