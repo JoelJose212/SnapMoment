@@ -23,9 +23,11 @@ SnapMoment has evolved into a comprehensive telemetry dashboard, providing photo
 
 ## ✨ Key Features
 
+- **📷 Elite FTP Gateway**: Professional direct camera-to-cloud ingestion via built-in FTP (Sony/Canon/Nikon).
+- **📲 Mobile Ingestion Hub**: Quick-scan QR codes for instant smartphone-to-gallery transfers.
 - **⚡ Instant AI Delivery**: Photos reach guests within seconds of upload using autonomous matching.
 - **🖼️ Studio Branding**: Guest galleries are automatically wrapped in your high-fidelity studio identity and custom watermarks.
-- **📷 RAW Live Tethering**: Direct over-the-air ingestion from professional cameras via the **Folder Sync Engine**.
+- **📷 RAW Live Tethering**: Direct over-the-air ingestion from professional folders via the **Folder Sync Engine**.
 - **🧠 Neural-Lock Selfie**: Real-time biometric guidance (MediaPipe) ensures guests capture high-quality, matchable selfies.
 - **💳 Pro Billing & Subscriptions**: Integrated **Stripe** checkout with automated **PDF Invoice** generation and Gmail distribution.
 - **🚀 High-Speed Search**: Powered by **pgvector** with HNSW indexing for sub-millisecond matching.
@@ -92,7 +94,7 @@ graph LR
     System[[SnapMoment Elite Intelligence]]
 
     %% Data Flows
-    Photog -- "Event Setup / Folder Sync" --> System
+    Photog -- "Event Setup / FTP / RAW Sync" --> System
     System -- "Engagement Stats / Telemetry" --> Photog
 
     Guest -- "Selfie / OTP" --> System
@@ -136,7 +138,7 @@ flowchart TD
     Photographer -- Subscription --> P4 <--> D1
     
     Photographer -- Event Parameters --> P2 <--> D2
-    Photographer -- RAW Sync --> P3 <--> D3
+    Photographer -- "FTP / RAW Sync" --> P3 <--> D3
     P3 --> D4
     
     Guest([Guest]) -- OTP --> P5 <--> D2
@@ -173,7 +175,7 @@ graph TD
 ### 4. Event Lifecycle (Flowchart)
 ```mermaid
 flowchart TD
-    Start([Event Activation]) --> Sync[RAW Folder Sync Engine]
+    Start([Event Activation]) --> Sync[RAW Sync / FTP Gateway]
     Sync --> AI[AI: Feature Extraction & DBSCAN]
     AI --> Index[pgvector HNSW Indexing]
     
@@ -229,9 +231,10 @@ stateDiagram-v2
 | :--- | :--- | :--- | :--- |
 | **1** | **Elite Dashboard** | API Engagement Logs | Real-time Telemetry & Viral Content |
 | **2** | **VIP Access** | Master UUID Token | Unrestricted Full Gallery View |
-| **3** | **Neural Sync** | Local RAW Folder | Autonomous Face Indexing & Search |
+| **3** | **Neural Sync** | FTP / Local RAW Folder | Autonomous Face Indexing & Search |
 | **4** | **Billing** | Stripe Webhook | Automated PDF Invoice & Gmail Delivery |
 | **5** | **Guest Entry** | Biometric Selfie | High-Confidence Personal Photo List |
+| **6** | **Mobile Ingestion** | Smartphone Gallery | Direct Instant Upload |
 
 ---
 
@@ -245,6 +248,7 @@ stateDiagram-v2
 | `POST` | `/api/analytics/log` | Real-time interaction tracking |
 | `POST` | `/api/events/{id}/photos` | Bulk photo ingestion |
 | `POST` | `/api/events/{id}/process` | Trigger DBSCAN & Feature Indexing |
+| `GET` | `/api/events/{id}/ftp` | FTP Gateway credentials hub |
 
 ---
 
