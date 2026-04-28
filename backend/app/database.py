@@ -30,5 +30,10 @@ async def init_db():
             await conn.execute(text("ALTER TABLE photo_matches ADD COLUMN IF NOT EXISTS is_suggested BOOLEAN DEFAULT FALSE"))
             await conn.execute(text("ALTER TABLE events ADD COLUMN IF NOT EXISTS ftp_password VARCHAR(100)"))
             await conn.execute(text("ALTER TABLE events ADD COLUMN IF NOT EXISTS ftp_enabled BOOLEAN DEFAULT TRUE"))
-        except Exception:
-            pass
+            await conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS original_s3_key VARCHAR(500)"))
+            await conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS original_s3_url VARCHAR(1000)"))
+            await conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'processing'"))
+            await conn.execute(text("ALTER TABLE photos ALTER COLUMN s3_key DROP NOT NULL"))
+            await conn.execute(text("ALTER TABLE photos ALTER COLUMN s3_url DROP NOT NULL"))
+        except Exception as e:
+            print(f"Migration error: {e}")

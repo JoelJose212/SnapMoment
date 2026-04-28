@@ -12,6 +12,110 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 
+@celery_app.task(bind=True, name="index_single_photo", queue="ai_processing", max_retries=3)
+def index_single_photo(self, photo_id: str, event_id: str, img_key: str):
+    """Celery task: index a single photo using Buffalo_L on the GPU queue."""
+    import asyncpg
+    import asyncio
+    from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+    from sqlalchemy import update
+    from app.models.photo import Photo
+    from app.database import Base
+    
+    async def run():
+        engine = create_async_engine(settings.DATABASE_URL, echo=False)
+        Session = async_sessionmaker(engine, expire_on_commit=False)
+        
+        try:
+            if settings.USE_LOCAL_STORAGE:
+                img_path = str(Path(settings.LOCAL_STORAGE_PATH) / img_key)
+            else:
+                import boto3
+                s3 = boto3.client("s3", aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                 aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                 region_name=settings.AWS_REGION)
+                with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+                    s3.download_fileobj(settings.AWS_S3_BUCKET, img_key, tmp)
+                    img_path = tmp.name
+
+            # Extract faces (running on GPU if available)
+            results = face_engine.extract_all_embeddings(img_path)
+            faces_count = len(results)
+            
+            if faces_count > 0:
+                logger.info(f"✅ Photo {photo_id}: Found {faces_count} faces.")
+            else:
+                logger.warning(f"⚠️ Photo {photo_id}: No faces detected.")
+                
+            has_crops = False
+            # Generate crops from the thumbnail
+            if faces_count > 0:
+                try:
+                    from PIL import Image
+                    with Image.open(img_path) as im:
+                        w, h = im.size
+                        min_x = min(f.get("bbox", [w//2, h//2, w//2, h//2])[0] for f in results)
+                        max_x = max(f.get("bbox", [w//2, h//2, w//2, h//2])[2] for f in results)
+                        min_y = min(f.get("bbox", [w//2, h//2, w//2, h//2])[1] for f in results)
+                        max_y = max(f.get("bbox", [w//2, h//2, w//2, h//2])[3] for f in results)
+                        
+                        fx = (min_x + max_x) // 2
+                        fy = (min_y + max_y) // 2
+                        
+                        crops_dir = Path(settings.LOCAL_STORAGE_PATH) / "crops"
+                        crops_dir.mkdir(parents=True, exist_ok=True)
+                        
+                        size = min(w, h)
+                        left = max(0, min(fx - size // 2, w - size))
+                        top = max(0, min(fy - size // 2, h - size))
+                        im.crop((left, top, left + size, top + size)).convert("RGB").save(crops_dir / f"{photo_id}_1x1.jpg", quality=90)
+                        
+                        sw = int(h * (9/16))
+                        if sw > w:
+                            sw = w
+                            sh = int(w * (16/9))
+                        else:
+                            sh = h
+                        
+                        left = max(0, min(fx - sw // 2, w - sw))
+                        top = max(0, min(fy - sh // 2, h - sh))
+                        im.crop((left, top, left + sw, top + sh)).convert("RGB").save(crops_dir / f"{photo_id}_9x16.jpg", quality=90)
+                        has_crops = True
+                except Exception as crop_err:
+                    logger.error(f"⚠️ Error generating crops for {photo_id}: {crop_err}")
+
+            async with Session() as session:
+                from app.models.face_index import FaceIndex
+                for face in results:
+                    fi = FaceIndex(
+                        id=uuid.uuid4(),
+                        photo_id=uuid.UUID(photo_id),
+                        event_id=uuid.UUID(event_id),
+                        embedding=face["embedding"],
+                        metadata_json={"bbox": face.get("bbox", [])}
+                    )
+                    session.add(fi)
+
+                await session.execute(
+                    update(Photo).where(Photo.id == uuid.UUID(photo_id)).values(
+                        face_indexed=True,
+                        face_embeddings={"faces": results},
+                        faces_count=faces_count,
+                        has_social_crops=has_crops
+                    )
+                )
+                await session.commit()
+                
+        except Exception as e:
+            logger.error(f"❌ Error indexing single photo {photo_id}: {str(e)}")
+            raise
+        finally:
+            await engine.dispose()
+
+    asyncio.run(run())
+    return {"status": "complete", "photo_id": photo_id}
+
+
 @celery_app.task(bind=True, name="index_event_photos")
 def index_event_photos(self, event_id: str):
     """Celery task: index all un-indexed photos in an event using DeepFace ArcFace."""

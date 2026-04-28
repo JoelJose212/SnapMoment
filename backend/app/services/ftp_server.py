@@ -70,9 +70,8 @@ class SnapMomentFTPHandler(FTPHandler):
             parts = file_path.split(os.sep)
             event_id = parts[-3] # third from end
             
-            # Create a mock database record or just trigger processing if it's already in the final location
-            # Actually, we should move it to the final uploads folder first.
-            final_dir = os.path.join(settings.LOCAL_STORAGE_PATH, event_id)
+            # Actually, we should move it to the originals folder first.
+            final_dir = os.path.join(settings.LOCAL_STORAGE_PATH, event_id, "originals")
             os.makedirs(final_dir, exist_ok=True)
             
             filename = os.path.basename(file_path)
@@ -83,20 +82,19 @@ class SnapMomentFTPHandler(FTPHandler):
             
             # 1. Create Photo Record in DB
             photo_id = uuid.uuid4()
-            s3_key = f"{event_id}/{filename}"
-            s3_url = f"{settings.LOCAL_STORAGE_BASE_URL}/{event_id}/{filename}"
+            original_key = f"{event_id}/originals/{filename}"
+            original_url = f"{settings.LOCAL_STORAGE_BASE_URL}/{event_id}/originals/{filename}"
             
             with engine.connect() as conn:
                 conn.execute(
-                    text("INSERT INTO photos (id, event_id, s3_key, s3_url, face_indexed, faces_count, has_social_crops) VALUES (:id, :event_id, :s3_key, :s3_url, false, 0, false)"),
-                    {"id": photo_id, "event_id": event_id, "s3_key": s3_key, "s3_url": s3_url}
+                    text("INSERT INTO photos (id, event_id, original_s3_key, original_s3_url, status, face_indexed, faces_count, has_social_crops) VALUES (:id, :event_id, :original_key, :original_url, 'processing', false, 0, false)"),
+                    {"id": photo_id, "event_id": event_id, "original_key": original_key, "original_url": original_url}
                 )
                 conn.commit()
             
             # 2. Trigger Celery Task
-            from celery import Celery
-            celery_client = Celery("app", broker=settings.REDIS_URL)
-            celery_client.send_task("index_event_photos", args=[event_id])
+            from app.tasks.photo_processing import process_single_photo
+            process_single_photo.delay(str(photo_id), event_id, final_path, filename)
             logger.info(f"Triggered AI Indexing for event {event_id} after FTP receipt of {filename}")
         except Exception as e:
             logger.error(f"Failed to trigger ingestion: {e}")

@@ -127,8 +127,10 @@ class PublicEventOut(BaseModel):
 class PhotoOut(BaseModel):
     id: uuid.UUID
     event_id: uuid.UUID
-    s3_url: str
-    thumbnail_url: Optional[str]
+    s3_url: Optional[str] = None
+    original_s3_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    status: str = "processing"
     face_indexed: bool
     faces_count: int
     has_social_crops: bool = False

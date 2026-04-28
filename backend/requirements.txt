@@ -27,3 +27,6 @@ scikit-learn>=1.4.0
 stripe>=8.0.0
 fpdf2>=2.7.9
 Pillow>=10.2.0
+pyftpdlib>=2.2.0
+rawpy>=0.19.0
+imageio>=2.33.0

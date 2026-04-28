@@ -18,7 +18,7 @@ from PIL import Image
 
 router = APIRouter(prefix="/api/events", tags=["photos"])
 
-THUMBNAIL_SIZE = (400, 400)
+THUMBNAIL_SIZE = (1080, 1080)
 
 
 def _make_thumbnail(image_bytes: bytes) -> bytes:
@@ -27,6 +27,44 @@ def _make_thumbnail(image_bytes: bytes) -> bytes:
     out = io.BytesIO()
     img.save(out, format="JPEG", quality=75)
     return out.getvalue()
+
+
+@router.get("/system/gpu-status")
+def gpu_status():
+    import onnxruntime as ort
+    from app.services.face_engine import get_engine
+    
+    providers = ort.get_available_providers()
+    gpu_active = 'CUDAExecutionProvider' in providers
+    
+    # Check actual GPU memory usage
+    if gpu_active:
+        import subprocess
+        try:
+            result = subprocess.run(
+                ['nvidia-smi', 
+                 '--query-gpu=memory.used,memory.free,utilization.gpu',
+                 '--format=csv,noheader'],
+                capture_output=True, text=True
+            )
+            gpu_info = result.stdout.strip()
+        except:
+            gpu_info = "nvidia-smi failed"
+    else:
+        gpu_info = "No GPU"
+        
+    try:
+        engine = get_engine()
+        engine_status = "loaded"
+    except:
+        engine_status = "not loaded"
+    
+    return {
+        "gpu_active":  gpu_active,
+        "providers":   providers,
+        "gpu_memory":  gpu_info,
+        "buffalo_l":   engine_status
+    }
 
 
 @router.post("/{event_id}/photos")
@@ -47,23 +85,16 @@ async def upload_photos(
         ext = file.filename.split(".")[-1].lower() if "." in file.filename else "jpg"
 
         # Upload original
-        key = s3_service.generate_key(f"events/{event_id}/photos", ext)
+        key = s3_service.generate_key(f"events/{event_id}/originals", ext)
         url = await s3_service.upload_file(file_bytes, key)
 
-        # Thumbnail
-        try:
-            thumb_bytes = _make_thumbnail(file_bytes)
-            thumb_key = s3_service.generate_key(f"events/{event_id}/thumbs", "jpg")
-            thumb_url = await s3_service.upload_file(thumb_bytes, thumb_key)
-        except Exception:
-            thumb_url = url
-
+        photo_id = uuid.uuid4()
         photo = Photo(
-            id=uuid.uuid4(),
+            id=photo_id,
             event_id=uuid.UUID(event_id),
-            s3_key=key,
-            s3_url=url,
-            thumbnail_url=thumb_url,
+            original_s3_key=key,
+            original_s3_url=url,
+            status="processing",
             face_indexed=False,
             faces_count=0,
         )
@@ -72,9 +103,15 @@ async def upload_photos(
 
     await db.commit()
     
-    # Auto-trigger AI processing in the background
-    from app.tasks.face_indexing import index_event_photos
-    index_event_photos.delay(event_id)
+    # Trigger image processing tasks
+    from app.tasks.photo_processing import process_single_photo
+    for photo in uploaded:
+        # Pass the local file path if using local storage, else S3 key
+        if settings.USE_LOCAL_STORAGE:
+            file_path = str(Path(settings.LOCAL_STORAGE_PATH) / photo.original_s3_key)
+        else:
+            file_path = photo.original_s3_key
+        process_single_photo.delay(str(photo.id), event_id, file_path, f"{photo.id}.{ext}")
     
     return {"uploaded": len(uploaded), "photos": [str(p.id) for p in uploaded]}
 

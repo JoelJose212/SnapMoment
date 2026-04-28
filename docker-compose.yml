@@ -56,7 +56,25 @@ services:
               capabilities: [gpu]
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  celery_worker:
+  celery_image:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app
+      - uploads_data:/app/uploads
+      - insightface_models:/root/.insightface
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.tasks.celery_app worker --queues=image_processing --concurrency=4 --loglevel=info
+
+  celery_ai:
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -79,7 +97,9 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    command: celery -A app.tasks.celery_app worker --queues=ai_processing --concurrency=1 --loglevel=info
 
   frontend:
     build:
