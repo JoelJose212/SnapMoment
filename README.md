@@ -308,3 +308,133 @@ npm run dev
 - [InsightFace](https://github.com/deepinsight/insightface) for the neural core.
 - [Lucide Icons](https://lucide.dev/) for the professional aesthetics.
 - [FastAPI](https://fastapi.tiangolo.com/) for the async backbone.
+
+---
+
+## 🏗️ Project Blueprint
+
+This section provides a comprehensive, deep-dive analysis of the **SnapMoment Elite** ecosystem. It covers everything from high-level architecture to low-level AI logic and data structures.
+
+### 1. Core Mission & Value Proposition
+SnapMoment is an **Intelligence-First Event Photography Platform**. It solves the friction between professional capture (Photographers) and instant consumption (Guests) using state-of-the-art AI.
+
+- **Photographers**: Get an elite dashboard, FTP ingestion, automated branding, and real-time analytics.
+- **Guests**: Get a "magical" experience where a single selfie unlocks all their photos from an event instantly.
+
+---
+
+### 2. Technical Stack
+#### **Frontend (The HUD)**
+- **Framework**: React 18 (Vite) + TypeScript.
+- **State Management**: **Zustand** (lightweight and fast).
+- **Data Fetching**: **TanStack Query** (React Query) for caching and sync.
+- **Styling**: Vanilla CSS with a **Glassmorphism Design System** (custom tokens).
+- **Animations**: **Framer Motion** (60FPS transitions).
+- **Biometrics**: **MediaPipe Tasks Vision** for real-time face alignment in the browser.
+
+#### **Backend (The Neural Core)**
+- **Framework**: **FastAPI** (Python 3.10+).
+- **Database**: **PostgreSQL 15** + **pgvector** (for vector similarity search).
+- **ORM**: **SQLAlchemy 2.0** (Async/Await pattern).
+- **Task Queue**: **Celery** + **Redis 7**.
+- **Inference Engine**: **ONNX Runtime** (GPU optimized).
+- **Authentication**: JWT-based stateless sessions with role-based access (Photographer, Guest, VIP, Admin).
+
+---
+
+### 3. The AI & Neural Engine (Deep Dive) 🧠
+SnapMoment uses a high-performance AI pipeline based on **InsightFace Buffalo_L**.
+
+#### **A. Detection & Recognition**
+- **Model**: **Buffalo_L (ResNet-100)**.
+- **Detector**: **SCRFD** (Sample and Computation Redistribution) for extreme occlusion handling (works even if guests wear glasses/masks).
+- **Embeddings**: Generates **512-dimensional mathematical vectors** (Normalized L2).
+- **Metric**: **Cosine Similarity** for matching.
+
+#### **B. Matching Logic**
+- **Tiered Thresholds**:
+    - **< 0.55**: "Precision Zone" (Verified Match).
+    - **0.55 - 0.65**: "Suggested Zone" (Similar Frames).
+- **Vector Search**: Uses **pgvector** with **HNSW (Hierarchical Navigable Small World)** indexing for sub-millisecond matching across thousands of photos.
+
+#### **C. Clustering (Persona Grouping)**
+- **Algorithm**: **DBSCAN** (Density-Based Spatial Clustering of Applications with Noise).
+- **Purpose**: Groups anonymous faces into "personas" before a guest even takes a selfie. This allows for instant retrieval once the selfie is provided.
+
+---
+
+### 4. Systems Architecture 🏗️
+#### **Dual-Queue Architecture**
+To ensure high performance, SnapMoment splits background work into two specialized queues:
+1.  **`image_processing` (CPU-Bound)**:
+    - Handles RAW conversion (`.cr2`, `.nef`, `.arw`).
+    - Uses `rawpy` with `half_size` debayering (400% faster).
+    - Generates High-Res Delivery JPGs and 1080p Thumbnails.
+    - Applies custom **Watermarking**.
+2.  **`ai_processing` (GPU-Bound)**:
+    - Runs SCRFD face detection.
+    - Extracts 512-D embeddings.
+    - Updates the vector index.
+
+---
+
+### 5. Key Features & Business Logic
+#### **A. Ingestion Gateways**
+- **FTP Gateway**: Direct camera-to-cloud upload. Every event gets a unique FTP password.
+- **Folder Sync Engine**: Local folder monitoring for RAW/JPG tethering.
+- **Mobile Ingestion**: QR-based smartphone-to-gallery transfers.
+
+#### **B. Access Tiers**
+- **Standard Guest**: Requires a selfie match to see personal photos.
+- **VIP Master Access**: Uses a `vip_token` (UUID) to bypass biometric checks and view the *entire* event story.
+- **Photographer**: Full administrative control over branding, pricing, and telemetry.
+
+#### **C. Elite Dashboard (Telemetry)**
+- **Live Engagement Hub**: Tracks real-time "Interaction Pulses" (Likes/Downloads).
+- **Global Delivery Telemetry**: Monitors edge node distribution.
+- **Billing**: Integrated **Stripe** with automated **PDF Invoice** generation via `FPDF`.
+
+---
+
+### 6. Data Schema (Core Models)
+- **`Photographer`**: Stores studio details, logo, and subscription state.
+- **`Event`**: Links photographer to photos. Contains metadata, FTP settings, and tokens.
+- **`Photo`**: Stores S3/Local paths, `JSONB` face embeddings, and processing status.
+- **`Guest`**: Stores phone/name and matched photo references.
+- **`Analytics`**: Tracks every interaction (download, like, view).
+
+---
+
+### 7. File Structure Overview
+```text
+SnapMoment/
+├── backend/
+│   ├── app/
+│   │   ├── models/       # SQLAlchemy Data Schema
+│   │   ├── routers/      # FastAPI API Endpoints
+│   │   ├── services/     # AI Engine, FTP, S3, Stripe
+│   │   ├── tasks/        # Celery background workers
+│   │   └── main.py       # API Entry point
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/   # Reusable UI Atoms/Molecules
+│   │   ├── pages/        # High-level layouts (Guest/Photog)
+│   │   ├── store/        # Zustand State
+│   │   └── hooks/        # React Query hooks
+│   └── Dockerfile
+└── docker-compose.yml    # Orchestration
+```
+
+---
+
+### 8. Development Workflow
+- **Local Dev**: Run via `docker compose up`.
+- **Hot Reloading**: Enabled for both Backend (Uvicorn) and Frontend (Vite).
+- **Environment**: Managed via `.env` file for secrets (Stripe, AWS, SMTP).
+
+---
+
+> [!TIP]
+> **When adding new features**, check the `backend/app/routers/` for existing API patterns and `frontend/src/store/` to see how data flows through the UI.

@@ -7,12 +7,16 @@ import {
 import confetti from 'canvas-confetti'
 import toast from 'react-hot-toast'
 import { guestApiEndpoints, guestApi, api } from '../../lib/api'
+import { useNavigate, useParams } from 'react-router-dom'
 
 export default function GalleryPage() {
+  const navigate = useNavigate()
+  const { token } = useParams<{ token: string }>()
   const [photos, setPhotos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [hearts, setHearts] = useState<Set<string>>(new Set())
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: () => void } | null>(null)
   const confettiRef = useRef(false)
 
   useEffect(() => {
@@ -39,8 +43,8 @@ export default function GalleryPage() {
     }
   }
 
-  const downloadPhoto = async (photoId: string, format: string = 'original') => {
-    const toastId = toast.loading(`Preparing your High-Res moment...`)
+  const downloadPhoto = async (photoId: string, format: string = 'original', showToast: boolean = true) => {
+    const toastId = showToast ? toast.loading(`Preparing your High-Res moment...`) : undefined
     try {
       const response = await guestApi.get(`/api/guest/gallery/${photoId}/download`, {
         params: { format },
@@ -55,11 +59,34 @@ export default function GalleryPage() {
       link.click()
       link.parentNode?.removeChild(link)
       
-      toast.success('Downloaded with Studio Mark! 📸', { id: toastId })
+      if (showToast) toast.success('Downloaded with Studio Mark! 📸', { id: toastId })
       logInteraction(photoId, 'DOWNLOAD')
     } catch (err) {
-      toast.error('Download failed.', { id: toastId })
+      if (showToast) toast.error('Download failed.', { id: toastId })
+      throw err
     }
+  }
+
+  const handleNativeBulkDownload = () => {
+    if (photos.length === 0) return
+    setConfirmModal({
+      isOpen: true,
+      title: 'Save Directly to Phone',
+      message: `Save ${photos.length} photos to your camera roll? (Your browser may ask you to 'Allow multiple downloads')`,
+      onConfirm: async () => {
+        setConfirmModal(null)
+        const toastId = toast.loading('Saving photos directly to device...')
+        try {
+          for (const photo of photos) {
+            await downloadPhoto(photo.photo_id, 'original', false)
+            await new Promise(resolve => setTimeout(resolve, 500)) // delay to avoid browser block
+          }
+          toast.success('All photos saved to device!', { id: toastId })
+        } catch (err) {
+          toast.error('Some downloads failed. Please try again or use ZIP.', { id: toastId })
+        }
+      }
+    })
   }
 
   const handleShare = async (url: string) => {
@@ -85,6 +112,31 @@ export default function GalleryPage() {
     } catch (err) {
       toast.error('Failed to report')
     }
+  }
+
+  const requestReport = (photoId: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Hide Photo',
+      message: 'Remove this photo from your personal gallery?',
+      onConfirm: () => {
+        setConfirmModal(null)
+        handleReport(photoId)
+      }
+    })
+  }
+
+  const requestCameraAccess = () => {
+    if (!token) return
+    setConfirmModal({
+      isOpen: true,
+      title: 'Scan New Face?',
+      message: 'Do you want to leave this gallery and take a new selfie to find different photos?',
+      onConfirm: () => {
+        setConfirmModal(null)
+        navigate(`/event/${token}/selfie`)
+      }
+    })
   }
 
   const handleDownloadAll = async () => {
@@ -146,13 +198,24 @@ export default function GalleryPage() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <header className="mb-20">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 mb-6">
-            <div className="p-3 rounded-2xl bg-primary/15 border border-primary/20">
-              <Sparkles className="text-primary" size={20} />
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-primary/15 border border-primary/20">
+                <Sparkles className="text-primary" size={20} />
+              </div>
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-primary">
+                {localStorage.getItem('snapmoment_role') === 'guest_vip' ? 'Master Gallery Access' : 'Your Private Gallery'}
+              </span>
             </div>
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-primary">
-              {localStorage.getItem('snapmoment_role') === 'guest_vip' ? 'Master Gallery Access' : 'Your Private Gallery'}
-            </span>
+            
+            {token && (
+              <button
+                onClick={requestCameraAccess}
+                className="flex items-center gap-3 px-6 py-3 rounded-[1.25rem] bg-white/5 border border-white/10 text-sm font-black uppercase tracking-widest text-foreground hover:bg-white/10 hover:border-white/20 shadow-xl shadow-black/10 active:scale-95 transition-all"
+              >
+                <Camera size={18} className="text-primary" /> Open Camera
+              </button>
+            )}
           </motion.div>
           
           <motion.h1 
@@ -169,13 +232,23 @@ export default function GalleryPage() {
                 We've found {photos.length} frames where you shine. Download them in high-res with studio branding.
               </motion.p>
               
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}
-                onClick={handleDownloadAll}
-                className="flex items-center gap-3 px-10 py-5 rounded-[2rem] text-sm font-black uppercase tracking-widest text-white aurora-bg shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all w-full md:w-auto justify-center"
-              >
-                <Download size={20} className="animate-bounce" /> Download All as ZIP
-              </motion.button>
+              <div className="flex flex-col gap-3 w-full md:w-auto">
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}
+                  onClick={handleDownloadAll}
+                  className="flex items-center gap-3 px-10 py-5 rounded-[2rem] text-sm font-black uppercase tracking-widest text-white aurora-bg shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all w-full md:w-auto justify-center"
+                >
+                  <Download size={20} className="animate-bounce" /> Download All as ZIP
+                </motion.button>
+                
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4 }}
+                  onClick={handleNativeBulkDownload}
+                  className="flex items-center gap-3 px-6 py-4 rounded-[2rem] text-xs font-black uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 active:scale-95 transition-all w-full md:w-auto justify-center"
+                >
+                  <Download size={16} /> Save Directly To Phone (No ZIP)
+                </motion.button>
+              </div>
             </div>
         </header>
 
@@ -200,7 +273,7 @@ export default function GalleryPage() {
                   onClick={() => setSelectedPhotoIndex(i)}
                   downloadPhoto={downloadPhoto} 
                   handleShare={handleShare} 
-                  handleReport={handleReport}
+                  handleReport={requestReport}
                   logInteraction={logInteraction}
                 />
               )
@@ -208,37 +281,20 @@ export default function GalleryPage() {
           </div>
         </section>
 
-        {/* Suggested Section */}
-        {suggestedPhotos.length > 0 && (
-          <section className="pb-24">
-            <div className="bg-white/5 border border-white/10 rounded-[4rem] p-12 md:p-20 relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-10 opacity-20"><Info size={120} /></div>
-               <div className="relative z-10">
-                 <h2 className="text-4xl font-black text-foreground mb-6">Similar Frames</h2>
-                 <p className="text-muted text-lg mb-12 max-w-xl">These matched with lower confidence, but we think they might be you!</p>
-                 
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-                    {photos.map((photo, i) => (
-                      photo.is_suggested && (
-                        <PhotoCard 
-                          key={photo.photo_id} 
-                          photo={photo} 
-                          i={i} 
-                          onClick={() => setSelectedPhotoIndex(i)}
-                          downloadPhoto={downloadPhoto} 
-                          handleShare={handleShare} 
-                          handleReport={handleReport}
-                          logInteraction={logInteraction}
-                          isSuggested={true}
-                        />
-                      )
-                    ))}
-                  </div>
-               </div>
-            </div>
-          </section>
-        )}
+
       </div>
+
+      {/* Mobile Floating Download Button */}
+      {photos.length > 0 && (
+        <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-6 md:hidden pointer-events-none">
+          <button
+            onClick={handleDownloadAll}
+            className="pointer-events-auto flex items-center gap-3 px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest text-white aurora-bg shadow-2xl shadow-primary/30 w-full max-w-xs justify-center active:scale-95 transition-all"
+          >
+            <Download size={20} className="animate-bounce" /> Download All
+          </button>
+        </div>
+      )}
 
       {/* Lightbox Modal */}
       <AnimatePresence>
@@ -304,13 +360,52 @@ export default function GalleryPage() {
                   <Share2 size={24} />
                 </button>
                 <button 
-                  onClick={() => { if(confirm('Hide this session from your gallery?')) handleReport(photos[selectedPhotoIndex].photo_id) }}
+                  onClick={() => requestReport(photos[selectedPhotoIndex].photo_id)}
                   className="h-16 w-16 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-2xl flex items-center justify-center transition-all"
                 >
                   <ShieldAlert size={24} />
                 </button>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Confirm Modal */}
+      <AnimatePresence>
+        {confirmModal && confirmModal.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-background border border-white/10 p-8 rounded-[2.5rem] max-w-md w-full shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/20 blur-[50px] -translate-y-1/2 translate-x-1/2" />
+              
+              <h3 className="text-3xl font-black text-foreground mb-4 relative z-10">{confirmModal.title}</h3>
+              <p className="text-muted text-lg mb-8 relative z-10 font-medium">{confirmModal.message}</p>
+              
+              <div className="flex gap-4 relative z-10">
+                <button
+                  onClick={() => setConfirmModal(null)}
+                  className="flex-1 py-4 rounded-2xl font-bold bg-white/5 hover:bg-white/10 text-foreground transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmModal.onConfirm}
+                  className="flex-1 py-4 rounded-2xl font-black aurora-bg text-white shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                >
+                  Confirm
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -377,7 +472,7 @@ function PhotoCard({ photo, i, onClick, downloadPhoto, handleShare, handleReport
            </button>
         </div>
         <button 
-          onClick={() => { if(confirm('Report this incorrect match?')) handleReport(photo.photo_id) }}
+          onClick={() => handleReport(photo.photo_id)}
           className="px-4 py-2 rounded-xl text-[10px] font-bold text-muted hover:bg-red-500/10 hover:text-red-500 transition-all flex items-center gap-2"
         >
           <ShieldAlert size={14} /> Report
