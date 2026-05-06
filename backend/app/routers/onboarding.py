@@ -27,7 +27,24 @@ async def onboarding_step2(
 ):
     result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(current_user["sub"])))
     photographer = result.scalar_one_or_none()
-    if not photographer: raise HTTPException(status_code=404)
+    
+    if not photographer:
+        # Fallback: Create legacy Photographer record if missing
+        from app.models.user import User
+        user_res = await db.execute(select(User).where(User.id == uuid.UUID(current_user["sub"])))
+        user = user_res.scalar_one_or_none()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        photographer = Photographer(
+            id=user.id,
+            full_name=user.full_name or "Photographer",
+            email=user.email,
+            password_hash=user.password_hash,
+            plan="free"
+        )
+        db.add(photographer)
+        await db.flush() # Get it into the session
         
     photographer.founded_year = int(data.get("founded_year", 2024))
     photographer.team_size = data.get("team_size", "Just Me")
@@ -49,6 +66,15 @@ async def onboarding_step3(
     result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(current_user["sub"])))
     photographer = result.scalar_one_or_none()
     
+    if not photographer:
+        from app.models.user import User
+        user_res = await db.execute(select(User).where(User.id == uuid.UUID(current_user["sub"])))
+        user = user_res.scalar_one_or_none()
+        if not user: raise HTTPException(status_code=404)
+        photographer = Photographer(id=user.id, full_name=user.full_name or "Photographer", email=user.email, password_hash=user.password_hash, plan="free")
+        db.add(photographer)
+        await db.flush()
+    
     photographer.plan = data.get("plan", "free")
     photographer.onboarding_step = 4
     await db.commit()
@@ -61,6 +87,15 @@ async def onboarding_step4(
 ):
     result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(current_user["sub"])))
     photographer = result.scalar_one_or_none()
+    
+    if not photographer:
+        from app.models.user import User
+        user_res = await db.execute(select(User).where(User.id == uuid.UUID(current_user["sub"])))
+        user = user_res.scalar_one_or_none()
+        if not user: raise HTTPException(status_code=404)
+        photographer = Photographer(id=user.id, full_name=user.full_name or "Photographer", email=user.email, password_hash=user.password_hash, plan="free")
+        db.add(photographer)
+        await db.flush()
     
     photographer.onboarding_step = 5
     # No plans are free anymore, so we don't skip Step 5 (Payment)
@@ -75,6 +110,15 @@ async def create_stripe_checkout(
 ):
     result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(current_user["sub"])))
     photographer = result.scalar_one_or_none()
+    
+    if not photographer:
+        from app.models.user import User
+        user_res = await db.execute(select(User).where(User.id == uuid.UUID(current_user["sub"])))
+        user = user_res.scalar_one_or_none()
+        if not user: raise HTTPException(status_code=404)
+        photographer = Photographer(id=user.id, full_name=user.full_name or "Photographer", email=user.email, password_hash=user.password_hash, plan="free")
+        db.add(photographer)
+        await db.flush()
     
     if photographer.plan == "fresher":
         amount = 50 * 100
@@ -122,6 +166,15 @@ async def verify_stripe_payment(
     # The professional way is via Stripe Webhooks
     result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(current_user["sub"])))
     photographer = result.scalar_one_or_none()
+    
+    if not photographer:
+        from app.models.user import User
+        user_res = await db.execute(select(User).where(User.id == uuid.UUID(current_user["sub"])))
+        user = user_res.scalar_one_or_none()
+        if not user: raise HTTPException(status_code=404)
+        photographer = Photographer(id=user.id, full_name=user.full_name or "Photographer", email=user.email, password_hash=user.password_hash, plan="free")
+        db.add(photographer)
+        await db.flush()
     
     session_id = data.get("session_id")
     mock_success = data.get("mock_success")
@@ -216,7 +269,13 @@ async def upload_studio_logo(
     result = await db.execute(select(Photographer).where(Photographer.id == uuid.UUID(photog_id)))
     photog = result.scalar_one_or_none()
     if not photog:
-        raise HTTPException(status_code=404, detail="Photographer not found")
+        from app.models.user import User
+        user_res = await db.execute(select(User).where(User.id == uuid.UUID(photog_id)))
+        user = user_res.scalar_one_or_none()
+        if not user: raise HTTPException(status_code=404, detail="Photographer not found")
+        photog = Photographer(id=user.id, full_name=user.full_name or "Photographer", email=user.email, password_hash=user.password_hash, plan="free")
+        db.add(photog)
+        await db.flush()
         
     # Read file bytes
     file_bytes = await file.read()

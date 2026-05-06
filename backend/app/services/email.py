@@ -46,3 +46,30 @@ def send_invoice_email(to_email: str, photographer_name: str, pdf_path: str):
     except Exception as e:
         print(f"Error sending email: {e}")
         return False
+
+
+async def send_email(to: str, subject: str, body: str):
+    """Generic async-compatible email sender"""
+    if not settings.SMTP_USER or not settings.SMTP_PASS:
+        print(f"SMTP credentials not set, skipping email to {to}...")
+        return False
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"SnapMoment Elite <{settings.SMTP_USER}>"
+        msg['To'] = to
+        msg['Subject'] = subject
+
+        msg.attach(MIMEText(body, 'plain'))
+
+        # SMTP session
+        server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+        server.starttls()
+        server.login(settings.SMTP_USER, settings.SMTP_PASS)
+        text = msg.as_string()
+        server.sendmail(settings.SMTP_USER, to, text)
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Error sending email to {to}: {e}")
+        return False

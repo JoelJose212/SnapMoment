@@ -14,12 +14,12 @@ import { useAuthStore } from '../../store/authStore'
 const EVENT_TYPES = ['wedding', 'birthday', 'college', 'corporate', 'anniversary', 'other']
 
 const TYPE_IMAGES: Record<string, string> = {
-  wedding: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800',
+  wedding: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&q=80&w=800',
   corporate: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=800',
-  birthday: 'https://images.unsplash.com/photo-1530103043960-ef38714abb15?auto=format&fit=crop&q=80&w=800',
-  college: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=800',
-  anniversary: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&q=80&w=800',
-  other: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800'
+  birthday: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800',
+  college: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?auto=format&fit=crop&q=80&w=800',
+  anniversary: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&q=80&w=800',
+  other: 'https://images.unsplash.com/photo-1528605248644-14dd04322a11?auto=format&fit=crop&q=80&w=800'
 }
 
 export default function PhotographerEvents() {
@@ -77,14 +77,14 @@ export default function PhotographerEvents() {
           <motion.div 
             initial={{ opacity: 0, x: -10 }} 
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2 mb-4 text-primary font-black text-[10px] uppercase tracking-[0.3em]"
+            className="flex items-center gap-2 mb-4 text-[#D4AF37] font-black text-[10px] uppercase tracking-[0.4em]"
           >
-            <Sparkles size={16} /> Digital Workflow Hub
+            <Sparkles size={16} /> Premium Studio Swagat
           </motion.div>
-          <h1 className="text-6xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
-            Your <span className="text-slate-400">Galleries.</span>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">
+            Your <span className="font-['Playfair_Display'] italic font-normal text-[#FF9933]">Galleries</span>
           </h1>
-          <p className="text-slate-500 font-medium mt-4 text-lg">Managing {events.length} high-fidelity studio experiences.</p>
+          <p className="text-slate-500 font-medium mt-3 text-base">Nurturing {events.length} authentic studio experiences.</p>
         </div>
         
         <motion.button
@@ -92,9 +92,9 @@ export default function PhotographerEvents() {
           whileTap={{ scale: 0.95 }}
           disabled={!subscriptionActive}
           onClick={() => setShowModal(true)}
-          className={`flex items-center gap-3 px-10 py-6 rounded-[2.5rem] text-sm font-black text-white shadow-2xl transition-all bg-slate-900 hover:shadow-slate-900/40 ${!subscriptionActive ? 'opacity-50 cursor-not-allowed' : ''} uppercase tracking-widest`}
+          className={`flex items-center gap-3 px-8 py-5 rounded-2xl text-xs font-black text-white shadow-2xl transition-all bg-slate-900 hover:shadow-[#D4AF37]/20 ${!subscriptionActive ? 'opacity-50 cursor-not-allowed' : ''} uppercase tracking-[0.2em] border-b-4 border-slate-950 active:border-b-0 active:translate-y-1`}
         >
-          <Plus size={22} /> New Studio Event
+          <Plus size={20} /> Create New Event
         </motion.button>
       </div>
 
@@ -173,16 +173,16 @@ export default function PhotographerEvents() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="group bg-white rounded-[3.5rem] overflow-hidden flex flex-col h-full transition-all border border-slate-100 hover:border-primary/20 hover:shadow-2xl shadow-slate-200/50"
+              className="group bg-white rounded-[2.5rem] overflow-hidden flex flex-col h-full transition-all border border-slate-100 hover:border-[#D4AF37]/20 hover:shadow-2xl shadow-slate-200/50"
             >
               {/* Card Media Header */}
               <div className="relative h-48 overflow-hidden">
                  <img 
                    src={TYPE_IMAGES[event.type] || TYPE_IMAGES.other} 
-                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 grayscale-[0.5] group-hover:grayscale-0"
+                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                    alt={event.name}
                  />
-                 <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-colors" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60" />
                  
                  {/* Live Badge */}
                  {event.is_active && (
@@ -196,7 +196,7 @@ export default function PhotographerEvents() {
                  <div className="absolute top-6 right-6">
                     <button 
                       onClick={() => toggleMutation.mutate({ id: event.id, is_active: !event.is_active })}
-                      className={`w-12 h-7 rounded-full p-1 transition-all duration-500 relative ${event.is_active ? 'bg-primary shadow-lg shadow-primary/30' : 'bg-white/20 backdrop-blur-md'}`}
+                      className={`w-12 h-7 rounded-full p-1 transition-all duration-500 relative ${event.is_active ? 'bg-[#D4AF37] shadow-lg shadow-[#D4AF37]/30' : 'bg-white/20 backdrop-blur-md'}`}
                     >
                       <motion.div 
                         layout
@@ -207,73 +207,65 @@ export default function PhotographerEvents() {
                  </div>
 
                  {/* Title Overlay */}
-                 <div className="absolute bottom-6 left-6 right-6">
-                    <span className="inline-block px-3 py-1 rounded-lg bg-white/20 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest mb-2">
-                       {event.type}
-                    </span>
-                    <h3 className="text-2xl font-black text-white leading-none tracking-tighter uppercase italic truncate drop-shadow-md">
-                       {event.name}
-                    </h3>
+                 <div className="absolute bottom-6 left-8 right-8">
+                    <div className="text-[9px] font-black text-white/60 uppercase tracking-[0.3em] mb-1">{event.type}</div>
+                    <h3 className="text-xl font-['Playfair_Display'] italic font-medium text-white leading-tight mb-2 truncate">{event.name}</h3>
+                    <div className="flex items-center gap-3 text-white/80 text-[10px] font-bold">
+                       <Calendar size={12} className="text-[#D4AF37]" />
+                       {new Date(event.event_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
                  </div>
               </div>
 
               {/* Card Body */}
               <div className="p-8 flex-1 flex flex-col">
-                <div className="flex items-center gap-4 text-slate-400 mb-8 font-bold">
+                <div className="flex items-center gap-4 text-slate-400 mb-6 font-bold">
                    {event.location && (
                      <div className="flex items-center gap-1.5 text-[11px] truncate uppercase tracking-widest">
-                       <MapPin size={14} className="text-primary" /> {event.location}
+                       <MapPin size={14} className="text-[#D4AF37]" /> {event.location}
                      </div>
                    )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-8">
-                  <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 group-hover:bg-primary/5 transition-colors">
-                    <div className="text-[9px] uppercase font-black text-slate-400 tracking-widest mb-1">Frames</div>
-                    <div className="flex items-center gap-2 font-black text-2xl italic tracking-tighter text-slate-900">
-                      <ImageIcon size={20} className="text-primary" /> {event.photo_count}
-                    </div>
-                  </div>
-                  <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 group-hover:bg-primary/5 transition-colors">
-                    <div className="text-[9px] uppercase font-black text-slate-400 tracking-widest mb-1">Guests</div>
-                    <div className="flex items-center gap-2 font-black text-2xl italic tracking-tighter text-slate-900">
-                      <Users size={20} className="text-primary" /> {event.guest_count}
-                    </div>
-                  </div>
+                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-50 group-hover:bg-white group-hover:border-[#D4AF37]/20 transition-all">
+                      <div className="flex items-center gap-2 mb-2">
+                         <ImageIcon size={14} className="text-slate-400" />
+                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Photos</span>
+                      </div>
+                      <div className="text-lg font-black text-slate-900">{event.photo_count || 0}</div>
+                   </div>
+                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-50 group-hover:bg-white group-hover:border-[#D4AF37]/20 transition-all">
+                      <div className="flex items-center gap-2 mb-2">
+                         <Users size={14} className="text-slate-400" />
+                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Matches</span>
+                      </div>
+                      <div className="text-lg font-black text-slate-900">{event.guest_count || 0}</div>
+                   </div>
                 </div>
 
                 {/* Unified Action Bar */}
                 <div className="mt-auto flex items-center gap-2 pt-6 border-t border-slate-50">
                    <Link 
                      to={`/photographer/events/${event.id}/upload`} 
-                     className="flex-[2] py-4 rounded-2xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-lg hover:shadow-slate-900/20 active:scale-95"
+                     className="flex-1 py-4 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#FF9933] transition-all shadow-lg hover:shadow-[#FF9933]/20 active:scale-95"
                    >
-                     <Upload size={16} /> Upload
+                     <Upload size={14} /> Open Gallery
                    </Link>
-                   <Link 
-                     to={`/photographer/events/${event.id}/qr`} 
-                     className="flex-1 py-4 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center gap-2 hover:bg-slate-100 hover:text-slate-900 transition-all border border-slate-100"
-                   >
-                     <QrCode size={18} />
-                   </Link>
-                   <Link 
-                     to={`/photographer/events/${event.id}/ftp`} 
-                     className="flex-1 py-4 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center gap-2 hover:bg-slate-100 hover:text-slate-900 transition-all border border-slate-100"
-                   >
-                     <Server size={18} />
-                   </Link>
-                   <button 
-                     onClick={() => setShowCollabModal(event)}
-                     className="flex-1 py-4 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center gap-2 hover:bg-slate-100 hover:text-slate-900 transition-all border border-slate-100"
-                   >
-                     <Users size={18} />
-                   </button>
-                   <button 
-                     onClick={() => { if (confirm('Irreversible: Delete entire studio experience?')) deleteMutation.mutate(event.id) }} 
-                     className="w-14 py-4 rounded-2xl bg-red-50 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all border border-red-100"
-                   >
-                     <Trash2 size={16} />
-                   </button>
+                   <div className="flex items-center gap-2">
+                      <Link 
+                        to={`/photographer/events/${event.id}/qr`} 
+                        className="h-12 w-12 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] transition-all border border-slate-100"
+                      >
+                        <QrCode size={18} />
+                      </Link>
+                      <button 
+                        onClick={() => { if (confirm('Irreversible: Delete entire studio experience?')) deleteMutation.mutate(event.id) }} 
+                        className="h-12 w-12 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all border border-slate-100"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                   </div>
                 </div>
               </div>
             </motion.div>
@@ -309,14 +301,14 @@ export default function PhotographerEvents() {
                     <input 
                       value={form.name} 
                       onChange={(e) => setForm({ ...form, name: e.target.value })} 
-                      className="w-full px-8 py-5 rounded-2xl bg-slate-50 border border-slate-100 text-slate-900 font-bold outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all" 
+                      className="w-full px-8 py-5 rounded-2xl bg-slate-50 border border-slate-100 text-slate-900 font-bold outline-none focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/5 transition-all" 
                       placeholder="e.g. Grand Horizon Gala 2024" 
                       required 
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Concept Type</label>
-                    <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full px-8 py-5 rounded-2xl bg-slate-50 border border-slate-100 text-slate-900 font-bold outline-none focus:border-primary capitalize">
+                    <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full px-8 py-5 rounded-2xl bg-slate-50 border border-slate-100 text-slate-900 font-bold outline-none focus:border-[#D4AF37] capitalize">
                       {EVENT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
@@ -324,14 +316,14 @@ export default function PhotographerEvents() {
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Timeline</label>
                     <div className="relative">
                        <Clock size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" />
-                       <input type="datetime-local" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} className="w-full pl-14 pr-8 py-5 rounded-2xl bg-slate-50 border border-slate-100 text-slate-900 font-bold outline-none focus:border-primary" />
+                       <input type="datetime-local" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} className="w-full pl-14 pr-8 py-5 rounded-2xl bg-slate-50 border border-slate-100 text-slate-900 font-bold outline-none focus:border-[#D4AF37]" />
                     </div>
                   </div>
                   <div className="col-span-2 space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Venue Destination</label>
                     <div className="relative">
                        <MapPin size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" />
-                       <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="w-full pl-14 pr-8 py-5 rounded-2xl bg-slate-50 border border-slate-100 text-slate-900 font-bold outline-none focus:border-primary" placeholder="Mumbai International Convention Centre" />
+                       <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="w-full pl-14 pr-8 py-5 rounded-2xl bg-slate-50 border border-slate-100 text-slate-900 font-bold outline-none focus:border-[#D4AF37]" placeholder="Mumbai International Convention Centre" />
                     </div>
                   </div>
                 </div>

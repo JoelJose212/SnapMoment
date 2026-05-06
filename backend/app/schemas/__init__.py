@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 import uuid
@@ -11,6 +11,14 @@ class SignupRequest(BaseModel):
     phone: Optional[str] = None
     password: str
     studio_name: Optional[str] = None
+    # Client-specific fields
+    state: Optional[str] = None
+    district: Optional[str] = None
+    city: Optional[str] = None
+    pincode: Optional[str] = None
+    dob: Optional[date] = None
+    gender: Optional[str] = None
+    referral_source: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
@@ -24,6 +32,7 @@ class TokenResponse(BaseModel):
     role: str
     user_id: str
     full_name: str
+    email: str
     onboarding_step: int = 1
     subscription_active: bool = True
 
@@ -198,3 +207,7 @@ class ContactForm(BaseModel):
     email: EmailStr
     subject: str
     message: str
+
+
+# --- Booking Schemas ---
+from app.schemas.booking import *

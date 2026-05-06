@@ -18,8 +18,9 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 def create_token(data: dict, expires_hours: Optional[int] = None) -> str:
+    from datetime import timezone
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(hours=expires_hours or settings.JWT_EXPIRE_HOURS)
+    expire = datetime.now(timezone.utc) + timedelta(hours=expires_hours or settings.JWT_EXPIRE_HOURS)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 

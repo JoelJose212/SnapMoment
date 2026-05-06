@@ -14,24 +14,21 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="glass sticky top-0 z-50 border-b border-white/10 w-full" style={{ backdropFilter: 'blur(20px)' }}>
+    <nav className="glass sticky top-0 z-50 border-b border-slate-100 w-full" style={{ backdropFilter: 'blur(20px)', background: 'rgba(255,255,255,0.85)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-        {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--primary-gradient)' }}>
-            <Camera size={18} color="white" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-violet-600 to-cyan-600 shadow-md group-hover:scale-110 transition-transform">
+            <Camera size={15} color="white" />
           </div>
-          <span style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: 22, fontWeight: 600, color: 'var(--foreground)' }}>
-            SnapMoment
-          </span>
+          <span className="text-lg font-bold tracking-tight text-slate-900 font-['Outfit']">SnapMoment</span>
         </Link>
 
-        {/* Nav links - desktop */}
         <div className="hidden md:flex items-center gap-6">
-          <Link to="/demo" className="text-sm font-medium text-text-muted hover:text-primary transition-colors">Demo</Link>
-          <Link to="/pricing" className="text-sm font-medium text-text-muted hover:text-primary transition-colors">Pricing</Link>
-          <Link to="/about" className="text-sm font-medium text-text-muted hover:text-primary transition-colors">About</Link>
-          <Link to="/contact" className="text-sm font-medium text-text-muted hover:text-primary transition-colors">Contact</Link>
+          <Link to="/photographers" className="text-sm font-medium text-slate-600 hover:text-violet-600 transition-colors">Photographers</Link>
+          <Link to="/demo" className="text-sm font-medium text-slate-600 hover:text-violet-600 transition-colors">Demo</Link>
+          <Link to="/pricing" className="text-sm font-medium text-slate-600 hover:text-violet-600 transition-colors">Pricing</Link>
+          <Link to="/about" className="text-sm font-medium text-slate-600 hover:text-violet-600 transition-colors">About</Link>
+          <Link to="/contact" className="text-sm font-medium text-slate-600 hover:text-violet-600 transition-colors">Contact</Link>
         </div>
 
         {/* Auth buttons */}
@@ -39,8 +36,8 @@ export default function Navbar() {
           {token ? (
             <>
               <Link
-                to={role === 'admin' ? '/admin' : '/photographer/events'}
-                className="text-sm font-medium text-primary hover:text-primary-light transition-colors"
+                to={role === 'admin' ? '/admin' : role === 'client' ? '/client/dashboard' : '/photographer/events'}
+                className="text-sm font-black text-primary hover:text-primary-light transition-colors uppercase tracking-widest"
               >
                 {fullName || 'Dashboard'}
               </Link>
@@ -54,17 +51,8 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link
-                to="/login"
-                className="text-sm font-medium text-primary hover:text-primary-light transition-colors px-4 py-2"
-              >
-                Login
-              </Link>
-              <Link
-                to="/signup"
-                className="text-sm font-semibold text-white px-5 py-2 rounded-xl transition-all hover:shadow-primary-lg"
-                style={{ background: 'var(--primary-gradient)' }}
-              >
+              <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-violet-600 transition-colors px-4 py-2">Login</Link>
+              <Link to="/signup" className="text-sm font-bold text-white px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 hover:shadow-lg hover:shadow-violet-500/25 hover:scale-105 transition-all">
                 Get Started
               </Link>
             </>
@@ -80,6 +68,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden border-t border-white/10 backdrop-blur-xl px-4 py-5 flex flex-col gap-4" style={{ background: 'var(--card)' }}>
+          <Link to="/photographers" className="text-sm font-medium text-foreground py-1" onClick={() => setMenuOpen(false)}>Photographer</Link>
           <Link to="/demo" className="text-sm font-medium text-foreground py-1" onClick={() => setMenuOpen(false)}>Demo</Link>
           <Link to="/pricing" className="text-sm font-medium text-foreground py-1" onClick={() => setMenuOpen(false)}>Pricing</Link>
           <Link to="/about" className="text-sm font-medium text-foreground py-1" onClick={() => setMenuOpen(false)}>About</Link>
@@ -87,7 +76,7 @@ export default function Navbar() {
           <div className="border-t border-border pt-4 flex flex-col gap-3">
           {token ? (
             <>
-              <Link to={role === 'admin' ? '/admin' : '/photographer/events'} className="text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+              <Link to={role === 'admin' ? '/admin' : role === 'client' ? '/client/dashboard' : '/photographer/events'} className="text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>Dashboard</Link>
               <button onClick={() => { handleLogout(); setMenuOpen(false) }} className="text-sm text-red-500 text-left">Logout</button>
             </>
           ) : (

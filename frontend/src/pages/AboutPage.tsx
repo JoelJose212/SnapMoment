@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { 
   Camera, Heart, Zap, ShieldCheck, 
   Target, Sparkles, Award, Users, 
-  ArrowRight, Quote
+  ArrowRight, Quote, Feather, Map
 } from 'lucide-react'
 import AuroraRibbon from '../components/shared/AuroraRibbon'
 import Navbar from '../components/shared/Navbar'
@@ -23,129 +23,139 @@ const TEAM = [
 
 const TIMELINE = [
   { year: '2023', label: 'Founded in Bhilai', desc: 'Started with a simple idea: guests deserve better photo delivery.' },
-  { year: '2023 Q3', label: 'First ArcFace Integration', desc: 'Achieved 99.2% matching accuracy with deep learning.' },
-  { year: '2024 Q1', label: '100 Photographers', desc: 'Reached 100 active photographers across 12 cities.' },
-  { year: '2024 Q4', label: 'Real-Time Delivery Launch', desc: 'Introduced instant photo delivery with QR-based access.' },
-  { year: '2025 Q3', label: '1 Lakh+ Deliveries', desc: 'Surpassed 100,000+ successful photo deliveries.' },
+  { year: '2023 Q3', label: 'First AI Integration', desc: 'Achieved elite-grade matching accuracy with deep learning.' },
+  { year: '2024 Q1', label: '100 Studio Partners', desc: 'Reached 100 active photographers across 12 cities.' },
+  { year: '2024 Q4', label: 'Real-Time Delivery', desc: 'Introduced instant photo delivery with QR-based entry.' },
+  { year: '2025 Q3', label: '1 Lakh+ Moments', desc: 'Surpassed 100,000+ successful photo deliveries.' },
   { year: '2026 Q4', label: 'Global Expansion', desc: 'Expanding beyond India to international photography studios.' },
-];
+]
 
 export default function AboutPage() {
+  const { scrollY } = useScroll()
+  const blob1Y = useTransform(scrollY, [0, 1200], [0, -100])
+  const blob2Y = useTransform(scrollY, [0, 1200], [0, -60])
+
   return (
-    <div className="min-h-screen selection:bg-primary/30" style={{ background: 'var(--background)' }}>
+    <div className="min-h-screen bg-white text-slate-900 overflow-x-hidden selection:bg-violet-100">
       <AuroraRibbon />
       <Navbar />
 
-      {/* Hero Section */}
-      <header className="relative pt-32 pb-24 overflow-hidden text-center">
-        {/* Animated Background Decor */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[10%] left-[-5%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full animate-pulse" />
-          <div className="absolute bottom-[10%] right-[-5%] w-[40%] h-[40%] bg-accent/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
-          <div className="absolute inset-0 noise-overlay opacity-20" />
+      {/* Hero */}
+      <header className="relative pt-36 pb-20 overflow-hidden text-center">
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          <motion.div style={{ y: blob1Y }} className="absolute -top-32 right-[-10%] w-[500px] h-[500px] bg-violet-100 blur-[120px] rounded-full opacity-60" />
+          <motion.div style={{ y: blob2Y }} className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-cyan-100 blur-[100px] rounded-full opacity-50" />
+          <motion.div animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-amber-100 blur-[100px] rounded-full" />
+        </div>
+
+        {/* Floating particles */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 60, x: `${15 + Math.random() * 70}%` }}
+              animate={{ opacity: [0, 0.5, 0], y: -120 }}
+              transition={{ duration: 5 + Math.random() * 3, repeat: Infinity, delay: i * 1.2, ease: 'easeOut' }}
+              className="absolute w-1.5 h-1.5 rounded-full bg-violet-300" />
+          ))}
         </div>
 
         <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="hero-badge mb-8 mx-auto">
-              <Sparkles size={14} />
-              <span>Our Vision & Story</span>
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16,1,0.3,1] }}>
+            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-violet-50 border border-violet-200 mb-6">
+              <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+              <span className="text-xs font-semibold text-violet-700 tracking-wide uppercase">Our Story</span>
+              <SplashTag text="EST. 2023" color="purple" rotation={-3} fontSize={9} />
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">
-              Building for the moments <br />
-              <span className="gradient-text">that matter most.</span>
+            <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-6 tracking-tight leading-[1.05]">
+              <motion.span initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>Building for the</motion.span><br />
+              <motion.span initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="gradient-text">moments that matter.</motion.span>
             </h1>
-            <p className="text-xl text-text-muted max-w-2xl mx-auto leading-relaxed">
-              SnapMoment was born from a simple frustration: why do event photos take days to arrive, buried in a shared drive with hundreds of strangers?
+            <p className="text-lg md:text-xl text-slate-500 max-w-xl mx-auto leading-relaxed">
+              SnapMoment was born from a simple question: why do event memories take weeks to arrive?
             </p>
           </motion.div>
         </div>
       </header>
 
-      {/* Story Section */}
-      <section className="py-32 px-6 relative">
+      <WaveDivider fill="#F8FAFC" fromColor="#FFFFFF" />
+
+      {/* Origin Story */}
+      <section className="py-24 px-6 bg-slate-50">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="relative">
-              <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-full opacity-50" />
-              <div className="relative rounded-[3rem] overflow-hidden shadow-2xl photo-print rotate-2">
-                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=800" alt="Event" className="w-full h-[500px] object-cover" />
+            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}
+              className="relative">
+              {/* Pulsing glow */}
+              <motion.div animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.95, 1.02, 0.95] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -inset-6 bg-violet-100 blur-[40px] rounded-3xl pointer-events-none" />
+              <div className="relative rounded-3xl overflow-hidden shadow-xl border border-slate-100 rotate-1 hover:rotate-0 transition-transform duration-700">
+                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=800" alt="Event" className="w-full h-[480px] object-cover" />
               </div>
-              <div className="absolute -bottom-8 -right-8 glass-card p-8 rounded-3xl animate-float hidden lg:block">
-                <div className="text-4xl font-bold text-primary mb-1">200+</div>
-                <div className="text-sm font-bold text-text-subtle uppercase tracking-widest">Active Photographers</div>
-              </div>
-            </div>
+              {/* Floating stat card */}
+              <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -bottom-8 -right-4 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 hidden lg:block">
+                <div className="text-3xl font-black gradient-text mb-0.5 tracking-tight">200+</div>
+                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Studio Partners</div>
+              </motion.div>
+            </motion.div>
 
-            <div className="space-y-8">
-              <h2 className="text-4xl font-bold tracking-tight">Our Journey...</h2>
-              <div className="space-y-6 text-lg text-text-muted leading-relaxed">
-                <p>We were at a friend's wedding in 2023. The photographer did a wonderful job capturing thousands of precious memories. But when it came time to share them, she sent a Google Drive link — 3,000 photos for 400 guests. Chaos.</p>
-                <p>Our co-founders, <span className="text-foreground font-bold italic">Joel and Nandini</span>, spent the evening manually forwarding photos to relatives. "There has to be a better way," they said. Six months later, <span className="text-primary font-bold">SnapMoment</span> was born.</p>
-                <p>Today, SnapMoment powers photographers across India and has delivered memories at weddings, corporate functions, and massive festivals instantly.</p>
+            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}
+              className="space-y-8">
+              <div className="inline-flex items-center gap-2 text-violet-500 font-semibold text-xs uppercase tracking-widest">
+                <Feather size={14} /> Our Beginning
+                <SplashTag text="TRUE STORY" color="amber" rotation={3} fontSize={8} />
               </div>
-              <div className="flex items-center gap-6 pt-4">
-                <div className="flex -space-x-4">
+              <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-tight">How it all started...</h2>
+              <div className="space-y-5 text-base text-slate-500 leading-relaxed">
+                <p>We were at a friend's wedding in 2023. The photographer captured thousands of precious memories. But sharing meant a Google Drive link — 3,000 photos for 400 guests. Chaos.</p>
+                <p>Our co-founders, <span className="text-slate-900 font-bold">Joel and Nandini</span>, spent the evening manually forwarding photos to relatives. "There has to be a better way," they said. Six months later, <span className="gradient-text font-black">SnapMoment</span> was born.</p>
+                <p>Today, SnapMoment powers studios across India, delivering memories at weddings, festivals, and celebrations — instantly.</p>
+              </div>
+              <div className="flex items-center gap-5 pt-6 border-t border-slate-200">
+                <div className="flex -space-x-2.5">
                   {[1, 2, 3, 4].map(i => (
-                    <img key={i} src={`https://i.pravatar.cc/100?u=${i+10}`} className="w-12 h-12 rounded-full border-4 border-white shadow-sm" />
+                    <img key={i} src={`https://i.pravatar.cc/80?img=${i+10}`} className="w-9 h-9 rounded-full border-2 border-white shadow-sm object-cover" alt="" />
                   ))}
-                  <div className="w-12 h-12 rounded-full bg-slate-100 border-4 border-white flex items-center justify-center text-xs font-bold text-text-subtle">+200</div>
                 </div>
-                <div className="text-sm font-bold text-text-muted">Trusted by elite studios</div>
+                <div className="text-xs text-slate-400 font-semibold">Trusted by <span className="text-slate-700 font-bold">250+</span> studios</div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Values */}
-      <section className="py-32 px-6 bg-slate-50 relative noise-overlay">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-24">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 italic">The SnapMoment Way</h2>
-            <p className="text-xl text-text-muted">Three core pillars that define our product and our mission.</p>
-          </div>
+      <WaveDivider fill="#FFFFFF" fromColor="#F8FAFC" />
 
-          <div className="grid md:grid-cols-3 gap-8">
+      {/* Values */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-50 border border-violet-200 mb-4">
+              <span className="text-xs font-semibold text-violet-700 tracking-wide uppercase">Our Values</span>
+              <SplashTag text="CORE" color="purple" rotation={-2} fontSize={8} />
+            </div>
+            <h2 className="text-4xl md:text-[3.5rem] font-black text-slate-900 mb-4 tracking-tight">
+              What we <span className="gradient-text">believe in</span>
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-7">
             {[
-              { 
-                icon: ShieldCheck, 
-                title: 'Privacy First', 
-                desc: 'Guest selfies are processed and deleted immediately. We never store raw facial data beyond the matching moment.',
-                color: 'emerald'
-              },
-              { 
-                icon: Heart, 
-                title: 'Human Centric', 
-                desc: 'AI is our tool, not our product. Every feature is designed around the human experience of sharing memories.',
-                color: 'rose'
-              },
-              { 
-                icon: Zap, 
-                title: 'Zero Friction', 
-                desc: "No app downloads. No account creation for guests. Scan, verify, smile — that's it.",
-                color: 'amber'
-              },
+              { icon: ShieldCheck, title: 'Privacy First', desc: 'Guest selfies are processed and purged immediately. We never store biometric data beyond the matching moment.', color: 'from-violet-500 to-violet-700' },
+              { icon: Heart, title: 'Human Centric', desc: 'AI is our tool, not our product. Every feature is designed around the human experience of sharing joy.', color: 'from-rose-500 to-pink-600' },
+              { icon: Zap, title: 'Zero Friction', desc: "No apps. No passwords. Scan, verify, smile — that's the entirety of the guest journey.", color: 'from-cyan-500 to-cyan-700' },
             ].map((v, i) => {
               const Icon = v.icon
               return (
-                <motion.div 
-                  key={v.title} 
-                  className="glass-card p-10 rounded-[2.5rem] feature-card"
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                >
-                  <div className={`w-14 h-14 rounded-2xl bg-${v.color}-500/10 text-${v.color}-600 flex items-center justify-center mb-8`}>
-                    <Icon size={28} />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 tracking-tight">{v.title}</h3>
-                  <p className="text-text-muted leading-relaxed font-medium">{v.desc}</p>
+                <motion.div key={v.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: i * 0.12 }}
+                  className="group p-8 rounded-3xl bg-slate-50 border border-slate-100 hover:bg-white hover:border-violet-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-400">
+                  <motion.div whileHover={{ rotate: 10, scale: 1.1 }} transition={{ type: 'spring' }}
+                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${v.color} flex items-center justify-center mb-6 shadow-lg`}>
+                    <Icon size={24} className="text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">{v.title}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{v.desc}</p>
                 </motion.div>
               )
             })}
@@ -153,30 +163,34 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Timeline Section */}
-      <section className="py-32 px-6 relative bg-white">
+      {/* Timeline */}
+      <section className="py-24 px-6 bg-gradient-to-b from-white to-slate-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-bold mb-20 text-center">
-            Our Journey <SplashTag text="Est. 2023" color="amber" rotation={-2} className="ml-3" />
-          </h2>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 mb-4">
+              <span className="text-xs font-semibold text-cyan-700 tracking-wide uppercase">Timeline</span>
+            </div>
+            <h2 className="text-4xl md:text-[3.5rem] font-black text-slate-900 mb-4 tracking-tight">
+              Our <span className="gradient-text">Journey</span>{' '}
+              <SplashTag text="EST. 2023" color="amber" rotation={-2} fontSize={10} />
+            </h2>
+          </motion.div>
           
           <div className="relative">
-            <div className="absolute left-0 md:left-1/2 top-0 bottom-0 w-[2px] bg-slate-100 -translate-x-1/2" />
+            <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-violet-200 via-cyan-200 to-violet-200 -translate-x-1/2" />
             
             <div className="space-y-16">
               {TIMELINE.map((item, i) => (
-                <motion.div 
-                  key={item.year} 
-                  initial={{ opacity: 0, x: i % 2 === 0 ? -40 : 40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  className={`relative flex flex-col md:flex-row items-center gap-8 ${i % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
-                >
-                  <div className="absolute left-0 md:left-1/2 w-4 h-4 rounded-full bg-primary border-4 border-white shadow-sm -translate-x-1/2 z-10" />
-                  <div className="flex-1 md:w-1/2 text-center md:text-left">
-                    <div className="text-xs font-bold text-primary uppercase tracking-widest mb-2">{item.year}</div>
-                    <h3 className="text-2xl font-bold mb-3">{item.label}</h3>
-                    <p className="text-text-muted leading-relaxed font-medium">{item.desc}</p>
+                <motion.div key={item.year} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.08 }}
+                  className={`relative flex flex-col md:flex-row items-start md:items-center gap-8 ${i % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
+                  {/* Dot */}
+                  <motion.div whileInView={{ scale: [0, 1.3, 1] }} viewport={{ once: true }} transition={{ delay: i * 0.08 + 0.2 }}
+                    className="absolute left-4 md:left-1/2 w-4 h-4 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 border-4 border-white shadow-lg -translate-x-1/2 z-10" />
+                  <div className={`flex-1 md:w-1/2 pl-12 md:pl-0 ${i % 2 === 0 ? 'md:text-right md:pr-12' : 'md:pl-12'}`}>
+                    <div className="text-xs font-bold text-violet-500 uppercase tracking-widest mb-2">{item.year}</div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">{item.label}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
                   </div>
                   <div className="flex-1 md:w-1/2 hidden md:block" />
                 </motion.div>
@@ -186,24 +200,33 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="py-32 bg-foreground text-white overflow-hidden relative">
-        <div className="absolute inset-0 bg-primary/5 blur-[120px]" />
+      {/* Team */}
+      <section className="py-24 bg-slate-900 text-white overflow-hidden relative">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-[400px] h-[400px] bg-violet-500/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-cyan-500/10 blur-[120px] rounded-full" />
+        </div>
         
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="text-center mb-24">
-            <h2 className="text-4xl md:text-7xl font-bold mb-6 tracking-tighter">The Minds Behind <br /><span className="gradient-text">SnapMoment.</span></h2>
-            <p className="text-xl text-white/60">A global team of engineers, designers, and visionaries.</p>
-          </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 mb-4">
+              <Users size={13} className="text-violet-400" />
+              <span className="text-xs font-semibold text-white/70 tracking-wide uppercase">The Team</span>
+              <SplashTag text="WE'RE HIRING" color="emerald" rotation={3} fontSize={8} />
+            </div>
+            <h2 className="text-4xl md:text-[3.5rem] font-black text-white mb-4 tracking-tight">
+              Meet the <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">builders</span>
+            </h2>
+          </motion.div>
 
-          <div className="flex gap-8 animate-marquee hover:[animation-play-state:paused] py-10">
+          <div className="flex gap-6 animate-marquee hover:[animation-play-state:paused] py-6">
             {[...TEAM, ...TEAM].map((member, idx) => (
-              <div key={idx} className="w-80 shrink-0 group">
-                <div className="relative h-[450px] rounded-[3rem] overflow-hidden shadow-2xl border border-white/10">
-                  <img src={member.img} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" alt={member.name} />
-                  <div className="absolute bottom-0 inset-x-0 p-8 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end">
-                    <h3 className="text-2xl font-bold mb-1">{member.name}</h3>
-                    <p className="text-primary font-bold uppercase tracking-widest text-xs">{member.role}</p>
+              <div key={idx} className="w-64 shrink-0 group">
+                <div className="relative h-[360px] rounded-3xl overflow-hidden shadow-xl border border-white/5 bg-slate-800">
+                  <img src={member.img} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105 opacity-50 group-hover:opacity-100" alt={member.name} />
+                  <div className="absolute bottom-0 inset-x-0 p-7 bg-gradient-to-t from-slate-900 via-slate-900/70 to-transparent">
+                    <h3 className="text-lg font-bold mb-0.5 tracking-tight">{member.name}</h3>
+                    <p className="text-violet-400 font-semibold text-[10px] uppercase tracking-widest">{member.role}</p>
                   </div>
                 </div>
               </div>
@@ -212,39 +235,57 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Founding Quote */}
-      <section className="py-32 px-6 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-10">
-            <Quote size={32} />
-          </div>
-          <blockquote className="text-3xl md:text-5xl font-bold tracking-tight text-foreground leading-[1.1] mb-12 italic">
-            "We didn't just build an AI platform. We built a bridge for memories. Technology should feel like magic, and that's exactly what SnapMoment does every single event."
+      {/* Founder Quote */}
+      <section className="py-24 px-6 bg-white">
+        <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          className="max-w-4xl mx-auto text-center">
+          <motion.div whileHover={{ scale: 1.1, rotate: 5 }} transition={{ type: 'spring' }}
+            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-500 text-white mb-10 shadow-lg shadow-violet-200">
+            <Quote size={22} />
+          </motion.div>
+          <blockquote className="text-2xl md:text-4xl font-black tracking-tight text-slate-800 leading-tight mb-12">
+            "We didn't just build an AI platform. We built a{' '}
+            <span className="gradient-text">bridge for memories</span>.
+            Technology should feel like magic, and that's exactly what SnapMoment brings to every event."
           </blockquote>
           <div className="flex flex-col items-center">
-            <img src="/team/joel.jpg" className="w-20 h-20 rounded-full border-4 border-slate-50 shadow-xl mb-4 object-cover" alt="Joel Jose Varghese" />
-            <p className="font-bold text-xl text-foreground">Joel Jose Varghese</p>
-            <p className="text-text-subtle font-bold uppercase tracking-widest text-xs">CTO & Founder · SnapMoment</p>
+            <img src="/team/joel.jpg" className="w-16 h-16 rounded-full border-3 border-white shadow-xl mb-4 object-cover hover:scale-110 transition-transform duration-300" alt="Joel" />
+            <p className="font-bold text-lg text-slate-900">Joel Jose Varghese</p>
+            <p className="text-xs font-semibold text-violet-500 uppercase tracking-widest mt-1">CTO & Founder</p>
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* Final CTA */}
-      <section className="pb-32 px-6">
-        <div className="max-w-6xl mx-auto rounded-[3rem] bg-primary p-12 md:p-24 text-center text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-primary-gradient opacity-50" />
-          <div className="relative z-10">
-            <h2 className="text-4xl md:text-7xl font-bold mb-8">Ready to join our story?</h2>
-            <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-2xl mx-auto">Be part of the next generation of event photography.</p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Link to="/signup" className="w-full sm:w-auto px-12 py-5 rounded-2xl bg-white text-primary font-bold text-xl hover:scale-105 transition-all shadow-2xl">
-                Start For Free
-              </Link>
-              <Link to="/contact" className="w-full sm:w-auto px-12 py-5 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-xl hover:bg-white/20 transition-all backdrop-blur-sm">
-                Join the Team
-              </Link>
+      {/* CTA */}
+      <section className="py-20 px-6 bg-slate-50">
+        <div className="max-w-4xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="relative rounded-[2.5rem] overflow-hidden text-center p-14 md:p-20 bg-gradient-to-br from-violet-600 via-violet-700 to-cyan-600 shadow-2xl shadow-violet-300">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.15),transparent_60%)]" />
+            <motion.div animate={{ x: ['-150%', '250%'] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 3 }}
+              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none skew-x-[-20deg]" />
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 mb-6">
+                <Sparkles size={13} className="text-white/80" />
+                <span className="text-xs font-semibold text-white/80 tracking-widest uppercase">Join Our Mission</span>
+                <SplashTag text="LET'S GO" color="emerald" rotation={-4} fontSize={9} />
+              </div>
+              <h2 className="text-4xl md:text-[3.5rem] font-black text-white mb-5 leading-tight tracking-tight">
+                Be part of the <br className="hidden md:block" /> future of events.
+              </h2>
+              <p className="text-white/70 text-lg max-w-lg mx-auto mb-10 leading-relaxed">
+                Join 250+ studios already transforming how they deliver memories.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link to="/signup" className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-10 py-4 rounded-2xl bg-white text-violet-700 font-bold text-base hover:bg-violet-50 hover:scale-[1.03] active:scale-95 transition-all shadow-lg">
+                  Get Started Free <ArrowRight size={17} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link to="/contact" className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 rounded-2xl bg-white/10 border border-white/25 text-white font-semibold text-base hover:bg-white/20 active:scale-95 transition-all">
+                  Join the Team
+                </Link>
+              </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 

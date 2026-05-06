@@ -1,475 +1,416 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring } from 'framer-motion'
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion'
 import {
-  Camera, Zap, Shield, Users, ChevronDown,
-  Star, Check, QrCode, Smartphone, Image as ImageIcon,
-  Sparkles, ArrowRight, Heart, Award, Clock,
-  Layout, ShieldCheck, Search, Download, Share2,
-  Bell, Filter, MousePointer2, ZapIcon, Target,
-  Rocket, Globe, Box, Layers
+  Camera, Star, Check, QrCode, Sparkles,
+  ArrowRight, Heart, Award, ShieldCheck,
+  Download, Bell, ZapIcon, Target,
+  Globe, Box, Palette, Users,
+  Image as ImageIcon, Zap, Compass, Feather
 } from 'lucide-react'
-
-// Shared Components
 import AuroraRibbon from '../components/shared/AuroraRibbon'
 import Navbar from '../components/shared/Navbar'
 import Footer from '../components/shared/Footer'
 import SplashTag from '../components/shared/SplashTag'
 import WaveDivider from '../components/shared/WaveDivider'
 
-// --- Realistic & Emotive Components ---
-
-function useCountUp(target: number, duration = 2000, trigger: boolean = false) {
-  const [count, setCount] = useState(0)
+/* ── animated counter ── */
+function useCountUp(target: number, dur = 1800, go = false) {
+  const [v, setV] = useState(0)
   useEffect(() => {
-    if (!trigger) return
-    let start = 0
-    const step = target / (duration / 16)
-    const timer = setInterval(() => {
-      start += step
-      if (start >= target) {
-        setCount(target)
-        clearInterval(timer)
-      } else {
-        setCount(Math.floor(start))
-      }
-    }, 16)
-    return () => clearInterval(timer)
-  }, [trigger, target, duration])
-  return count
+    if (!go) return
+    let s = 0; const step = target / (dur / 16)
+    const t = setInterval(() => { s += step; if (s >= target) { setV(target); clearInterval(t) } else setV(Math.floor(s)) }, 16)
+    return () => clearInterval(t)
+  }, [go, target, dur])
+  return v
 }
 
-function StatCounter({ value, suffix, label, icon: Icon }: { value: number; suffix: string; label: string; icon: any }) {
+function StatCard({ value, suffix, label, icon: Icon, color }: any) {
   const ref = useRef<HTMLDivElement>(null)
-  const [triggered, setTriggered] = useState(false)
-  const count = useCountUp(value, 2200, triggered)
-  
+  const [go, setGo] = useState(false)
+  const count = useCountUp(value, 1800, go)
   useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) setTriggered(true)
-    }, { threshold: 0.5 })
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setGo(true) }, { threshold: 0.4 })
     if (ref.current) obs.observe(ref.current)
     return () => obs.disconnect()
   }, [])
-
   return (
-    <div ref={ref} className="group relative overflow-hidden bg-white/[0.03] backdrop-blur-2xl border border-white/10 p-10 rounded-[3rem] transition-all hover:bg-white/[0.06] hover:border-primary/30 flex flex-col items-center text-center">
-      {/* Subtle Background Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-primary/20 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-      
-      <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-primary mb-6 shadow-inner group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-500">
-        <Icon size={32} />
+    <motion.div ref={ref} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      className="group p-8 rounded-3xl bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-400 text-center">
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white mb-4 mx-auto shadow-lg ${color}`}>
+        <Icon size={22} />
       </div>
-
-      <div className="relative z-10">
-        <div className="text-4xl md:text-5xl lg:text-6xl font-black gradient-text mb-4 tracking-tighter italic whitespace-nowrap">
-          {count.toLocaleString()}{suffix}
-        </div>
-        <div className="text-[10px] md:text-[12px] font-black tracking-[0.3em] uppercase text-white/40 leading-none">{label}</div>
-      </div>
-    </div>
-  )
-}
-
-const RealisticPhone = ({ children }: { children: React.ReactNode }) => {
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-  const mouseXSpring = useSpring(x)
-  const mouseYSpring = useSpring(y)
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["8deg", "-8deg"])
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-8deg", "8deg"])
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    x.set((e.clientX - rect.left) / rect.width - 0.5)
-    y.set((e.clientY - rect.top) / rect.height - 0.5)
-  }
-
-  return (
-    <motion.div
-      onMouseMove={handleMouseMove}
-      onMouseLeave={() => { x.set(0); y.set(0) }}
-      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-      className="relative mx-auto w-[320px] md:w-[380px] h-[650px] md:h-[780px] group cursor-pointer perspective-1000"
-    >
-      {/* 3D Floating Notifications - Slimmer & More Native */}
-      <motion.div 
-        style={{ translateZ: 120 }}
-        className="absolute -right-12 top-24 z-50 bg-white/90 backdrop-blur-xl p-5 rounded-2xl shadow-2xl border border-white/40 w-44"
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-             <Check size={12} strokeWidth={4} />
-          </div>
-          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">System</span>
-        </div>
-        <div className="text-[11px] font-bold text-slate-900 leading-tight">Matched 12 photos with <span className="text-primary italic">Arjun</span></div>
-      </motion.div>
-
-      <motion.div 
-        style={{ translateZ: 180 }}
-        className="absolute -left-12 bottom-48 z-50 bg-white/90 backdrop-blur-xl p-5 rounded-2xl shadow-2xl border border-white/40 w-40"
-      >
-        <div className="flex items-center gap-2 mb-1">
-           <Zap size={14} className="text-primary" fill="currentColor" />
-           <span className="text-[9px] font-black text-primary uppercase tracking-widest">Processing</span>
-        </div>
-        <div className="text-2xl font-black italic text-slate-900 tracking-tighter">0.8s</div>
-        <div className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">Global Latency</div>
-      </motion.div>
-
-      {/* Hardware Frame - Slimmer Bezel */}
-      <div 
-        style={{ transform: "translateZ(50px)", transformStyle: "preserve-3d" }}
-        className="absolute inset-0 bg-slate-900 rounded-[3.5rem] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.6)] border-[6px] border-slate-800 p-2.5 ring-1 ring-slate-700/50"
-      >
-        {/* Hardware Detail - Buttons */}
-        <div className="absolute top-24 -left-1.5 w-1 h-8 bg-slate-800 rounded-l-md" />
-        <div className="absolute top-36 -left-1.5 w-1 h-16 bg-slate-800 rounded-l-md" />
-        <div className="absolute top-32 -right-1.5 w-1 h-20 bg-slate-800 rounded-r-md" />
-        
-        <div className="relative h-full w-full bg-white rounded-[2.8rem] overflow-hidden flex flex-col shadow-inner">
-          {/* Status Bar - Native Look */}
-          <div className="absolute top-0 inset-x-0 h-11 flex items-center justify-between px-8 z-50">
-             <div className="text-[10px] font-black text-slate-900">9:41</div>
-             <div className="w-24 h-6 bg-slate-900 rounded-full flex items-center justify-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-800" />
-                <div className="w-6 h-1.5 rounded-full bg-slate-800" />
-             </div>
-             <div className="flex items-center gap-1">
-                <div className="w-3 h-2 border border-slate-900 rounded-[2px] relative">
-                   <div className="absolute inset-px bg-slate-900 rounded-[1px] w-3/4" />
-                </div>
-             </div>
-          </div>
-          
-          {/* Glass Reflection Layer */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/40 via-transparent to-transparent pointer-events-none z-40 opacity-40 group-hover:translate-x-10 transition-transform duration-1000" />
-          
-          {children}
-        </div>
-      </div>
+      <div className="text-4xl font-black text-slate-900 tracking-tight mb-1">{count.toLocaleString()}{suffix}</div>
+      <div className="text-sm font-semibold text-slate-400 uppercase tracking-widest">{label}</div>
     </motion.div>
   )
 }
 
-const FloatingItem = ({ children, className, delay = 0, yRange = 20 }: { children: React.ReactNode; className?: string; delay?: number; yRange?: number }) => (
+const features = [
+  { icon: Target,     title: 'Face Match AI',    desc: 'Identifies guests instantly across thousands of photos.' },
+  { icon: ZapIcon,    title: 'Real-Time',         desc: 'Photos reach every guest within seconds of capture.' },
+  { icon: ShieldCheck,title: 'Privacy First',     desc: 'Biometric data is purged right after matching.' },
+  { icon: Globe,      title: 'Global CDN',        desc: 'Edge nodes ensure instant access from anywhere.' },
+  { icon: Palette,    title: 'Custom Branding',   desc: 'Watermarks & galleries reflecting your studio DNA.' },
+  { icon: Box,        title: 'Bulk Export',       desc: 'ZIP archives delivered post-event in minutes.' },
+  { icon: Users,      title: 'Analytics',         desc: 'Deep engagement data to grow your business.' },
+  { icon: Heart,      title: 'Wow Factor',        desc: 'An experience guests remember and talk about.' },
+]
+
+const steps = [
+  { icon: Camera,  n: '01', title: 'Capture',  desc: 'Shoot as normal — photos stream to the cloud instantly.' },
+  { icon: Compass, n: '02', title: 'Identify', desc: 'AI matches every face across all event photos in milliseconds.' },
+  { icon: Feather, n: '03', title: 'Deliver',  desc: 'Guests receive a personal gallery link on their phone instantly.' },
+]
+
+const testimonials = [
+  { name: 'Sam Matthew',  role: 'Wedding Director', q: 'We delivered 4,000 photos to 500 guests in under 2 minutes. The feedback was absolute shock and delight.', img: 'https://images.pexels.com/photos/3930942/pexels-photo-3930942.jpeg?w=100' },
+  { name: 'Sarah Bob',    role: 'Event Manager',    q: 'Manual sharing is dead. SnapMoment is the only tool that has genuinely made my life easier during peak season.', img: 'https://i.pravatar.cc/100?img=32' },
+  { name: 'David Wilson', role: 'Production Lead',  q: 'Face recognition accuracy at night events is incredible. An absolute game-changer for large-scale festivals.', img: 'https://images.pexels.com/photos/29133444/pexels-photo-29133444.jpeg?w=100' },
+]
+
+/* ── floating sparkle particles ── */
+const Particle = ({ delay }: { delay: number }) => (
   <motion.div
-    initial={{ opacity: 0, scale: 0.8 }}
-    animate={{ 
-      opacity: 1, 
-      scale: 1,
-      y: [0, -yRange, 0],
-    }}
-    transition={{
-      opacity: { duration: 0.8, delay },
-      y: { duration: 4 + Math.random() * 2, repeat: Infinity, ease: "easeInOut", delay }
-    }}
-    className={className}
-  >
-    {children}
-  </motion.div>
+    initial={{ opacity: 0, y: 100, x: `${Math.random() * 80 + 10}%` }}
+    animate={{ opacity: [0, 0.6, 0], y: -200 }}
+    transition={{ duration: 6 + Math.random() * 4, repeat: Infinity, delay, ease: 'easeOut' }}
+    className="absolute w-1.5 h-1.5 rounded-full bg-violet-300 pointer-events-none"
+  />
 )
 
 export default function HomePage() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null)
   const { scrollYProgress } = useScroll()
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
-  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.9])
+  const heroY       = useTransform(scrollYProgress, [0, 0.3], [0, -50])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0])
+
+  /* mouse-following glow */
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const orbX = useSpring(mouseX, { stiffness: 30, damping: 20 })
+  const orbY = useSpring(mouseY, { stiffness: 30, damping: 20 })
+  const handleMouse = (e: React.MouseEvent) => { mouseX.set(e.clientX); mouseY.set(e.clientY) }
+
+  /* parallax blobs */
+  const { scrollY } = useScroll()
+  const blob1Y = useTransform(scrollY, [0, 1500], [0, -120])
+  const blob2Y = useTransform(scrollY, [0, 1500], [0, -80])
 
   return (
-    <div className="min-h-screen selection:bg-primary/40 selection:text-white" style={{ background: 'var(--background)' }}>
+    <div onMouseMove={handleMouse} className="min-h-screen bg-white text-slate-900 overflow-x-hidden selection:bg-violet-100">
+
+      {/* ── MOUSE FOLLOWING GLOW ── */}
+      <motion.div
+        style={{ x: orbX, y: orbY, translateX: '-50%', translateY: '-50%' }}
+        className="fixed top-0 left-0 w-[500px] h-[500px] bg-violet-200/30 blur-[140px] rounded-full pointer-events-none z-0"
+      />
+
+      {/* ── TOP RIBBON ── */}
       <AuroraRibbon />
       <Navbar />
 
-      {/* --- HERO SECTION: ULTRA VIBRANT --- */}
-      <header className="relative min-h-screen flex items-center justify-center pt-24 overflow-hidden">
-        {/* Immersive Background */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center scale-105 opacity-10 blur-xl" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background to-background" />
-          
-          {/* Pulsing Orbs */}
-          <div className="absolute top-[20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[180px] rounded-full animate-pulse-slow" />
-          <div className="absolute bottom-[20%] right-[-10%] w-[50%] h-[50%] bg-accent/20 blur-[180px] rounded-full animate-pulse-slow" style={{ animationDelay: '3s' }} />
-          
-          {/* Animated Noise Overlay */}
-          <div className="absolute inset-0 noise-overlay opacity-[0.15] pointer-events-none" />
+      {/* ── HERO ── */}
+      <header className="relative min-h-[92vh] flex items-center justify-center overflow-hidden pt-8">
+        {/* Animated parallax blobs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <motion.div style={{ y: blob1Y }} className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-violet-100 rounded-full blur-[120px] opacity-60" />
+          <motion.div style={{ y: blob2Y }} className="absolute -bottom-32 -right-32 w-[500px] h-[500px] bg-cyan-100 rounded-full blur-[100px] opacity-50" />
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute top-1/3 left-1/2 w-[300px] h-[300px] bg-amber-100 rounded-full blur-[100px] opacity-30"
+          />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            
-            {/* Left Content */}
-            <motion.div 
-              style={{ opacity: heroOpacity, scale: heroScale }}
-              initial={{ opacity: 0, x: -60 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <div className="hero-badge mb-8 border-primary/30 bg-primary/10 text-primary shadow-lg shadow-primary/20 backdrop-blur-xl group cursor-pointer">
-                <Sparkles size={14} className="animate-spin-slow" />
-                <span className="font-black uppercase tracking-[0.2em] text-[10px]">The Future of Photography Delivery</span>
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+        {/* Floating particles */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {Array.from({ length: 10 }).map((_, i) => <Particle key={i} delay={i * 0.8} />)}
+        </div>
+
+        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 max-w-7xl mx-auto px-6 w-full">
+          <div className="grid lg:grid-cols-2 gap-16 xl:gap-24 items-center">
+
+            {/* Left */}
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.16,1,0.3,1] }}>
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-50 border border-violet-200 mb-6">
+                <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                <span className="text-xs font-semibold text-violet-700 tracking-wide uppercase">AI-Powered Photo Delivery</span>
+                <SplashTag text="NEW" color="purple" rotation={-2} fontSize={9} />
               </div>
-              
-              <h1 className="text-7xl md:text-[10rem] font-black leading-[0.8] tracking-tighter mb-10 uppercase italic">
-                Moments <br />
-                <span className="gradient-text drop-shadow-[0_20px_50px_rgba(20,184,166,0.4)] block mt-2">Relived.</span>
+
+              <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-black leading-[1.05] tracking-tight mb-6 text-slate-900">
+                <motion.span initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.6 }}>Every Memory.</motion.span>{' '}
+                <motion.span initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.6 }} className="gradient-text">Delivered</motion.span>{' '}
+                <br className="hidden md:block" />
+                <motion.span initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65, duration: 0.6 }} className="relative inline-block">
+                  Instantly.
+                  <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 1.2, duration: 0.8, ease: 'circOut' }}
+                    className="absolute -bottom-1.5 left-0 w-full h-1 bg-gradient-to-r from-violet-500 to-cyan-500 rounded-full origin-left" />
+                </motion.span>
               </h1>
-              
-              <p className="text-2xl md:text-3xl text-text-muted leading-tight max-w-xl mb-12 font-medium tracking-tight">
-                No more <span className="text-foreground italic">"Can you send the link?"</span> <br />
-                Our AI delivers personalized guest galleries in <span className="text-primary font-black underline decoration-primary/30 underline-offset-8 italic">real-time.</span>
+
+              <p className="text-xl text-slate-500 leading-relaxed max-w-lg mb-10">
+                SnapMoment uses facial recognition to send every guest their{' '}
+                <span className="text-slate-800 font-semibold">personalized photo gallery</span>{' '}
+                — no sharing, no searching, just pure magic.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center gap-6">
-                <Link 
-                  to="/signup" 
-                  className="w-full sm:w-auto px-16 py-8 rounded-[2.5rem] bg-primary text-white font-black text-2xl hover:scale-105 hover:shadow-primary/40 active:scale-95 transition-all shadow-3xl shadow-primary/20 flex items-center justify-center gap-3 group relative overflow-hidden"
-                >
-                  <span className="relative z-10">Start Your Event</span>
-                  <ArrowRight size={26} className="group-hover:translate-x-1 transition-transform relative z-10" />
-                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+              <div className="flex flex-wrap gap-4 mb-12">
+                <Link to="/signup" className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-bold text-sm shadow-lg shadow-violet-200 hover:shadow-xl hover:shadow-violet-300 hover:scale-[1.03] active:scale-95 transition-all duration-300">
+                  Start Free Trial <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link 
-                  to="/demo" 
-                  className="w-full sm:w-auto px-16 py-8 rounded-[2.5rem] bg-white/5 border-2 border-white/10 backdrop-blur-md text-foreground font-black text-2xl hover:bg-white/10 transition-all flex items-center justify-center gap-3 active:scale-95"
-                >
-                  Watch Demo <MousePointer2 size={24} />
+                <Link to="/demo" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-semibold text-sm hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50 active:scale-95 transition-all duration-300">
+                  <Sparkles size={15} className="text-violet-500" /> Watch Demo
                 </Link>
               </div>
 
-              {/* Dynamic Stats Row */}
-              <div className="mt-20 flex items-center gap-12">
-                <div className="flex -space-x-4">
-                  {[1, 2, 3, 4].map(i => (
-                    <img key={i} src={`https://i.pravatar.cc/100?img=${i+10}`} className="w-14 h-14 rounded-full border-4 border-background ring-2 ring-primary/20 shadow-xl" alt="" />
+              {/* Social proof */}
+              <div className="flex items-center gap-5">
+                <div className="flex -space-x-2.5">
+                  {[31,32,33,34].map(i => (
+                    <img key={i} src={`https://i.pravatar.cc/80?img=${i}`} className="w-9 h-9 rounded-full border-2 border-white shadow-sm object-cover" alt="" />
                   ))}
-                  <div className="w-14 h-14 rounded-full bg-slate-900 border-4 border-background flex items-center justify-center text-white text-xs font-black">+2k</div>
                 </div>
-                <div className="h-10 w-[1px] bg-white/10" />
                 <div>
-                   <div className="text-xl font-black tracking-tight italic">Trusted by Elites.</div>
-                   <div className="flex items-center gap-4 mt-2 opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-pointer">
-                      <span className="text-[10px] font-black tracking-widest uppercase">NIKON</span>
-                      <span className="text-[10px] font-black tracking-widest uppercase">VOGUE</span>
-                      <span className="text-[10px] font-black tracking-widest uppercase">SONY</span>
-                   </div>
+                  <div className="flex gap-0.5 mb-0.5">{[1,2,3,4,5].map(s => <Star key={s} size={11} className="text-amber-400 fill-amber-400" />)}</div>
+                  <div className="text-xs text-slate-400">Loved by <span className="text-slate-700 font-semibold">5,000+</span> studios worldwide</div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Right Side: The Ultra-Realistic Phone */}
-            <div className="relative pt-12">
-              <RealisticPhone>
-                <div className="h-full flex flex-col bg-slate-50">
-                   {/* Mobile App Interface */}
-                   <div className="p-8 pb-4">
-                      <div className="flex items-center justify-between mb-8">
-                         <div className="text-2xl font-black tracking-tighter italic text-slate-900">SnapMoment</div>
-                         <div className="relative">
-                            <Bell size={24} className="text-slate-400" />
-                            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-white" />
-                         </div>
-                      </div>
-                      
-                      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-8">
-                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Scanning Live</div>
-                         <div className="text-xl font-black text-slate-900 tracking-tight">Found Your Photos</div>
-                         <div className="mt-4 flex gap-2">
-                            <div className="h-2 w-full bg-primary/10 rounded-full overflow-hidden">
-                               <motion.div animate={{ x: ["-100%", "100%"] }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} className="w-1/2 h-full bg-primary" />
-                            </div>
-                         </div>
-                      </div>
-                   </div>
+            {/* Right — phone */}
+            <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: [0.16,1,0.3,1] }}
+              className="relative flex justify-center items-center py-8">
 
-                   <div className="flex-1 overflow-y-auto px-8 space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
-                         {[
-                           'https://images.unsplash.com/photo-1519741497674-611481863552',
-                           'https://images.unsplash.com/photo-1511795409834-ef04bbd61622',
-                           'https://images.unsplash.com/photo-1520854221256-17451cc331bf',
-                           'https://images.unsplash.com/photo-1519167758481-83f550bb49b3'
-                         ].map((url, i) => (
-                           <div key={i} className="group relative rounded-2xl overflow-hidden shadow-md aspect-square border-2 border-white hover:scale-105 transition-transform duration-500">
-                              <img src={`${url}?auto=format&fit=crop&q=80&w=300`} className="w-full h-full object-cover" alt="" />
-                              <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                           </div>
-                         ))}
-                      </div>
-                   </div>
-
-                   <div className="p-8 pt-4">
-                      <div className="bg-slate-900 rounded-[2.5rem] p-6 text-white">
-                         <div className="flex items-center justify-between mb-4">
-                            <div>
-                               <div className="text-3xl font-black italic tracking-tighter">12 Photos</div>
-                               <div className="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">Direct Match</div>
-                            </div>
-                            <button className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30">
-                               <Download size={20} />
-                            </button>
-                         </div>
-                         <button className="w-full py-4 rounded-2xl bg-white text-slate-900 font-black text-sm uppercase tracking-widest hover:scale-105 transition-all">
-                            Relive The Gallery
-                         </button>
-                      </div>
-                   </div>
+              {/* Floating card: match */}
+              <motion.div animate={{ y: [0,-10,0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -left-4 top-16 z-30 bg-white border border-slate-100 shadow-xl p-4 rounded-2xl w-52">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow">
+                    <Check size={12} strokeWidth={3} className="text-white" />
+                  </div>
+                  <span className="text-xs font-bold text-slate-600">Match Found!</span>
                 </div>
-              </RealisticPhone>
+                <p className="text-[11px] text-slate-400 leading-snug">24 photos synced for <span className="text-violet-600 font-semibold">Wedding Reception</span></p>
+              </motion.div>
 
-              {/* Realistic Floating Items */}
-              <FloatingItem className="absolute -top-10 right-0 z-40" delay={0.5}>
-                 <div className="w-20 h-20 rounded-[2rem] bg-white shadow-2xl flex items-center justify-center border border-slate-100">
-                    <Camera size={32} className="text-primary" />
-                 </div>
-              </FloatingItem>
+              {/* Floating card: speed */}
+              <motion.div animate={{ y: [0,10,0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+                className="absolute -right-4 bottom-24 z-30 bg-slate-900 border border-slate-800 shadow-xl p-4 rounded-2xl w-40 text-white">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Zap size={12} className="text-amber-400 fill-amber-400" />
+                  <span className="text-[9px] font-bold text-amber-400 uppercase tracking-widest">AI Speed</span>
+                </div>
+                <div className="text-2xl font-black tracking-tight">0.2s</div>
+                <div className="text-[9px] text-white/40 uppercase tracking-widest mt-0.5">Per identification</div>
+              </motion.div>
 
-              <FloatingItem className="absolute bottom-20 -left-10 z-40" delay={1.2} yRange={30}>
-                 <div className="w-16 h-16 rounded-2xl bg-slate-900 shadow-2xl flex items-center justify-center">
-                    <QrCode size={24} className="text-white" />
-                 </div>
-              </FloatingItem>
+              {/* Pulsing glow ring behind phone */}
+              <motion.div
+                animate={{ opacity: [0.4, 0.7, 0.4], scale: [0.95, 1.05, 0.95] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute w-[280px] h-[550px] rounded-[3.5rem] bg-gradient-to-br from-violet-200 to-cyan-200 blur-xl pointer-events-none"
+              />
 
-              {/* Glowing Background Blur */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/10 blur-[150px] -z-10 rounded-full" />
-            </div>
+              {/* Phone frame */}
+              <div className="relative w-[248px] h-[520px] bg-slate-50 rounded-[3rem] border-4 border-slate-200 shadow-[0_30px_80px_-10px_rgba(109,40,217,0.18),0_0_0_1px_rgba(0,0,0,0.04)] overflow-hidden">
+                {/* Notch */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-full z-20" />
+                <div className="h-full flex flex-col pt-10 pb-3 px-3">
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-2 mb-4">
+                    <span className="text-sm font-black text-slate-900">SnapMoment</span>
+                    <div className="relative">
+                      <Bell size={15} className="text-slate-400" />
+                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-violet-500 rounded-full" />
+                    </div>
+                  </div>
+                  {/* Processing */}
+                  <div className="mx-1 bg-white border border-slate-100 rounded-2xl p-3 mb-3 shadow-sm">
+                    <div className="text-[9px] text-violet-600 font-bold uppercase tracking-widest mb-1">AI Processing</div>
+                    <div className="text-sm font-bold text-slate-900 mb-2">Syncing memories...</div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <motion.div animate={{ x:['-100%','100%'] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+                        className="w-1/2 h-full bg-gradient-to-r from-violet-500 to-cyan-500 rounded-full" />
+                    </div>
+                  </div>
+                  {/* Photo grid */}
+                  <div className="flex-1 grid grid-cols-2 gap-1.5 px-1 overflow-hidden">
+                    {[
+                      'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=200&fit=crop',
+                      'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=200&fit=crop',
+                      'https://images.unsplash.com/photo-1519741497674-611481863552?w=200&fit=crop',
+                      'https://images.unsplash.com/photo-1510076857177-7470076d4098?w=200&fit=crop',
+                    ].map((url, i) => (
+                      <div key={i} className="rounded-xl overflow-hidden aspect-square shadow-sm">
+                        <img src={url} className="w-full h-full object-cover" alt="" />
+                      </div>
+                    ))}
+                  </div>
+                  {/* CTA */}
+                  <div className="mx-1 mt-3 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-600 flex items-center justify-center gap-2 shadow-lg">
+                    <Download size={13} className="text-white" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white">Open My Gallery</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Corner icons */}
+              <motion.div animate={{ y:[0,-14,0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -top-4 -right-2 z-40">
+                <div className="w-14 h-14 rounded-2xl bg-white shadow-lg border border-slate-100 flex items-center justify-center">
+                  <Camera size={24} className="text-violet-600" />
+                </div>
+              </motion.div>
+              <motion.div animate={{ y:[0,14,0] }} transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}
+                className="absolute -bottom-2 -left-4 z-40">
+                <div className="w-14 h-14 rounded-2xl bg-slate-900 shadow-lg border border-slate-800 flex items-center justify-center">
+                  <QrCode size={22} className="text-cyan-400" />
+                </div>
+              </motion.div>
+            </motion.div>
+
           </div>
-        </div>
+        </motion.div>
       </header>
 
-      {/* --- STATS SECTION: VIBRANT DARK --- */}
-      <section className="py-40 bg-foreground relative overflow-hidden">
-        <div className="absolute inset-0 noise-overlay opacity-20" />
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
-            <StatCounter value={250} suffix="+" label="Elite Studios" icon={Award} />
-            <StatCounter value={750000} suffix="+" label="Photos Delivered" icon={ImageIcon} />
-            <StatCounter value={1200} suffix="+" label="Premium Events" icon={Sparkles} />
-            <StatCounter value={99.9} suffix="%" label="AI Reliability" icon={Shield} />
+      {/* Wave into stats */}
+      <WaveDivider fill="#F8FAFC" fromColor="#FFFFFF" />
+
+      {/* ── STATS ── */}
+      <section className="py-20 bg-slate-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+            <StatCard value={250}    suffix="+"  label="Studio Partners"   icon={Award}      color="bg-gradient-to-br from-violet-500 to-violet-700" />
+            <StatCard value={750000} suffix="+"  label="Photos Delivered"  icon={ImageIcon}  color="bg-gradient-to-br from-cyan-500 to-cyan-700" />
+            <StatCard value={1200}   suffix="+"  label="Events Powered"    icon={Sparkles}   color="bg-gradient-to-br from-amber-500 to-orange-500" />
+            <StatCard value={99}     suffix="%"  label="Accuracy Rate"     icon={ShieldCheck} color="bg-gradient-to-br from-emerald-500 to-emerald-700" />
           </div>
         </div>
       </section>
 
-      {/* --- HOW IT WORKS: THE PIPELINE --- */}
-      <section className="py-40 px-6 bg-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex flex-col md:flex-row items-end justify-between gap-12 mb-32">
-             <div className="max-w-2xl">
-                <div className="hero-badge mb-6 border-slate-200 bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-[0.2em]">The Workflow</div>
-                <h2 className="text-6xl md:text-8xl font-black tracking-tighter italic uppercase leading-none">The Future <br /> <span className="gradient-text">Unfolds.</span></h2>
-             </div>
-             <p className="text-xl text-text-muted max-w-sm font-medium leading-relaxed italic">"We've eliminated the friction between capture and consumption."</p>
-          </div>
+      <WaveDivider fill="#FFFFFF" fromColor="#F8FAFC" />
 
-          <div className="grid md:grid-cols-3 gap-16 relative">
-            <div className="hidden md:block absolute top-[140px] left-[15%] right-[15%] h-[2px] bg-slate-100" />
-            
-            {[
-              { icon: Camera, title: 'Upload', desc: 'Photos stream directly from camera to cloud in real-time.', color: 'primary' },
-              { icon: QrCode, title: 'Identify', desc: 'AI analyzes guest selfies and indexes thousands of faces.', color: 'emerald' },
-              { icon: Smartphone, title: 'Deliver', desc: 'Galleries are pushed to guest phones in under 1 second.', color: 'accent' },
-            ].map((item, i) => (
-              <motion.div 
-                key={i} 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.2 }}
-                className="relative group text-center"
-              >
-                <div className={`w-32 h-32 rounded-[3.5rem] bg-slate-50 flex items-center justify-center mx-auto mb-10 group-hover:bg-${item.color} group-hover:text-white transition-all duration-700 shadow-xl group-hover:shadow-${item.color}/30 group-hover:-translate-y-3`}>
-                  <item.icon size={48} className="group-hover:scale-110 transition-transform" />
+      {/* ── HOW IT WORKS ── */}
+      <section className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 mb-4">
+              <span className="text-xs font-semibold text-cyan-700 tracking-widest uppercase">How It Works</span>
+            </div>
+            <h2 className="text-4xl md:text-[3.5rem] font-black text-slate-900 mb-4">Three steps to <span className="gradient-text">pure magic</span></h2>
+            <p className="text-slate-400 text-lg max-w-lg mx-auto">From shutter click to guest gallery in seconds — no app downloads required.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-7 relative">
+            {/* connector */}
+            <div className="hidden md:block absolute top-12 left-[22%] right-[22%] h-px bg-gradient-to-r from-violet-200 via-cyan-200 to-violet-200" />
+            {steps.map((s, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: i * 0.15 }}
+                className="group relative p-8 rounded-3xl bg-slate-50 border border-slate-100 hover:border-violet-200 hover:bg-violet-50/30 hover:-translate-y-1 transition-all duration-400 text-center">
+                <div className="text-8xl font-black text-slate-100 leading-none absolute top-3 right-5 select-none group-hover:text-violet-100 transition-colors">{s.n}</div>
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center text-white mx-auto mb-5 shadow-lg shadow-violet-200 group-hover:scale-110 transition-transform duration-300">
+                  <s.icon size={24} />
                 </div>
-                <h3 className="text-3xl font-black mb-4 tracking-tighter uppercase italic">{item.title}</h3>
-                <p className="text-text-muted font-medium leading-relaxed px-6">{item.desc}</p>
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">{s.title}</h3>
+                <p className="text-base text-slate-500 leading-relaxed">{s.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* --- FEATURE SHOWCASE: INTELLIGENCE GRID --- */}
-      <section className="py-40 bg-slate-50 relative noise-overlay">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-32">
-             <h2 className="text-6xl md:text-9xl font-black mb-8 tracking-tighter italic uppercase leading-[0.8]">Intelligent <br /><span className="text-primary">Ecosystem.</span></h2>
-             <p className="text-2xl text-text-muted font-medium max-w-2xl mx-auto italic">Engineered for high-pressure environments where speed is the only metric that matters.</p>
+      {/* ── FEATURES ── */}
+      <section className="py-24 bg-gradient-to-b from-slate-50 to-white border-y border-slate-100">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-50 border border-violet-200 mb-4">
+              <span className="text-xs font-semibold text-violet-700 tracking-widest uppercase">Platform</span>
+            </div>
+            <h2 className="text-4xl md:text-[3.5rem] font-black text-slate-900 mb-4">
+              Everything you need.{' '}
+              <span className="gradient-text">Nothing you don't.</span>
+            </h2>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-               { icon: Target, title: 'Precision Match', desc: 'Works with glasses, masks, and low-light scenarios.', size: 'lg' },
-               { icon: ShieldCheck, title: 'Enterprise Privacy', desc: 'Selfie data is processed in-memory and never stored.', size: 'sm' },
-               { icon: ZapIcon, title: 'Cloud-Edge Sync', desc: 'Hybrid processing for ultra-low latency worldwide.', size: 'sm' },
-               { icon: Globe, title: 'Global Delivery', desc: 'CDNs in 150+ locations for instant photo retrieval.', size: 'lg' },
-               { icon: Layers, title: 'Smart Branding', desc: 'Auto-applied watermarks that adapt to photo lighting.', size: 'sm' },
-               { icon: Box, title: 'Bulk Archive', desc: 'One-click full event downloads for photographers.', size: 'lg' },
-               { icon: Users, title: 'Guest CRM', desc: 'Understand your audience engagement like never before.', size: 'sm' },
-               { icon: Heart, title: 'Guest Delight', desc: 'The "Wow" factor that makes your studio unforgettable.', size: 'lg' },
-            ].map((f, i) => (
-              <div key={i} className={`p-10 rounded-[3rem] bg-white border border-slate-100 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all group ${f.size === 'lg' ? 'lg:col-span-1 lg:row-span-1' : ''}`}>
-                 <div className="w-14 h-14 rounded-2xl bg-slate-50 text-slate-800 flex items-center justify-center mb-8 group-hover:bg-primary group-hover:text-white transition-all">
-                    <f.icon size={28} />
-                 </div>
-                 <h3 className="text-xl font-black mb-4 tracking-tight uppercase italic">{f.title}</h3>
-                 <p className="text-sm text-text-muted font-medium leading-relaxed">{f.desc}</p>
-              </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {features.map((f, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.07 }}
+                className="group p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-violet-200 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-100 to-cyan-100 flex items-center justify-center mb-4 group-hover:from-violet-500 group-hover:to-cyan-500 transition-all duration-400">
+                  <f.icon size={20} className="text-violet-600 group-hover:text-white transition-colors duration-400" />
+                </div>
+                <h3 className="text-base font-bold text-slate-800 mb-1.5">{f.title}</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* --- TESTIMONIALS & TRUST --- */}
-      <section className="py-40 bg-white overflow-hidden relative">
-         <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-slate-50 to-transparent -z-10" />
-         <div className="max-w-7xl mx-auto px-6 text-center">
-            <h2 className="text-6xl md:text-9xl font-black mb-24 tracking-tighter italic uppercase leading-[0.8]">The Voice <br />of <span className="text-primary">Excellence.</span></h2>
-            
-            <div className="grid md:grid-cols-3 gap-10 text-left">
-               {[
-                  { name: 'Arjun Mehra', role: 'Wedding Director', text: "We delivered 4,000 photos to 500 guests in under 2 minutes. The feedback was absolute shock and delight.", img: 'https://i.pravatar.cc/100?img=11' },
-                  { name: 'Sarah Khan', role: 'Event Manager', text: "Manual sharing is dead. SnapMoment is the only tool that has actually made my life easier during busy seasons.", img: 'https://i.pravatar.cc/100?img=32' },
-                  { name: 'David Wilson', role: 'Production Lead', text: "The face recognition accuracy even at night events is incredible. A game changer for massive festivals.", img: 'https://i.pravatar.cc/100?img=15' },
-               ].map((t, i) => (
-                  <div key={i} className="p-10 rounded-[4rem] bg-slate-50 border border-slate-100 shadow-xl group hover:bg-slate-900 hover:text-white transition-all duration-700">
-                     <div className="flex gap-1 mb-8 text-primary">
-                        {[1,2,3,4,5].map(s => <Star key={s} size={16} fill="currentColor" />)}
-                     </div>
-                     <p className="text-xl font-medium leading-relaxed italic mb-10 italic">"{t.text}"</p>
-                     <div className="flex items-center gap-4">
-                        <img src={t.img} className="w-14 h-14 rounded-full border-2 border-primary" alt="" />
-                        <div>
-                           <div className="font-black text-sm uppercase">{t.name}</div>
-                           <div className="text-[10px] font-black text-primary uppercase tracking-widest">{t.role}</div>
-                        </div>
-                     </div>
+      {/* ── TESTIMONIALS ── */}
+      <section className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <h2 className="text-4xl md:text-[3.5rem] font-black text-slate-900 mb-3">
+              Loved by <span className="gradient-text">creators worldwide</span>
+            </h2>
+            <p className="text-slate-400 text-lg max-w-sm mx-auto">Real studios. Real results. Real impact.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: i * 0.15 }}
+                className="group p-7 rounded-3xl bg-slate-50 border border-slate-100 hover:border-violet-200 hover:bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-400">
+                <div className="flex gap-1 mb-5">{[1,2,3,4,5].map(s => <Star key={s} size={13} className="text-amber-400 fill-amber-400" />)}</div>
+                <p className="text-base text-slate-600 leading-relaxed italic mb-6">"{t.q}"</p>
+                <div className="flex items-center gap-3">
+                  <img src={t.img} className="w-11 h-11 rounded-full object-cover border-2 border-white shadow" alt={t.name} />
+                  <div>
+                    <div className="text-sm font-bold text-slate-900">{t.name}</div>
+                    <div className="text-[10px] font-semibold text-violet-600 uppercase tracking-widest">{t.role}</div>
                   </div>
-               ))}
-            </div>
-         </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* --- FINAL ACTION --- */}
-      <section className="py-40 px-6">
-        <div className="max-w-7xl mx-auto rounded-[6rem] bg-slate-900 p-20 md:p-40 text-center text-white relative overflow-hidden shadow-4xl group">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-purple-600 opacity-20 group-hover:opacity-40 transition-opacity duration-1000" />
-          <div className="absolute top-0 left-0 w-full h-full noise-overlay opacity-30" />
-          
-          <div className="relative z-10">
-            <h2 className="text-7xl md:text-[11rem] font-black mb-12 tracking-tighter italic uppercase leading-[0.8]">Own the <br /><span className="text-primary">Moment.</span></h2>
-            <p className="text-2xl md:text-4xl text-white/60 mb-20 max-w-4xl mx-auto font-medium leading-relaxed">Join the world's most elite photography studios and automate your delivery today.</p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-10">
-              <Link to="/signup" className="w-full sm:w-auto px-20 py-8 rounded-[3.5rem] bg-white text-slate-900 font-black text-3xl hover:scale-110 hover:shadow-white/20 transition-all active:scale-95">
-                Get Started Now
-              </Link>
-              <Link to="/contact" className="w-full sm:w-auto px-20 py-8 rounded-[3.5rem] bg-white/5 border-2 border-white/10 text-white font-black text-3xl hover:bg-white/10 transition-all backdrop-blur-md active:scale-95">
-                Contact Sales
-              </Link>
+      {/* ── CTA ── */}
+      <section className="py-20 px-6 bg-slate-50">
+        <div className="max-w-4xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="relative rounded-[2.5rem] overflow-hidden text-center p-14 md:p-20 bg-gradient-to-br from-violet-600 via-violet-700 to-cyan-600 shadow-2xl shadow-violet-300">
+            {/* shimmer */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.15),transparent_60%)]" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-white/20" />
+            {/* Animated shine sweep */}
+            <motion.div
+              animate={{ x: ['-150%', '250%'] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 3 }}
+              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none skew-x-[-20deg]"
+            />
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 mb-6">
+                <Sparkles size={13} className="text-white/80" />
+                <span className="text-xs font-semibold text-white/80 tracking-widest uppercase">Ready to Launch?</span>
+              </div>
+              <h2 className="text-4xl md:text-[3.5rem] font-black text-white mb-5 leading-tight">
+                Transform how you deliver <br className="hidden md:block" /> your moments.
+              </h2>
+              <p className="text-white/70 text-lg max-w-lg mx-auto mb-10 leading-relaxed">
+                Join 250+ photography studios already using SnapMoment to delight their guests. Setup takes under 5 minutes.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link to="/signup" className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-10 py-4 rounded-2xl bg-white text-violet-700 font-bold text-base hover:bg-violet-50 hover:scale-[1.03] active:scale-95 transition-all duration-300 shadow-lg">
+                  Get Started Free <ArrowRight size={17} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link to="/contact" className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 rounded-2xl bg-white/10 border border-white/25 text-white font-semibold text-base hover:bg-white/20 active:scale-95 transition-all duration-300">
+                  Talk to Sales
+                </Link>
+              </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 

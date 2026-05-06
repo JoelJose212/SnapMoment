@@ -1,92 +1,219 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.database import get_db
-from app.models.photographer import Photographer
-from app.schemas import SignupRequest, LoginRequest, TokenResponse
-from app.services.auth import hash_password, verify_password, create_token, require_photographer, get_current_user
-from app.config import settings
 import uuid
 from datetime import datetime
 
+from app.database import get_db
+from app.models.photographer import Photographer
+from app.models.user import User, UserRole
+from app.models.client_booking import ClientProfile, PhotographerProfile
+from app.schemas import SignupRequest, LoginRequest, TokenResponse
+from app.services.auth import hash_password, verify_password, create_token, get_current_user
+from app.config import settings
+
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-
-@router.post("/signup", response_model=TokenResponse)
-async def signup(data: SignupRequest, db: AsyncSession = Depends(get_db)):
-    existing = await db.execute(select(Photographer).where(Photographer.email == data.email))
+@router.post("/client/signup", response_model=TokenResponse)
+async def client_signup(data: SignupRequest, db: AsyncSession = Depends(get_db)):
+    existing = await db.execute(select(User).where(User.email == data.email))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    photographer = Photographer(
+    user = User(
         id=uuid.uuid4(),
         full_name=data.full_name,
         email=data.email,
-        phone=data.phone,
         password_hash=hash_password(data.password),
-        studio_name=data.studio_name,
-        plan="free",
+        role=UserRole.CLIENT,
         is_active=True,
-        is_verified=False,
+        is_verified=True
     )
-    db.add(photographer)
+    db.add(user)
+    
+    profile = ClientProfile(
+        id=uuid.uuid4(),
+        user_id=user.id,
+        phone=data.phone,
+        state=data.state,
+        district=data.district,
+        city=data.city,
+        pincode=data.pincode,
+        dob=data.dob,
+        gender=data.gender,
+        referral_source=data.referral_source
+    )
+    db.add(profile)
+    
     await db.commit()
-    await db.refresh(photographer)
+    await db.refresh(user)
 
-    token = create_token({"sub": str(photographer.id), "role": "photographer", "email": photographer.email})
+    token = create_token({"sub": str(user.id), "role": "client", "email": user.email})
     return TokenResponse(
         access_token=token, 
-        role="photographer", 
-        user_id=str(photographer.id), 
-        full_name=photographer.full_name, 
-        onboarding_step=photographer.onboarding_step,
+        role=UserRole.CLIENT.value, 
+        user_id=str(user.id), 
+        full_name=user.full_name, 
+        email=user.email,
+        onboarding_step=1,
         subscription_active=True
     )
 
+@router.post("/photographer/signup", response_model=TokenResponse)
+async def photographer_signup(data: SignupRequest, db: AsyncSession = Depends(get_db)):
+    # Create User
+    existing = await db.execute(select(User).where(User.email == data.email))
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-@router.post("/login", response_model=TokenResponse)
-async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Photographer).where(Photographer.email == data.email))
-    photographer = result.scalar_one_or_none()
-
-    if not photographer or photographer.is_deleted or not verify_password(data.password, photographer.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    sub_active = True
-    if photographer.subscription_expires_at and photographer.subscription_expires_at < datetime.utcnow():
-        sub_active = False
+    user = User(
+        id=uuid.uuid4(),
+        full_name=data.full_name,
+        email=data.email,
+        password_hash=hash_password(data.password),
+        role=UserRole.PHOTOGRAPHER,
+        is_active=True,
+        is_verified=False
+    )
+    db.add(user)
     
-    # We allow login even if sub is expired, as long as is_deleted is False.
-    # We only block if is_active is specifically False AND it's NOT a subscription expiry case.
-    if not photographer.is_active and sub_active:
-         raise HTTPException(status_code=403, detail="Account is deactivated")
+    # Create Photographer Profile (Marketplace)
+    profile = PhotographerProfile(
+        id=uuid.uuid4(),
+        user_id=user.id,
+        business_name=data.studio_name or data.full_name,
+        status="pending"
+    )
+    db.add(profile)
+    
+    # Also create legacy Photographer record for compatibility with existing dashboard
+    legacy = Photographer(
+        id=user.id, # Keep ID same for now
+        full_name=data.full_name,
+        email=data.email,
+        phone=data.phone,
+        password_hash=user.password_hash,
+        studio_name=data.studio_name,
+        plan="free"
+    )
+    db.add(legacy)
+    
+    await db.commit()
+    await db.refresh(user)
 
-    token = create_token({"sub": str(photographer.id), "role": "photographer", "email": photographer.email})
+    token = create_token({"sub": str(user.id), "role": "photographer", "email": user.email})
     return TokenResponse(
         access_token=token, 
         role="photographer", 
-        user_id=str(photographer.id), 
-        full_name=photographer.full_name, 
-        onboarding_step=photographer.onboarding_step,
-        subscription_active=sub_active
+        user_id=str(user.id), 
+        full_name=user.full_name, 
+        onboarding_step=1,
+        subscription_active=True
     )
 
+@router.post("/login", response_model=TokenResponse)
+async def unified_login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        # 1. Check User table
+        result = await db.execute(select(User).where(User.email == data.email))
+        user = result.scalar_one_or_none()
+        
+        if user and verify_password(data.password, user.password_hash):
+            onboarding_step = 1
+            sub_active = True
+            
+            # If photographer, fetch details from Photographer table
+            if user.role == UserRole.PHOTOGRAPHER:
+                res = await db.execute(select(Photographer).where(Photographer.id == user.id))
+                photog = res.scalar_one_or_none()
+                if photog:
+                    onboarding_step = photog.onboarding_step
+                    # If verified, they should at least be past onboarding
+                    if photog.is_verified and onboarding_step < 6:
+                        onboarding_step = 6
+                    
+                    from datetime import timezone
+                    if photog.subscription_expires_at and photog.subscription_expires_at < datetime.now(timezone.utc):
+                        sub_active = False
+            
+            token = create_token({"sub": str(user.id), "role": user.role.value, "email": user.email})
+            return TokenResponse(
+                access_token=token,
+                role=user.role.value,
+                user_id=str(user.id),
+                full_name=user.full_name or "",
+                email=user.email,
+                onboarding_step=onboarding_step,
+                subscription_active=sub_active
+            )
+            
+        # 2. Legacy Photographer Fallback
+        result = await db.execute(select(Photographer).where(Photographer.email == data.email))
+        photographer = result.scalar_one_or_none()
+        
+        if photographer and verify_password(data.password, photographer.password_hash):
+            # AUTO-MIGRATE TO NEW TABLES
+            try:
+                user = User(
+                    id=photographer.id, # Keep existing ID
+                    email=photographer.email,
+                    password_hash=photographer.password_hash,
+                    full_name=photographer.full_name,
+                    role=UserRole.PHOTOGRAPHER,
+                    is_active=photographer.is_active,
+                    is_verified=photographer.is_verified
+                )
+                db.add(user)
+                
+                # Create Photographer Profile if missing
+                prof_res = await db.execute(select(PhotographerProfile).where(PhotographerProfile.user_id == photographer.id))
+                if not prof_res.scalar_one_or_none():
+                    new_profile = PhotographerProfile(
+                        id=uuid.uuid4(),
+                        user_id=user.id,
+                        business_name=photographer.studio_name or photographer.full_name,
+                        status="verified" if photographer.is_verified else "pending"
+                    )
+                    db.add(new_profile)
+                
+                await db.commit()
+                await db.refresh(user)
+            except Exception as migrate_err:
+                await db.rollback()
+                # If migration fails (e.g. user already exists), just continue to token generation
+                # as long as we have some user record to work with.
+                # But here we didn't find one in Step 1, so this is a real error.
+                raise HTTPException(status_code=500, detail=f"Migration error: {str(migrate_err)}")
+
+            from datetime import timezone
+            sub_active = True
+            if photographer.subscription_expires_at and photographer.subscription_expires_at < datetime.now(timezone.utc):
+                sub_active = False
+                
+            token = create_token({"sub": str(user.id), "role": "photographer", "email": user.email})
+            return TokenResponse(
+                access_token=token, 
+                role="photographer", 
+                user_id=str(user.id), 
+                full_name=user.full_name or photographer.full_name, 
+                email=user.email,
+                onboarding_step=photographer.onboarding_step,
+                subscription_active=sub_active
+            )
+
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=f"Login Error: {str(e)}")
 
 @router.post("/admin/login", response_model=TokenResponse)
 async def admin_login(data: LoginRequest):
-    # Trim whitespace and lowercase email for robust comparison
-    input_email = data.email.strip().lower()
-    input_password = data.password.strip()
-    
-    admin_email = settings.ADMIN_EMAIL.strip().lower()
-    admin_password = settings.ADMIN_PASSWORD.strip()
-
-    if input_email != admin_email or input_password != admin_password:
+    if data.email != settings.ADMIN_EMAIL or data.password != settings.ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
         
-    token = create_token({"sub": "admin", "role": "admin", "email": input_email})
-    return TokenResponse(access_token=token, role="admin", user_id="admin", full_name="Admin")
-
+    token = create_token({"sub": "admin", "role": "admin", "email": data.email})
+    return TokenResponse(access_token=token, role="admin", user_id="admin", full_name="Admin", email=data.email)
 
 @router.get("/me")
 async def get_me(current_user: dict = Depends(get_current_user)):

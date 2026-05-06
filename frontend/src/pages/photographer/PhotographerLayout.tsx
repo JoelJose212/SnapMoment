@@ -1,192 +1,345 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { 
   Camera, CalendarDays, BarChart2, User, LogOut, 
-  ArrowRight, AlertTriangle, Zap, ShieldCheck, 
-  Sparkles, Bell, Settings, Globe, Users
+  ArrowRight, ShieldCheck, Sparkles, Bell, 
+  Settings, Globe, Users, Search, Command, IndianRupee,
+  MessageSquare, X, Check, ImageIcon, Server
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
+import { notificationApi } from '../../lib/api'
+import toast from 'react-hot-toast'
 
 const NAV = [
-  { to: '/photographer/events', icon: CalendarDays, label: 'My Events' },
-  { to: '/photographer/engagement', icon: Users, label: 'Engagement' },
-  { to: '/photographer/analytics', icon: BarChart2, label: 'Analytics' },
-  { to: '/photographer/profile', icon: User, label: 'Profile' },
+  { to: '/photographer/events', icon: CalendarDays, label: 'Studio Events' },
+  { to: '/photographer/bookings', icon: Bell, label: 'Booking Orders' },
+  { to: '/photographer/chat', icon: MessageSquare, label: 'Client Messages' },
+  { to: '/photographer/engagement', icon: Users, label: 'Guest Intel' },
+  { to: '/photographer/analytics', icon: BarChart2, label: 'Performance' },
+  { to: '/photographer/pricing-manager', icon: IndianRupee, label: 'Pricing & Services' },
 ]
 
-const INTEL_NAV = [
-  { to: '/photographer/delivery', icon: Globe, label: 'Global Delivery' },
-  { to: '/photographer/notifications', icon: Bell, label: 'Notifications' },
+const SYSTEM_NAV = [
+  { to: '/photographer/profile', icon: Settings, label: 'Studio Config' },
+  { to: '/photographer/delivery', icon: Globe, label: 'Global Hub' },
 ]
 
 export default function PhotographerLayout() {
   const { fullName, logout, subscriptionActive } = useAuthStore()
   const navigate = useNavigate()
+  const location = useLocation()
+  
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await notificationApi.get()
+      setNotifications(res.data)
+      setUnreadCount(res.data.filter((n: any) => !n.is_read).length)
+    } catch (err) {
+      console.error('Failed to fetch notifications')
+    }
+  }
+
+  useEffect(() => {
+    fetchNotifications()
+    const interval = setInterval(fetchNotifications, 10000) // Poll every 10s
+    return () => clearInterval(interval)
+  }, [])
+
+  const markRead = async (id: string) => {
+    try {
+      await notificationApi.markRead(id, true)
+      fetchNotifications()
+    } catch (err) {
+      toast.error('Failed to mark as read')
+    }
+  }
+
+  const markAllRead = async () => {
+    try {
+      await notificationApi.readAll()
+      fetchNotifications()
+    } catch (err) {
+      toast.error('Failed to mark all as read')
+    }
+  }
 
   return (
-    <div className="flex min-h-screen relative overflow-hidden bg-slate-50 selection:bg-primary/20">
-      {/* Immersive Background Elements */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-primary/10 blur-[150px] rounded-full animate-pulse-slow" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-accent/10 blur-[150px] rounded-full animate-pulse-slow" style={{ animationDelay: '2s' }} />
-        <div className="absolute inset-0 noise-overlay opacity-[0.03]" />
+    <div className="flex min-h-screen bg-[#F8FAFC] selection:bg-[#D4AF37]/20 font-sans">
+      {/* Decorative Background Aurora */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#D4AF37]/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#FF9933]/5 blur-[120px] rounded-full" />
       </div>
 
-      {/* --- Sidebar: High-End Acrylic --- */}
-      <aside className="w-80 flex-shrink-0 flex flex-col p-8 z-20 pointer-events-auto">
-        <div className="bg-white/70 backdrop-blur-3xl h-full rounded-[3rem] flex flex-col overflow-hidden border border-white/40 shadow-2xl shadow-slate-200/50">
-          
-          {/* Brand Header */}
-          <div className="p-10 pb-8 border-b border-slate-100">
-            <Link to="/" className="flex items-center gap-4 group">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-900 shadow-xl shadow-slate-900/20 group-hover:scale-105 transition-transform">
-                <Camera size={24} className="text-white" />
-              </div>
-              <div>
-                <span className="text-2xl font-black block leading-none tracking-tighter italic uppercase text-slate-900">SnapMoment</span>
-                <div className="flex items-center gap-1.5 mt-1.5">
-                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                   <span className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Studio Elite</span>
+      {/* --- Sidebar: Ultra-Modern Floating Navigation --- */}
+      <aside className="w-80 h-screen sticky top-0 flex flex-col p-6 z-50">
+        <div className="bg-[#111827] h-full rounded-[2.5rem] flex flex-col overflow-hidden shadow-2xl shadow-slate-900/40 relative">
+          {/* Top Logo Section */}
+          <div className="p-10 pb-12 relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 blur-[40px] -translate-y-1/2 translate-x-1/2" />
+             <Link to="/" className="flex items-center gap-4 group relative z-10">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/10 backdrop-blur-xl border border-white/10 group-hover:bg-[#D4AF37]/20 transition-all duration-500">
+                  <Camera size={24} className="text-white" />
                 </div>
-              </div>
-            </Link>
+                <div>
+                   <h2 className="text-xl font-black text-white tracking-tight uppercase leading-none">SnapMoment</h2>
+                   <div className="flex items-center gap-2 mt-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#FF9933] animate-pulse" />
+                      <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Studio Swagat</span>
+                   </div>
+                </div>
+             </Link>
           </div>
 
-          {/* Navigation Hub */}
-          <nav className="flex-1 p-6 py-10 space-y-3">
-            <div className="px-4 mb-6 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Workspace</div>
-            {NAV.map(({ to, icon: Icon, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `group relative flex items-center gap-4 px-6 py-5 rounded-[1.75rem] text-sm font-black transition-all duration-500 ${
-                    isActive 
-                      ? 'text-white' 
-                      : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <AnimatePresence>
-                      {isActive && (
+          {/* Main Navigation */}
+          <nav className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar">
+             <div className="px-6 mb-6">
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Creative Suite</span>
+             </div>
+             {NAV.map(({ to, icon: Icon, label }) => (
+               <NavLink
+                 key={to} to={to}
+                 className={({ isActive }) =>
+                   `group relative flex items-center gap-4 px-6 py-5 rounded-2xl text-sm font-black transition-all duration-500 ${
+                     isActive ? 'text-white' : 'text-white/40 hover:text-white hover:bg-white/5'
+                   }`
+                 }
+               >
+                 {({ isActive }) => (
+                   <>
+                     {isActive && (
                         <motion.div
-                          layoutId="nav-active"
-                          className="absolute inset-0 rounded-[1.75rem] bg-slate-900 shadow-xl shadow-slate-900/20"
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
+                          layoutId="nav-glow"
+                          className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#D4AF37]/20 to-transparent border-l-4 border-[#D4AF37] z-0"
                         />
-                      )}
-                    </AnimatePresence>
-                    
-                    <Icon size={20} className={`relative z-10 transition-transform duration-500 group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-300 group-hover:text-primary'}`} />
-                    <span className="relative z-10 tracking-tight">{label}</span>
-                    
-                    {!isActive && (
-                      <ArrowRight size={14} className="ml-auto opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
+                     )}
+                     <Icon size={20} className={`relative z-10 ${isActive ? 'text-[#D4AF37]' : 'text-white/20 group-hover:text-white/60'}`} />
+                     <span className="relative z-10">{label}</span>
+                     {isActive && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="ml-auto w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-lg shadow-[#D4AF37]/50 relative z-10" />}
+                   </>
+                 )}
+               </NavLink>
+             ))}
 
-            <div className="pt-10 px-4 mb-6 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Intelligence</div>
-            {INTEL_NAV.map(({ to, icon: Icon, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `group relative flex items-center gap-4 px-6 py-5 rounded-[1.75rem] text-sm font-black transition-all duration-500 ${
-                    isActive 
-                      ? 'text-white' 
-                      : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <AnimatePresence>
-                      {isActive && (
+             <div className="pt-10 px-6 mb-6">
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">System</span>
+             </div>
+             {SYSTEM_NAV.map(({ to, icon: Icon, label }) => (
+               <NavLink
+                 key={to} to={to}
+                 className={({ isActive }) =>
+                   `group relative flex items-center gap-4 px-6 py-5 rounded-2xl text-sm font-black transition-all duration-500 ${
+                     isActive ? 'text-white' : 'text-white/40 hover:text-white hover:bg-white/5'
+                   }`
+                 }
+               >
+                 {({ isActive }) => (
+                   <>
+                     {isActive && (
                         <motion.div
-                          layoutId="nav-active"
-                          className="absolute inset-0 rounded-[1.75rem] bg-slate-900 shadow-xl shadow-slate-900/20"
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
+                          layoutId="nav-glow"
+                          className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#D4AF37]/20 to-transparent border-l-4 border-[#D4AF37] z-0"
                         />
-                      )}
-                    </AnimatePresence>
-                    
-                    <Icon size={20} className={`relative z-10 transition-transform duration-500 group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-300 group-hover:text-primary'}`} />
-                    <span className="relative z-10 tracking-tight">{label}</span>
-                    
-                    {!isActive && (
-                      <ArrowRight size={14} className="ml-auto opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
+                     )}
+                     <Icon size={20} className={`relative z-10 ${isActive ? 'text-[#D4AF37]' : 'text-white/20 group-hover:text-white/60'}`} />
+                     <span className="relative z-10">{label}</span>
+                     {isActive && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="ml-auto w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-lg shadow-[#D4AF37]/50 relative z-10" />}
+                   </>
+                 )}
+               </NavLink>
+             ))}
           </nav>
 
-          {/* Creative Partner Card */}
-          <div className="p-8 bg-slate-50 border-t border-slate-100">
-            <div className="flex items-center gap-4 mb-8 px-2">
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-lg p-0.5 relative group">
-                <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${fullName}`} alt="Avatar" className="w-full h-full object-cover rounded-2xl group-hover:scale-110 transition-transform" />
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-white rounded-full" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Creative Partner</div>
-                <div className="text-base font-black text-slate-900 truncate tracking-tight">{fullName}</div>
-              </div>
-            </div>
-            
-            <button
-              onClick={() => { logout(); navigate('/') }}
-              className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl bg-white border border-slate-200 text-slate-400 font-black text-xs uppercase tracking-widest hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all shadow-sm active:scale-95 group"
-            >
-              <LogOut size={16} className="group-hover:rotate-12 transition-transform" />
-              Sign Out
-            </button>
+          {/* User Profile Card */}
+          <div className="p-6">
+             <div className="bg-white/5 rounded-3xl p-5 border border-white/5">
+                <div className="flex items-center gap-4 mb-6">
+                   <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/20 border border-[#D4AF37]/20 p-0.5 relative">
+                      <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${fullName}`} className="w-full h-full object-cover rounded-2xl" alt="Me" />
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-4 border-[#111827] rounded-full" />
+                   </div>
+                   <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/40 truncate">Studio Head</p>
+                      <p className="text-sm font-black text-white truncate">{fullName}</p>
+                   </div>
+                </div>
+                <button 
+                  onClick={() => { logout(); navigate('/') }}
+                  className="w-full py-3.5 rounded-xl bg-white/5 hover:bg-red-500/10 text-white/40 hover:text-red-400 font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 border border-white/5 hover:border-red-500/20"
+                >
+                   <LogOut size={14} /> Log Out System
+                </button>
+             </div>
           </div>
         </div>
       </aside>
 
-      {/* --- Main Workspace --- */}
-      <main className="flex-1 p-8 pl-0 flex flex-col relative z-10 pointer-events-auto">
-        {/* Banner: Suspension */}
-        {!subscriptionActive && (
-          <motion.div 
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="mb-8 rounded-[2.5rem] p-6 bg-slate-900 text-white shadow-2xl flex items-center justify-between px-10 relative overflow-hidden group"
-          >
-            <div className="absolute inset-0 bg-primary/20 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-1000" />
-            <div className="flex items-center gap-6 relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-xl flex items-center justify-center text-primary shadow-inner">
-                <ShieldCheck size={28} />
-              </div>
-              <div>
-                <div className="text-lg font-black italic uppercase tracking-tighter">Workspace Suspended</div>
-                <p className="text-sm text-white/60 font-medium tracking-tight">Your elite access has expired. Reactivate to restore your studio galleries.</p>
-              </div>
+      {/* --- Main Vessel --- */}
+      <main className="flex-1 flex flex-col p-6 pl-0 relative z-10">
+         {/* Top Glass Header */}
+         <header className="h-24 px-10 flex items-center justify-between glass-card border-none mb-6 rounded-[2.5rem] shadow-2xl shadow-slate-200/50">
+            <div className="flex items-center gap-8 flex-1">
+               <div className="relative group max-w-md w-full">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#D4AF37] transition-colors">
+                     <Search size={18} />
+                  </div>
+                  <input 
+                    type="text" placeholder="Search events, guests, or photos..."
+                    className="w-full pl-12 pr-6 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:bg-white focus:border-[#D4AF37]/30 transition-all font-bold text-sm"
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-2 py-1 bg-white border border-slate-100 rounded-lg shadow-sm">
+                     <Command size={12} className="text-slate-400" />
+                     <span className="text-[10px] font-black text-slate-400">K</span>
+                  </div>
+               </div>
             </div>
-            <button 
-              onClick={() => navigate('/onboarding')}
-              className="px-10 py-4 rounded-2xl bg-white text-slate-900 text-xs font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-xl relative z-10"
-            >
-              Restore Access
-            </button>
-          </motion.div>
-        )}
 
-        {/* Content Vessel */}
-        <div className="flex-1 overflow-auto">
-          <Outlet />
-        </div>
+            <div className="flex items-center gap-6">
+               <div className="flex items-center gap-3 pr-6 border-r border-slate-100 relative">
+                  <button 
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-all relative ${
+                      showNotifications ? 'bg-[#D4AF37] text-white' : 'bg-slate-50 text-slate-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/5'
+                    }`}
+                  >
+                     <Bell size={20} />
+                     {unreadCount > 0 && (
+                        <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full animate-pulse" />
+                     )}
+                  </button>
+
+                  <AnimatePresence>
+                    {showNotifications && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setShowNotifications(false)} 
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          className="absolute top-full right-0 mt-4 w-[400px] bg-white rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-slate-100 z-50 overflow-hidden"
+                        >
+                          <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                            <div>
+                              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Notifications</h3>
+                              <p className="text-[10px] text-slate-400 font-bold mt-0.5">{unreadCount} Unread Alerts</p>
+                            </div>
+                            <button 
+                              onClick={markAllRead}
+                              className="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest hover:underline"
+                            >
+                              Mark all as read
+                            </button>
+                          </div>
+
+                          <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
+                            {notifications.length === 0 ? (
+                              <div className="p-12 text-center">
+                                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                  <Bell size={24} className="text-slate-200" />
+                                </div>
+                                <p className="text-xs font-bold text-slate-400">All caught up!</p>
+                              </div>
+                            ) : (
+                              <div className="divide-y divide-slate-50">
+                                {notifications.map((notif) => (
+                                  <div 
+                                    key={notif.id}
+                                    className={`p-6 hover:bg-slate-50/50 transition-colors group relative ${!notif.is_read ? 'bg-[#D4AF37]/5' : ''}`}
+                                  >
+                                    <div className="flex gap-4">
+                                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                                        notif.type === 'message' ? 'bg-blue-50 text-blue-500' : 
+                                        notif.type === 'booking' ? 'bg-emerald-50 text-emerald-500' : 'bg-amber-50 text-amber-500'
+                                      }`}>
+                                        {notif.type === 'message' ? <MessageSquare size={18} /> : <Check size={18} />}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <h4 className="text-xs font-black text-slate-900 truncate pr-4">{notif.title}</h4>
+                                          <span className="text-[9px] font-bold text-slate-400 whitespace-nowrap">
+                                            {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                          </span>
+                                        </div>
+                                        <p className="text-[11px] text-slate-500 font-medium leading-relaxed mb-3">{notif.content}</p>
+                                        
+                                        <div className="flex items-center gap-4">
+                                          {notif.link && (
+                                            <Link 
+                                              to={notif.link}
+                                              onClick={() => {
+                                                markRead(notif.id)
+                                                setShowNotifications(false)
+                                              }}
+                                              className="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest flex items-center gap-1.5 hover:gap-2 transition-all"
+                                            >
+                                              View Details <ArrowRight size={12} />
+                                            </Link>
+                                          )}
+                                          {!notif.is_read && (
+                                            <button 
+                                              onClick={() => markRead(notif.id)}
+                                              className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600"
+                                            >
+                                              Dismiss
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          <Link 
+                            to="/photographer/notifications"
+                            onClick={() => setShowNotifications(false)}
+                            className="block p-5 text-center bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-[#D4AF37] transition-colors border-t border-slate-100"
+                          >
+                            View All Activity
+                          </Link>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+               </div>
+               
+               <div className="flex items-center gap-4">
+                  <div className="text-right hidden sm:block">
+                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Workspace Status</p>
+                     <div className="flex items-center justify-end gap-1.5 mt-1">
+                        <span className="text-sm font-black text-slate-900">{subscriptionActive ? 'Active Elite' : 'Suspended'}</span>
+                        <div className={`w-2 h-2 rounded-full ${subscriptionActive ? 'bg-emerald-500' : 'bg-red-500'} animate-pulse`} />
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </header>
+
+         {/* Content Area with Page Transitions */}
+         <div className="flex-1 overflow-hidden relative">
+            <AnimatePresence mode="wait">
+               <motion.div
+                 key={location.pathname}
+                 initial={{ opacity: 0, y: 10 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 exit={{ opacity: 0, y: -10 }}
+                 transition={{ duration: 0.35, ease: "easeOut" }}
+                 className="h-full overflow-y-auto custom-scrollbar pr-2"
+               >
+                  <Outlet />
+               </motion.div>
+            </AnimatePresence>
+         </div>
       </main>
     </div>
   )

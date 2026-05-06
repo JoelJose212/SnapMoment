@@ -52,9 +52,31 @@ guestApi.interceptors.request.use((config) => {
 // Auth endpoints
 export const authApi = {
   signup: (data: any) => api.post('/api/auth/signup', data),
+  clientSignup: (data: any) => api.post('/api/auth/client/signup', data),
   login: (data: any) => api.post('/api/auth/login', data),
   adminLogin: (data: any) => api.post('/api/auth/admin/login', data),
   me: () => api.get('/api/auth/me'),
+}
+
+export const bookingsApi = {
+  states: () => api.get('/api/bookings/locations/states'),
+  districts: (state: string) => api.get(`/api/bookings/locations/districts/${state}`),
+  searchPhotographers: (params: any) => api.get('/api/bookings/photographers/search', { params }),
+  cancelBooking: (id: string) => api.delete(`/api/bookings/photographer/bookings/${id}`),
+  getPhotographer: (id: string) => api.get(`/api/bookings/photographers/${id}`),
+  getPackages: (id: string) => api.get(`/api/bookings/photographers/${id}/packages`),
+  createEvent: (data: any) => api.post('/api/bookings/events', data),
+  myEvents: () => api.get('/api/bookings/events'),
+  getEvent: (id: string) => api.get(`/api/bookings/events/${id}`),
+  book: (eventId: string, data: any) => api.post(`/api/bookings/events/${eventId}/book`, data),
+  updateAvailability: (data: any) => api.put('/api/bookings/photographer/availability', data),
+  getPhotographerBookings: () => api.get('/api/bookings/photographer/bookings'),
+  getClientDetails: (id: string) => api.get(`/api/bookings/photographer/clients/${id}`),
+  respondToBooking: (bookingId: string, action: 'accept' | 'reject') => 
+    api.patch(`/api/bookings/photographer/bookings/${bookingId}/respond`, null, { params: { action } }),
+  disputeBooking: (id: string) => api.post(`/api/bookings/events/${id}/dispute`),
+  adminPending: () => api.get('/api/bookings/admin/pending'),
+  adminVerify: (id: string) => api.post(`/api/bookings/admin/verify/${id}`),
 }
 
 // Onboarding endpoints
@@ -122,6 +144,19 @@ export const adminApi = {
   deleteMessage: (id: string) => api.delete(`/api/admin/messages/${id}`),
 }
 
+export const photographerApi = {
+  getProfile: () => api.get('/api/photographer/profile'),
+  updateProfile: (data: any) => api.patch('/api/photographer/profile', data),
+  uploadPortfolio: (formData: FormData) => api.post('/api/photographer/portfolio/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  deletePortfolio: (url: string) => api.delete(`/api/photographer/portfolio?url=${encodeURIComponent(url)}`),
+  getSpecializations: () => api.get('/api/photographer/specializations'),
+  addSpecialization: (data: any) => api.post('/api/photographer/specializations', data),
+  updateSpecialization: (id: string, data: any) => api.put(`/api/photographer/specializations/${id}`, data),
+  removeSpecialization: (id: string) => api.delete(`/api/photographer/specializations/${id}`),
+}
+
 // Analytics & contact
 export const analyticsApi = {
   photographer: () => api.get('/api/analytics/photographer'),
@@ -129,4 +164,29 @@ export const analyticsApi = {
 
 export const contactApi = {
   submit: (data: any) => api.post('/api/contact', data),
+}
+
+export const chatApi = {
+  getConversations: () => api.get('/api/chat/conversations'),
+  getHistory: (otherUserId: string) => api.get(`/api/chat/history/${otherUserId}`),
+  sendMessage: (data: { receiver_id: string, content: string, booking_id?: string }) => 
+    api.post('/api/chat/send', data),
+}
+
+export const shortlistApi = {
+  get: () => api.get('/api/shortlist'),
+  add: (photographerId: string) => api.post(`/api/shortlist/${photographerId}`),
+  remove: (photographerId: string) => api.delete(`/api/shortlist/${photographerId}`),
+}
+
+export const notificationApi = {
+  get: () => api.get('/api/notifications'),
+  markRead: (id: string, is_read: boolean) => api.patch(`/api/notifications/${id}`, { is_read }),
+  readAll: () => api.post('/api/notifications/read-all'),
+  remove: (id: string) => api.delete(`/api/notifications/${id}`),
+}
+
+export const clientApi = {
+  getProfile: () => api.get('/api/client/profile'),
+  updateProfile: (data: any) => api.patch('/api/client/profile', data),
 }

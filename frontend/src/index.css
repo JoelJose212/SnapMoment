@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,25 +12,34 @@
     --border: #E2E8F0;
     --muted: #64748B;
     --subtle: #94A3B8;
-    --primary: #14B8A6;
-    --accent: #A78BFA;
+
+    --primary: #6D28D9;
+    --primary-bright: #7C3AED;
+    --accent: #0891B2;
+    --highlight: #F59E0B;
+
     --success: #10B981;
     --warning: #F59E0B;
     --error: #EF4444;
-    --primary-light: #F0FDF4;
-    --success-light: #ECFDF5;
-    --primary-gradient: linear-gradient(135deg, #14B8A6 0%, #A78BFA 100%);
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --sidebar-bg: #111827;
+
+    --primary-gradient: linear-gradient(135deg, #6D28D9 0%, #0891B2 100%);
+    --glass-bg: rgba(255,255,255,0.7);
+    --sidebar-bg: #0F172A;
   }
 }
 
-
 body {
-  font-family: "Plus Jakarta Sans", sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--background);
   color: var(--foreground);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Outfit", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
 }
 
 /* Custom cursor */
@@ -203,14 +214,17 @@ body {
 .stat-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 2rem 1.5rem;
+  border-radius: 32px;
+  padding: 2.5rem 1.5rem;
   text-align: center;
   position: relative;
   overflow: hidden;
-  transition: transform 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.stat-card:hover { transform: translateY(-4px); }
+.stat-card:hover { 
+  transform: translateY(-8px);
+  box-shadow: 0 30px 60px -12px rgba(13, 148, 136, 0.12);
+}
 .stat-card::before {
   content: '';
   position: absolute;
@@ -226,10 +240,10 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(20,184,166,0.1);
-  border: 1px solid rgba(20,184,166,0.3);
+  background: rgba(13, 148, 136, 0.05);
+  border: 1px solid rgba(13, 148, 136, 0.2);
   border-radius: 9999px;
-  padding: 6px 16px;
+  padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
   color: var(--primary);

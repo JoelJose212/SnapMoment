@@ -1,17 +1,18 @@
+import os
 from pydantic_settings import BaseSettings
 from typing import Optional
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql+asyncpg://snapmoment:snapmoment123@localhost:5432/snapmoment"
-    REDIS_URL: str = "redis://localhost:6379/0"
+    DATABASE_URL: str = "postgresql+asyncpg://snapmoment:snapmoment123@127.0.0.1:5432/snapmoment"
+    REDIS_URL: str = "redis://127.0.0.1:6379/0"
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_HOURS: int = 24
 
     USE_LOCAL_STORAGE: bool = True
-    LOCAL_STORAGE_PATH: str = "/app/uploads"
+    LOCAL_STORAGE_PATH: str = os.path.join(os.getcwd(), "uploads")
     LOCAL_STORAGE_BASE_URL: str = "http://localhost:8000/uploads"
     AWS_ACCESS_KEY_ID: Optional[str] = None
     AWS_SECRET_ACCESS_KEY: Optional[str] = None
