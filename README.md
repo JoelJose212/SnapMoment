@@ -835,6 +835,497 @@ sequenceDiagram
 
 ---
 
+## 📊 Booking Lifecycle — Sequence Diagram
+
+The complete flow from client search to post-event review:
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant API as FastAPI
+    participant DB as PostgreSQL
+    participant P as Photographer
+    participant N as Notifications
+
+    C->>API: GET /api/bookings/photographers/search
+    API->>DB: Filter by state, category, price
+    DB-->>API: Matching PhotographerProfiles
+    API-->>C: Photographer list with ratings
+
+    C->>API: POST /api/bookings/events (Create client event)
+    API->>DB: Insert ClientEvent (status=draft)
+    DB-->>API: Event with ref SMB-YYYY-XXXXX
+    API-->>C: Client event created
+
+    C->>API: POST /api/bookings/events/{id}/book
+    API->>DB: Insert SubEventBooking (status=pending)
+    API->>N: Push notification to photographer
+    N-->>P: New booking request alert
+    API-->>C: Booking submitted
+
+    P->>API: PATCH /api/bookings/photographer/bookings/{id}/respond
+    alt Photographer Accepts
+        API->>DB: status = confirmed
+        API->>N: Notify client of confirmation
+        N-->>C: Booking confirmed alert
+    else Photographer Rejects
+        API->>DB: status = rejected
+        API->>N: Notify client of rejection
+        N-->>C: Booking rejected alert
+    end
+
+    Note over C, P: Event day arrives
+
+    P->>API: POST /api/events (Create SnapMoment AI event)
+    P->>API: POST /api/events/{id}/photos (Upload event photos)
+    API->>DB: Link snapmoment_event_id to SubEventBooking
+
+    C->>API: POST /api/bookings/events/{booking_id}/review
+    API->>DB: Insert PhotographerReview (rating 1-5)
+    API->>DB: Recalculate photographer average rating
+```
+
+---
+
+## 🔐 Authentication & JWT Flow
+
+How authentication and role-based authorization work across the platform:
+
+```mermaid
+sequenceDiagram
+    participant U as User (Browser)
+    participant API as FastAPI
+    participant DB as PostgreSQL
+    participant JWT as JWT Engine
+
+    U->>API: POST /api/auth/login (email, password)
+    API->>DB: SELECT user WHERE email = ?
+    DB-->>API: User record (with password_hash)
+    API->>API: bcrypt.verify(password, hash)
+    
+    alt Valid Credentials
+        API->>JWT: create_token(user_id, role)
+        JWT-->>API: Signed JWT (HS256, 24h expiry)
+        API-->>U: {token, user: {id, email, role}}
+    else Invalid Credentials
+        API-->>U: 401 Unauthorized
+    end
+
+    Note over U: Subsequent authenticated requests
+
+    U->>API: GET /api/events (Authorization: Bearer <token>)
+    API->>JWT: Decode & verify token
+    JWT-->>API: {user_id, role}
+    API->>API: Check role permissions (get_current_user / require_admin)
+    
+    alt Authorized
+        API->>DB: Execute query scoped to user_id
+        DB-->>API: Results
+        API-->>U: 200 OK + Data
+    else Forbidden
+        API-->>U: 403 Forbidden
+    end
+```
+
+---
+
+## 🔒 API Authentication Matrix
+
+Which role can access which router modules:
+
+| Router Module | Public | Guest (OTP) | Client (JWT) | Photographer (JWT) | Admin (JWT) |
+|---|---|---|---|---|---|
+| **auth** (signup/login) | Yes | -- | -- | -- | -- |
+| **auth** (/me) | -- | -- | Yes | Yes | Yes |
+| **events** | -- | -- | -- | Yes | -- |
+| **photos** | -- | -- | -- | Yes | -- |
+| **guest** (OTP/selfie) | Yes | -- | -- | -- | -- |
+| **guest** (gallery) | -- | Yes | -- | -- | -- |
+| **booking** (search/profiles) | Yes | -- | Yes | -- | -- |
+| **booking** (create/book) | -- | -- | Yes | -- | -- |
+| **booking** (respond/manage) | -- | -- | -- | Yes | -- |
+| **booking** (admin verify) | -- | -- | -- | -- | Yes |
+| **photographer** (profile) | -- | -- | -- | Yes | -- |
+| **specialization** | -- | -- | -- | Yes | -- |
+| **onboarding** | -- | -- | -- | Yes | -- |
+| **chat** | -- | -- | Yes | Yes | -- |
+| **notifications** | -- | -- | Yes | Yes | Yes |
+| **shortlist** | -- | -- | Yes | -- | -- |
+| **client** | -- | -- | Yes | -- | -- |
+| **collaboration** | -- | -- | -- | Yes | -- |
+| **admin** (all) | -- | -- | -- | -- | Yes |
+| **analytics** | -- | -- | -- | Yes | -- |
+| **contact** (submit form) | Yes | -- | -- | -- | -- |
+| **health** | Yes | -- | -- | -- | -- |
+
+---
+
+## 🔗 Complete Entity Relationship Map (All 22 Entities)
+
+Full relationship map showing every table and foreign key connection:
+
+```mermaid
+erDiagram
+    users {
+        uuid id PK
+        string email UK
+        string password_hash
+        string full_name
+        enum role
+        boolean is_active
+        boolean is_verified
+        datetime last_login
+    }
+
+    photographers {
+        uuid id PK
+        string full_name
+        string email UK
+        string studio_name
+        string watermark_url
+        string plan
+        int onboarding_step
+        string team_size
+        string primary_gear
+    }
+
+    events {
+        uuid id PK
+        uuid photographer_id FK
+        string name
+        string type
+        string qr_token UK
+        uuid vip_token UK
+        string location
+        boolean ftp_enabled
+        string ftp_password
+    }
+
+    photos {
+        uuid id PK
+        uuid event_id FK
+        string s3_url
+        string thumbnail_url
+        string status
+        boolean face_indexed
+        jsonb face_embeddings
+        int faces_count
+    }
+
+    guests {
+        uuid id PK
+        uuid event_id FK
+        string phone_number
+        string selfie_s3_key
+        jsonb face_embedding
+        datetime verified_at
+    }
+
+    photo_matches {
+        uuid id PK
+        uuid photo_id FK
+        uuid guest_id FK
+        float confidence_score
+        boolean is_suggested
+        boolean is_reported
+    }
+
+    face_indices {
+        uuid id PK
+        uuid photo_id FK
+        uuid event_id
+        vector_512 embedding
+    }
+
+    face_clusters {
+        uuid id PK
+        uuid event_id
+        int cluster_label
+        vector_512 centroid
+        json photo_ids
+        int face_count
+    }
+
+    photographer_profiles {
+        uuid id PK
+        uuid user_id FK
+        string business_name
+        text bio
+        int starting_price
+        float rating
+        enum status
+        string service_states
+        int travel_range_km
+    }
+
+    photographer_packages {
+        uuid id PK
+        uuid photographer_id FK
+        string name
+        int price
+        int duration_hours
+        int photos_delivered
+        int turnaround_days
+        boolean includes_drone
+    }
+
+    photographer_specializations {
+        uuid id PK
+        uuid photographer_id FK
+        string category
+        string sub_category
+        int base_price
+    }
+
+    photographer_availability {
+        uuid id PK
+        uuid photographer_id FK
+        date date
+        boolean is_available
+    }
+
+    photographer_reviews {
+        uuid id PK
+        uuid sub_event_booking_id FK
+        uuid client_id FK
+        uuid photographer_id FK
+        int rating
+        text review_text
+    }
+
+    photographer_favorites {
+        uuid id PK
+        uuid client_id FK
+        uuid photographer_id FK
+    }
+
+    client_profiles {
+        uuid id PK
+        uuid user_id FK
+        string phone
+        string state
+        string district
+        string city
+    }
+
+    client_events {
+        uuid id PK
+        uuid client_id FK
+        string event_ref UK
+        string event_category
+        string event_title
+        enum status
+        int total_budget
+    }
+
+    sub_event_bookings {
+        uuid id PK
+        uuid client_event_id FK
+        uuid photographer_id FK
+        uuid package_id FK
+        date event_date
+        int agreed_price
+        enum status
+        uuid snapmoment_event_id FK
+    }
+
+    chat_messages {
+        uuid id PK
+        uuid sender_id FK
+        uuid receiver_id FK
+        text content
+        boolean is_read
+        uuid booking_id
+    }
+
+    notifications {
+        uuid id PK
+        uuid user_id FK
+        string type
+        string title
+        text content
+        boolean is_read
+    }
+
+    event_collaborations {
+        uuid id PK
+        uuid event_id FK
+        uuid photographer_id FK
+        string role
+        uuid invited_by FK
+    }
+
+    analytics_events {
+        uuid id PK
+        uuid event_id FK
+        uuid photographer_id FK
+        uuid guest_id FK
+        string action_type
+        jsonb metadata
+    }
+
+    invoices {
+        uuid id PK
+        uuid photographer_id FK
+        string order_id UK
+        float amount
+        string status
+        string pdf_url
+    }
+
+    messages {
+        uuid id PK
+        string name
+        string email
+        string subject
+        text message
+        boolean is_resolved
+    }
+
+    users ||--o{ photographer_profiles : "manages"
+    users ||--o{ client_profiles : "manages"
+    users ||--o{ chat_messages : "sends"
+    users ||--o{ notifications : "receives"
+
+    photographers ||--o{ events : "creates"
+    photographers ||--o{ invoices : "billed"
+    photographers ||--o{ event_collaborations : "collaborates"
+
+    events ||--o{ photos : "contains"
+    events ||--o{ guests : "registers"
+    events ||--o{ face_clusters : "groups"
+    events ||--o{ event_collaborations : "shares"
+    events ||--o{ analytics_events : "tracks"
+
+    photos ||--o{ face_indices : "indexed"
+    photos ||--o{ photo_matches : "matched"
+
+    guests ||--o{ photo_matches : "receives"
+    guests ||--o{ analytics_events : "interacts"
+
+    photographer_profiles ||--o{ photographer_packages : "offers"
+    photographer_profiles ||--o{ photographer_specializations : "specializes"
+    photographer_profiles ||--o{ photographer_availability : "calendar"
+    photographer_profiles ||--o{ photographer_reviews : "reviewed"
+    photographer_profiles ||--o{ photographer_favorites : "shortlisted"
+    photographer_profiles ||--o{ sub_event_bookings : "assigned"
+
+    client_profiles ||--o{ client_events : "creates"
+    client_profiles ||--o{ photographer_reviews : "writes"
+    client_profiles ||--o{ photographer_favorites : "favorites"
+
+    client_events ||--o{ sub_event_bookings : "contains"
+
+    sub_event_bookings ||--o{ photographer_reviews : "reviewed"
+```
+
+---
+
+## ⚙️ Celery Task Pipeline
+
+The dual-queue background processing architecture:
+
+```mermaid
+flowchart LR
+    subgraph "FastAPI Backend"
+        Upload["Photo Upload Endpoint"]
+        Process["Process Trigger Endpoint"]
+    end
+
+    subgraph "Redis Broker"
+        Q1["Queue: image_processing"]
+        Q2["Queue: ai_processing"]
+    end
+
+    subgraph "Celery Worker: CPU"
+        T1["process_single_photo"]
+    end
+
+    subgraph "Celery Worker: AI/GPU"
+        T2["index_single_photo"]
+        T3["index_event_photos"]
+    end
+
+    subgraph "Processing Steps"
+        RAW["RAW Conversion (rawpy)"]
+        THUMB["Thumbnail Generation (1080p)"]
+        WM["Watermark Application"]
+        DET["SCRFD Face Detection"]
+        EMB["ArcFace 512-D Embedding"]
+        IDX["pgvector HNSW Indexing"]
+        CLUST["DBSCAN Clustering"]
+    end
+
+    Upload --> Q1
+    Process --> Q2
+
+    Q1 --> T1
+    Q2 --> T2
+    Q2 --> T3
+
+    T1 --> RAW --> THUMB --> WM
+    WM -->|"Chain to AI queue"| Q2
+
+    T2 --> DET --> EMB --> IDX
+    T3 --> DET
+    T3 --> CLUST
+
+    style Q1 fill:#f59e0b,color:#fff
+    style Q2 fill:#10b981,color:#fff
+    style T1 fill:#f59e0b,color:#fff
+    style T2 fill:#10b981,color:#fff
+    style T3 fill:#10b981,color:#fff
+```
+
+### Task Details
+
+| Task Name | Queue | Concurrency | Purpose |
+|---|---|---|---|
+| `process_single_photo` | `image_processing` | 4 workers | RAW conversion, thumbnailing, watermark |
+| `index_single_photo` | `ai_processing` | 1 worker | SCRFD detection + ArcFace embedding + pgvector insert |
+| `index_event_photos` | `ai_processing` | 1 worker | Batch face indexing + DBSCAN clustering for full event |
+
+---
+
+## 🌐 Environment Variables Reference
+
+All configuration variables required to run the platform:
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `DATABASE_URL` | Yes | `postgresql+asyncpg://...localhost:5432/snapmoment` | PostgreSQL connection string |
+| `REDIS_URL` | Yes | `redis://localhost:6379/0` | Redis broker URL |
+| `JWT_SECRET_KEY` | **Yes** | -- | Secret for signing JWT tokens |
+| `JWT_ALGORITHM` | No | `HS256` | Token signing algorithm |
+| `JWT_EXPIRE_HOURS` | No | `24` | Token expiry duration |
+| `USE_LOCAL_STORAGE` | No | `True` | Use local disk vs S3 |
+| `LOCAL_STORAGE_PATH` | No | `./uploads` | Local file storage directory |
+| `LOCAL_STORAGE_BASE_URL` | No | `http://localhost:8000/uploads` | Public URL prefix for uploads |
+| `AWS_ACCESS_KEY_ID` | S3 only | -- | AWS S3 credentials |
+| `AWS_SECRET_ACCESS_KEY` | S3 only | -- | AWS S3 credentials |
+| `AWS_S3_BUCKET` | S3 only | `snapmoment-photos` | S3 bucket name |
+| `AWS_REGION` | S3 only | `ap-south-1` | AWS region |
+| `MSG91_AUTH_KEY` | Prod only | -- | SMS OTP service key |
+| `DEV_MODE` | No | `True` | Enables dev shortcuts (OTP bypass) |
+| `STRIPE_SECRET_KEY` | Payments | -- | Stripe payment processing |
+| `STRIPE_PUBLIC_KEY` | Payments | -- | Stripe frontend key |
+| `STRIPE_WEBHOOK_SECRET` | Payments | -- | Stripe event verification |
+| `ADMIN_EMAIL` | **Yes** | `admin@snapmoment.app` | Default admin account |
+| `ADMIN_PASSWORD` | **Yes** | -- | Default admin password |
+| `SMTP_HOST` | Email | `smtp.gmail.com` | SMTP server |
+| `SMTP_PORT` | Email | `587` | SMTP port |
+| `SMTP_USER` | Email | -- | Gmail address |
+| `SMTP_PASS` | Email | -- | Gmail app password |
+| `FRONTEND_URL` | No | `http://localhost:3000` | Frontend origin URL |
+| `CORS_ORIGINS` | No | `http://localhost:3000,http://localhost:5173` | Allowed CORS origins |
+| `S3_PUBLIC_DOMAIN` | S3 only | -- | Custom CDN domain for S3 |
+| `POSTGRES_USER` | Docker | `snapmoment` | Docker Compose DB user |
+| `POSTGRES_PASSWORD` | Docker | -- | Docker Compose DB password |
+| `POSTGRES_DB` | Docker | `snapmoment` | Docker Compose DB name |
+| `VITE_API_URL` | Frontend | `http://localhost:8000` | Backend API URL for React |
+
+---
+
 ## Team
 - **Joel Jose Varghese** - CTO & Founder
 - **Nandini Sinha** - CPO & Co-Founder
