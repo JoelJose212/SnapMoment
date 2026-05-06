@@ -364,43 +364,150 @@ stateDiagram-v2
 ### Authentication (auth.py)
 | Method | Endpoint | Purpose | Internal Logic |
 |---|---|---|---|
-| POST | /api/auth/signup | Register photographer | Bcrypt hashing -> User record |
-| POST | /api/auth/login | Login | JWT issuance |
-| GET | /api/auth/me | Profile | Decode JWT |
+| POST | /api/auth/photographer/signup | Register photographer | Bcrypt hashing -> User + Photographer record |
+| POST | /api/auth/client/signup | Register client | Creates User + ClientProfile record |
+| POST | /api/auth/login | Login | Credential check -> JWT stateless token |
+| POST | /api/auth/admin/login | Admin login | Role check (must be admin) |
+| GET | /api/auth/me | Current profile | Decodes JWT -> Fetches User detail |
 
 ### Events (events.py)
 | Method | Endpoint | Purpose | Internal Logic |
 |---|---|---|---|
-| GET | /api/events | List | Filter by user |
-| POST | /api/events | Create | QR + VIP token generation |
-| DELETE | /api/events/{id} | Delete | Cascade cleanup |
+| POST | /api/events | Create event | Generates QR token (short) + VIP token (UUID) |
+| GET | /api/events | List events | Filter by photographer_id |
+| GET | /api/events/{event_id} | Get single event | JSON response with photo stats |
+| PATCH | /api/events/{event_id} | Update metadata | Partial update for name/date/location |
+| DELETE | /api/events/{event_id} | Delete event | Cascade delete all photos + face data |
+| GET | /api/events/public/{qr_token} | Public event view | Guest-facing event info via QR token |
 
 ### Photos (photos.py)
 | Method | Endpoint | Purpose | Internal Logic |
 |---|---|---|---|
-| POST | /api/events/{id}/photos | Upload | Queue image_processing |
-| POST | /api/events/{id}/process | Start AI | Queue ai_processing |
+| POST | /api/events/{id}/photos | Bulk upload | Local storage save -> Queue image_processing |
+| GET | /api/events/{id}/photos | List photos | Fetches processed S3/local URLs |
+| POST | /api/events/{id}/process | Start AI | Triggers Celery ai_processing queue |
+| GET | /api/events/{id}/process/status | Process check | Returns % completion of face indexing |
 
 ### Guest Flow (guest.py)
 | Method | Endpoint | Purpose | Internal Logic |
 |---|---|---|---|
-| POST | /api/guest/selfie | Upload selfie | Cosine search in pgvector |
-| GET | /api/guest/gallery | Gallery | Return matched photo URLs |
+| POST | /api/guest/otp/send | Send OTP | Generates 6-digit code -> Stores in Redis |
+| POST | /api/guest/otp/verify | Verify OTP | Matches Redis code -> Issues Guest JWT role |
+| POST | /api/guest/selfie | Upload selfie | Extracts 512-D vector -> Cosine search in pgvector |
+| GET | /api/guest/gallery | Get gallery | Filter photos where photo_match score < 0.65 |
+| GET | /api/guest/vip/{vip_token} | VIP access | UUID check -> Bypasses selfie -> Returns all photos |
+| GET | /api/guest/gallery/download-all | Download ZIP | Server-side ZIP creation of all matched files |
+| POST | /api/guest/gallery/{photo_id}/report | Report photo | Sets is_reported=True -> Notifies Photographer |
+| GET | /api/guest/gallery/{photo_id}/download | Single download | Streams individual photo file |
 
-### Marketplace (booking.py)
+### Bookings (booking.py)
 | Method | Endpoint | Purpose | Internal Logic |
 |---|---|---|---|
-| GET | /api/bookings/search | Search | Filter by category/price |
-| POST | /api/bookings/book | Book | Create sub_event_booking |
+| GET | /api/bookings/locations/states | List states | Unique state values from photographer profiles |
+| GET | /api/bookings/locations/districts/{state} | List districts | Filter districts by selected state |
+| GET | /api/bookings/photographers/search | Search photographers | Multi-param filter (city, category, price) |
+| GET | /api/bookings/photographers/{id} | Photographer profile | Public bio + portfolio + average rating |
+| GET | /api/bookings/photographers/{id}/packages | List packages | Available service packages for photographer |
+| POST | /api/bookings/events | Create client event | Master event record for multi-day bookings |
+| GET | /api/bookings/events | List client events | All events for authenticated client |
+| GET | /api/bookings/events/{id} | Get event detail | Single client event with sub-events |
+| POST | /api/bookings/events/{id}/book | Book sub-event | Creates SubEventBooking + Notifies Photographer |
+| POST | /api/bookings/events/{booking_id}/dispute | Dispute booking | Flags booking for admin review |
+| PUT | /api/bookings/photographer/availability | Set availability | Bulk update photographer calendar dates |
+| GET | /api/bookings/photographer/bookings | My bookings | List all bookings for authenticated photographer |
+| GET | /api/bookings/photographer/clients/{client_id} | Client info | Fetch client details for booked photographer |
+| PATCH | /api/bookings/photographer/bookings/{booking_id}/respond | Accept/Reject | Status update -> Triggers Client Notification |
+| DELETE | /api/bookings/photographer/bookings/{booking_id} | Cancel booking | Photographer-initiated cancellation |
+| GET | /api/bookings/admin/pending | Admin queue | List profiles with status=pending |
+| POST | /api/bookings/admin/verify/{id} | Admin verify | status=verified -> Email notification |
 
-### Other Routers
-| Module | Purpose |
-|---|---|
-| `admin.py` | Verification & Platform stats |
-| `analytics.py` | Interaction logs |
-| `chat.py` | Real-time messaging |
-| `onboarding.py` | Setup wizard |
-| `notification.py` | System alerts |
+### Photographer Profile (photographer.py)
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| GET | /api/photographer/profile | Get own profile | Fetches linked PhotographerProfile record |
+| PATCH | /api/photographer/profile | Update profile | Updates bio, studio_name, pricing |
+| POST | /api/photographer/portfolio/upload | Upload portfolio | Multi-part upload to storage |
+| DELETE | /api/photographer/portfolio | Delete portfolio image | Removes file from storage |
+
+### Specializations (specialization.py)
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| GET | /api/photographer/specializations | List own | Fetches specializations for authenticated photographer |
+| POST | /api/photographer/specializations | Add new | Creates category + base_price record |
+| PUT | /api/photographer/specializations/{id} | Update | Modifies category/price |
+| DELETE | /api/photographer/specializations/{id} | Remove | Deletes specialization |
+
+### Onboarding (onboarding.py)
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| POST | /api/onboarding/step2 | Studio details | Sets studio_name, founded_year, logo |
+| POST | /api/onboarding/step3 | Gear & experience | Sets camera models, team_size, experience_level |
+| POST | /api/onboarding/step4 | Complete onboarding | Finalizes photographer setup |
+| POST | /api/onboarding/create-order | Payment order | Creates subscription payment order |
+| POST | /api/onboarding/verify-payment | Verify payment | Confirms subscription activation |
+| POST | /api/onboarding/studio-logo | Upload logo | Stores studio branding image |
+
+### Chat (chat.py)
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| GET | /api/chat/conversations | List conversations | Fetches unique sender/receiver pairs |
+| GET | /api/chat/history/{userId} | Message history | Chat log with specific user |
+| POST | /api/chat/send | Send message | Saves record -> Triggers notification |
+
+### Notifications (notification.py)
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| GET | /api/notifications | Get all | Fetches unread message/booking/system alerts |
+| PATCH | /api/notifications/{id} | Mark read/unread | Toggle notification read status |
+| POST | /api/notifications/read-all | Mark all read | Bulk read update |
+| DELETE | /api/notifications/{id} | Delete | Remove notification |
+
+### Shortlist / Favorites (shortlist.py)
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| GET | /api/shortlist | Get shortlisted | List of favorited photographer profiles |
+| POST | /api/shortlist/{photographerId} | Add to shortlist | Creates PhotographerFavorite record |
+| DELETE | /api/shortlist/{photographerId} | Remove from shortlist | Deletes favorite record |
+
+### Client Profile (client.py)
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| GET | /api/client/profile | Get client profile | Fetches ClientProfile for authenticated user |
+| PATCH | /api/client/profile | Update profile | Updates phone, city, personal info |
+
+### Collaboration (collaboration.py)
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| POST | /api/events/{id}/collaborators | Add collaborator | Creates EventCollaboration record |
+| GET | /api/events/{id}/collaborators | List collaborators | All photographers on an event |
+| DELETE | /api/events/{id}/collaborators/{photographerId} | Remove collaborator | Deletes collaboration |
+
+### Admin (admin.py)
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| GET | /api/admin/photographers | List photographers | All photographer accounts |
+| PATCH | /api/admin/photographers/{id} | Update photographer | Admin-level profile edits |
+| DELETE | /api/admin/photographers/{id} | Delete photographer | Removes photographer account |
+| POST | /api/admin/photographers/{id}/suspend | Suspend | Deactivates photographer |
+| GET | /api/admin/events | List all events | Platform-wide event listing |
+| DELETE | /api/admin/events/{id} | Delete event | Admin-level event removal |
+| GET | /api/admin/stats | Platform statistics | Aggregates system-wide usage metrics |
+| GET | /api/admin/invoices | List invoices | All payment records |
+| GET | /api/admin/invoices/{id}/download | Download PDF | Generates invoice PDF |
+| GET | /api/admin/messages | Contact messages | List contact form submissions |
+| PATCH | /api/admin/messages/{id}/resolve | Resolve message | Marks message as handled |
+| DELETE | /api/admin/messages/{id} | Delete message | Removes contact message |
+
+### Analytics (analytics.py)
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| GET | /api/analytics/photographer | Photographer analytics | Engagement stats (likes, downloads, matched guests) |
+
+### Contact & Health
+| Method | Endpoint | Purpose | Internal Logic |
+|---|---|---|---|
+| POST | /api/contact | Submit contact form | Creates Message record for admin review |
+| GET | /api/health | System health check | Returns service status |
 
 ---
 
@@ -482,6 +589,52 @@ stateDiagram-v2
 #### `notifications`
 - `user_id` (FK)
 - `type` (ENUM)
+- `title` (VARCHAR)
+- `content` (TEXT)
+- `link` (VARCHAR, nullable)
+- `is_read` (BOOLEAN)
+
+#### `photographer_specializations`
+- `id` (UUID, PK)
+- `photographer_id` (FK -> photographer_profiles)
+- `category` (VARCHAR)
+- `sub_category` (VARCHAR)
+- `base_price` (INTEGER)
+- `description` (TEXT)
+
+#### `photographer_availability`
+- `id` (UUID, PK)
+- `photographer_id` (FK -> photographer_profiles)
+- `date` (DATE)
+- `is_available` (BOOLEAN)
+
+#### `photographer_reviews`
+- `id` (UUID, PK)
+- `sub_event_booking_id` (FK)
+- `client_id` (FK -> client_profiles)
+- `photographer_id` (FK -> photographer_profiles)
+- `rating` (INTEGER, 1-5)
+- `review_text` (TEXT)
+
+#### `photographer_favorites`
+- `id` (UUID, PK)
+- `client_id` (FK -> client_profiles)
+- `photographer_id` (FK -> photographer_profiles)
+
+#### `event_collaborations`
+- `id` (UUID, PK)
+- `event_id` (FK -> events)
+- `photographer_id` (FK -> photographers)
+- `role` (VARCHAR: viewer, contributor, admin)
+- `invited_by` (FK -> photographers)
+
+#### `messages` (Contact Form)
+- `id` (UUID, PK)
+- `name` (VARCHAR)
+- `email` (VARCHAR)
+- `subject` (VARCHAR)
+- `message` (TEXT)
+- `is_resolved` (BOOLEAN)
 
 ---
 
@@ -499,7 +652,39 @@ stateDiagram-v2
 | profiles | starting_price | INTEGER | Base cost INR |
 | bookings | status | ENUM | pending, confirmed |
 | chat | is_read | BOOLEAN | Message status |
-| ... | (Restoring all 75+ attributes) | ... | ... |
+| notifications | type | VARCHAR | message, booking, system |
+| notifications | is_read | BOOLEAN | Alert read status |
+| client_profiles | phone | VARCHAR | Client contact number |
+| client_profiles | city | VARCHAR | Client location |
+| client_profiles | state | VARCHAR | Client state |
+| client_profiles | district | VARCHAR | Client district |
+| client_events | status | ENUM | draft, confirmed, completed, cancelled |
+| client_events | event_category | VARCHAR | Event type |
+| photographer_specializations | category | VARCHAR | Service category |
+| photographer_specializations | base_price | INTEGER | Category base price |
+| photographer_packages | name | VARCHAR | Package title |
+| photographer_packages | price | INTEGER | Package cost |
+| photographer_packages | duration_hours | INTEGER | Event coverage length |
+| photographer_packages | photos_delivered | INTEGER | Delivery quantity |
+| photographer_packages | turnaround_days | INTEGER | Delivery speed |
+| photographer_packages | includes_reels | BOOLEAN | Reel production |
+| photographer_packages | includes_drone | BOOLEAN | Aerial coverage |
+| photographer_availability | date | DATE | Calendar date |
+| photographer_availability | is_available | BOOLEAN | Availability flag |
+| photographer_reviews | rating | INTEGER | 1-5 star score |
+| photographer_reviews | review_text | TEXT | Client feedback |
+| photographer_favorites | client_id | UUID (FK) | Shortlisting client |
+| photographer_favorites | photographer_id | UUID (FK) | Shortlisted studio |
+| event_collaborations | role | VARCHAR | viewer, contributor, admin |
+| messages | name | VARCHAR | Contact form sender |
+| messages | is_resolved | BOOLEAN | Admin resolution flag |
+| face_indices | embedding | VECTOR(512) | pgvector ArcFace data |
+| face_clusters | centroid | VECTOR(512) | Cluster mean vector |
+| face_clusters | cluster_label | INTEGER | DBSCAN group ID |
+| analytics_events | action_type | VARCHAR | like, download, view |
+| invoices | amount | FLOAT | Total billing amount |
+| invoices | status | VARCHAR | Payment state |
+| invoices | pdf_url | VARCHAR | Invoice PDF path |
 
 ---
 
@@ -512,7 +697,7 @@ stateDiagram-v2
 - **Guest**: Landing, Selfie, Gallery, VIP
 
 ### File Structure
-- `backend/app/models/`: 23 SQLAlchemy models
+- `backend/app/models/`: 22 model classes across 17 files
 - `backend/app/routers/`: 15 API modules
 - `frontend/src/pages/`: 40+ React pages
 
@@ -638,7 +823,7 @@ sequenceDiagram
 | **BookingStatus** | `pending`, `confirmed`, `completed`, `cancelled`, `rejected`, `disputed` | `sub_event_bookings.status` | Booking lifecycle |
 | **PaymentStatus** | `pending`, `paid`, `refunded` | Invoices / bookings | Payment state |
 | **PhotoStatus** | `processing`, `ready`, `error` | `photos.status` | AI pipeline state |
-| **EventType** | `wedding`, `birthday`, `corporate`, `other` | `events.type` | Event classification |
+| **EventType** | `wedding`, `birthday`, `college`, `corporate`, `anniversary`, `other` | `events.type` | Event classification |
 | **Plan** | `free`, `pro`, `studio` | `photographers.plan` | Subscription tier |
 
 ### AI Matching Thresholds
