@@ -701,6 +701,39 @@ stateDiagram-v2
 - `backend/app/routers/`: 15 API modules
 - `frontend/src/pages/`: 40+ React pages
 
+### Detailed Directory Tree
+```text
+SnapMoment/
+├── backend/
+│   ├── app/
+│   │   ├── models/        # SQLAlchemy Database Models (22 entities)
+│   │   ├── routers/       # FastAPI Route Modules (15 modules)
+│   │   ├── schemas/       # Pydantic Data Schemas
+│   │   ├── services/      # Business Logic (AI Engine, Booking Logic, S3/FTP)
+│   │   ├── tasks/         # Celery Background Tasks (CPU/GPU Queues)
+│   │   ├── utils/         # Shared helpers (Geo-data, Validators)
+│   │   ├── config.py      # Settings & Environment Config
+│   │   ├── database.py    # Async SQLAlchemy Engine & Init
+│   │   └── main.py        # FastAPI Entry Point & Router Mounting
+│   ├── Dockerfile         # Python 3.10 Build Context
+│   └── requirements.txt   # Backend dependencies
+├── frontend/
+│   ├── src/
+│   │   ├── components/    # Reusable UI Components (Shared, Chat, Booking)
+│   │   ├── hooks/         # Custom React Hooks (Auth, API)
+│   │   ├── lib/           # API Client (Axios) & Global Utilities
+│   │   ├── pages/         # 47 React Pages (Admin, Photog, Client, Guest)
+│   │   ├── store/         # Zustand State Management (Auth, UI)
+│   │   ├── App.tsx        # Application Router & Layouts
+│   │   └── index.css      # Global Design System (Vanilla CSS)
+│   ├── Dockerfile         # Vite/React Build Context
+│   └── package.json       # Frontend dependencies
+├── scripts/               # Maintenance & Deployment helper scripts
+├── docker-compose.yml     # 6-container Orchestration (FE, BE, Celery, DB, Redis)
+├── .env.example           # Environment template
+└── README.md              # Master Blueprint & Documentation
+```
+
 ---
 
 ## 🧭 User Role Journey Map
