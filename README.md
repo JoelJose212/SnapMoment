@@ -147,19 +147,19 @@ flowchart TD
     P8 <--> D5
 
     %% Styling
-    style P1 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style P2 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style P3 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style P4 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style P5 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style P6 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style P7 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style P8 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style P1 fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style P2 fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style P3 fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style P4 fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style P5 fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style P6 fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style P7 fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style P8 fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
     
-    style Photographer fill:#006400,color:#fff,stroke:#004d00
-    style Client fill:#006400,color:#fff,stroke:#004d00
-    style Guest fill:#006400,color:#fff,stroke:#004d00
-    style Admin fill:#006400,color:#fff,stroke:#004d00
+    style Photographer fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style Client fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style Guest fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style Admin fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
 ```
 
 ### 3. Internal Process Flow (Level 2 DFD)
@@ -261,24 +261,24 @@ flowchart TD
     AdminProc <--> D_Analytics
 
     %% ── Styling ───────────────────────────────────
-    style Auth fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style Onboard fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style EventMgmt fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style PhotoUpload fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style ImgQueue fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style AIEngine fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style GuestVerify fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style BookSearch fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style BookingProc fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style ChatProc fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style Analytics fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style AdminProc fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style GalleryGen fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style Auth fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style Onboard fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style EventMgmt fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style PhotoUpload fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style ImgQueue fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style AIEngine fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style GuestVerify fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style BookSearch fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style BookingProc fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style ChatProc fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style Analytics fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style AdminProc fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
+    style GalleryGen fill:#0d9488,color:#fff,stroke:#0f766e,stroke-width:2px
 
-    style Photographer fill:#006400,color:#fff,stroke:#004d00
-    style Client fill:#006400,color:#fff,stroke:#004d00
-    style Guest fill:#006400,color:#fff,stroke:#004d00
-    style AdminUser fill:#006400,color:#fff,stroke:#004d00
+    style Photographer fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style Client fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style Guest fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style AdminUser fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
 ```
 
 ---
