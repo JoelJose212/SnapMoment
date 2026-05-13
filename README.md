@@ -160,7 +160,7 @@ flowchart TD
     subgraph "3.0 Photo Processing Pipeline"
         P3_1[3.1 Upload to Storage] --> D_Photos[(Photos Table)]
         P3_2[3.2 RAW Conversion] --> P3_3[3.3 Thumbnail Gen]
-        P3_3 --> P3_4[3.4 Watermark Apply]
+        P3_3 --> P3_4[3.4 High-Res Store]
         P3_4 --> D_Photos
         P3_1 -- "Celery image_processing queue" --> P3_2
     end
@@ -169,7 +169,7 @@ flowchart TD
         P4_1[4.1 SCRFD Detection] --> P4_2[4.2 ArcFace Embedding]
         P4_2 --> D_FaceIdx[(Face Indices)]
         P4_3[4.3 DBSCAN Clustering] --> D_Clusters[(Face Clusters)]
-        P4_4[4.4 Cosine Similarity Match] --> D_Matches[(Photo Matches)]
+        P4_4[4.4 pgvector Cosine Search] --> D_Matches[(Photo Matches)]
         D_FaceIdx --> P4_3
         D_FaceIdx --> P4_4
     end
@@ -177,8 +177,9 @@ flowchart TD
     subgraph "5.0 Guest Verification"
         P5_1[5.1 Send OTP] --> D_Guests[(Guests Table)]
         P5_2[5.2 Verify OTP] --> D_Guests
-        P5_3[5.3 Upload Selfie] --> P4_1
+        P5_3[5.3 Extract Selfie Embedding] --> P4_4
         P5_4[5.4 Return Gallery] --> Guest([Guest])
+        P5_5[5.5 Watermark on Download] --> Guest
         P4_4 --> P5_4
     end
 
@@ -188,6 +189,7 @@ flowchart TD
         P6_3[6.3 Book Sub-Event] --> D_SubBookings[(Sub Event Bookings)]
         P6_4[6.4 Accept/Reject] --> D_SubBookings
         P6_5[6.5 Review & Rate] --> D_Reviews[(Reviews)]
+        P6_6[6.6 Dispute Booking] --> D_SubBookings
     end
 
     subgraph "7.0 Chat & Notifications"
