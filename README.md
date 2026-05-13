@@ -142,71 +142,59 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph "1.0 Authentication"
-        P1_1[1.1 Signup] --> D_Users[(Users Table)]
-        P1_2[1.2 Login] --> D_Users
-        P1_3[1.3 JWT Token Issue] --> P1_2
-        P1_4[1.4 Role Assignment] --> D_Users
-    end
+    %% Entities
+    User[Photographer / Guest]
+    ReportOut[Analytics Report]
+    Output[Final Gallery / Invoice]
 
-    subgraph "2.0 Event Management"
-        P2_1[2.1 Create Event] --> D_Events[(Events Table)]
-        P2_2[2.2 Generate QR Token] --> D_Events
-        P2_3[2.3 Generate VIP Token] --> D_Events
-        P2_4[2.4 FTP Config] --> D_Events
-        P2_5[2.5 Update/Delete Event] --> D_Events
-    end
+    %% Processes (Circles)
+    Auth((Auth & Inquiry))
+    Core((Event & Booking Process))
+    Query((Stats & Query Process))
+    Search((Discovery & Filtering))
+    AI((AI Matching Process))
+    Queue((Processing Queue))
+    Admin((System Administration))
+    Cancel((Dispute & Cancellation))
+    Gen((Gallery & Invoice Gen))
 
-    subgraph "3.0 Photo Processing Pipeline"
-        P3_1[3.1 Upload to Storage] --> D_Photos[(Photos Table)]
-        P3_2[3.2 RAW Conversion] --> P3_3[3.3 Thumbnail Gen]
-        P3_3 --> P3_4[3.4 High-Res Store]
-        P3_4 --> D_Photos
-        P3_1 -- "Celery image_processing queue" --> P3_2
-    end
+    %% Data Flows
+    User <--> Auth
+    User --> Core
+    Auth --> Core
+    
+    Core --> Query
+    Query --> ReportOut
+    
+    Core --> Search
+    Search --> AI
+    Search --> Queue
+    
+    Core --> Admin
+    Admin <--> FaceDB[(Face / Photo Tables)]
+    Admin <--> LogDB[(Payment / Log Tables)]
+    Admin --> InternalReport[Generate System Report]
+    
+    AI --> Gen
+    Queue --> Gen
+    Cancel --> Gen
+    
+    Gen --> Output
 
-    subgraph "4.0 AI Face Engine"
-        P4_1[4.1 SCRFD Detection] --> P4_2[4.2 ArcFace Embedding]
-        P4_2 --> D_FaceIdx[(Face Indices)]
-        P4_3[4.3 DBSCAN Clustering] --> D_Clusters[(Face Clusters)]
-        P4_4[4.4 pgvector Cosine Search] --> D_Matches[(Photo Matches)]
-        D_FaceIdx --> P4_3
-        D_FaceIdx --> P4_4
-    end
-
-    subgraph "5.0 Guest Verification"
-        P5_1[5.1 Send OTP] --> D_Guests[(Guests Table)]
-        P5_2[5.2 Verify OTP] --> D_Guests
-        P5_3[5.3 Extract Selfie Embedding] --> P4_4
-        P5_4[5.4 Return Gallery] --> Guest([Guest])
-        P5_5[5.5 Watermark on Download] --> Guest
-        P4_4 --> P5_4
-    end
-
-    subgraph "6.0 Booking System"
-        P6_1[6.1 Search Photographers] --> D_Profiles[(Photographer Profiles)]
-        P6_2[6.2 Create Client Event] --> D_ClientEvents[(Client Events)]
-        P6_3[6.3 Book Sub-Event] --> D_SubBookings[(Sub Event Bookings)]
-        P6_4[6.4 Accept/Reject] --> D_SubBookings
-        P6_5[6.5 Review & Rate] --> D_Reviews[(Reviews)]
-        P6_6[6.6 Dispute Booking] --> D_SubBookings
-    end
-
-    subgraph "7.0 Chat & Notifications"
-        P7_1[7.1 Send Message] --> D_Chat[(Chat Messages)]
-        P7_2[7.2 Get Conversations] --> D_Chat
-        P7_3[7.3 Push Notification] --> D_Notif[(Notifications)]
-        P7_4[7.4 Mark Read] --> D_Notif
-    end
-
-    subgraph "8.0 Admin Control"
-        P8_1[8.1 Verify Photographer] --> D_Profiles
-        P8_2[8.2 Platform Stats] --> D_Analytics[(Analytics)]
-        P8_3[8.3 Manage Messages] --> D_ContactMsgs[(Contact Messages)]
-        P8_4[8.4 Invoice Management] --> D_Invoices[(Invoices)]
-    end
-
-    P3_4 -- "Celery ai_processing queue" --> P4_1
+    %% Styling to mimic the circles in the image
+    style Auth fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style Core fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style Query fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style Search fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style AI fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style Queue fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style Admin fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style Cancel fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style Gen fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    
+    style User fill:#006400,color:#fff,stroke:#004d00
+    style ReportOut fill:#006400,color:#fff,stroke:#004d00
+    style Output fill:#006400,color:#fff,stroke:#004d00
 ```
 
 ---
