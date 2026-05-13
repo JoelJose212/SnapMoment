@@ -142,59 +142,119 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    %% Entities
-    User[Photographer / Guest]
-    ReportOut[Analytics Report]
-    Output[Final Gallery / Invoice]
+    %% ── External Entities ──────────────────────────
+    Photographer[Photographer]
+    Client[Client]
+    Guest[Guest]
+    AdminUser[Admin]
 
-    %% Processes (Circles)
-    Auth((Auth & Inquiry))
-    Core((Event & Booking Process))
-    Query((Stats & Query Process))
-    Search((Discovery & Filtering))
-    AI((AI Matching Process))
-    Queue((Processing Queue))
-    Admin((System Administration))
-    Cancel((Dispute & Cancellation))
-    Gen((Gallery & Invoice Gen))
+    %% ── Processes (Circles) ────────────────────────
+    Auth((Authentication Process))
+    Onboard((Onboarding & Payment))
+    EventMgmt((Event Management))
+    PhotoUpload((Photo Upload Process))
+    ImgQueue((Image Processing Queue))
+    AIEngine((AI Face Engine))
+    GuestVerify((Guest Verification))
+    BookSearch((Discovery & Search))
+    BookingProc((Booking Process))
+    ChatProc((Chat & Notifications))
+    Analytics((Analytics & Reporting))
+    AdminProc((Admin Control))
+    GalleryGen((Gallery & Download))
 
-    %% Data Flows
-    User <--> Auth
-    User --> Core
-    Auth --> Core
-    
-    Core --> Query
-    Query --> ReportOut
-    
-    Core --> Search
-    Search --> AI
-    Search --> Queue
-    
-    Core --> Admin
-    Admin <--> FaceDB[(Face / Photo Tables)]
-    Admin <--> LogDB[(Payment / Log Tables)]
-    Admin --> InternalReport[Generate System Report]
-    
-    AI --> Gen
-    Queue --> Gen
-    Cancel --> Gen
-    
-    Gen --> Output
+    %% ── Data Stores ───────────────────────────────
+    D_Users[(Users Table)]
+    D_Events[(Events Table)]
+    D_Photos[(Photos Table)]
+    D_FaceIdx[(Face Indices)]
+    D_Clusters[(Face Clusters)]
+    D_Guests[(Guests Table)]
+    D_Matches[(Photo Matches)]
+    D_Bookings[(Bookings Table)]
+    D_Chat[(Chat Messages)]
+    D_Notif[(Notifications)]
+    D_Invoices[(Invoices)]
+    D_Analytics[(Analytics Events)]
+    D_Messages[(Contact Messages)]
 
-    %% Styling to mimic the circles in the image
+    %% ── Data Flows ────────────────────────────────
+
+    %% Authentication
+    Photographer <-->|Signup / Login| Auth
+    Client <-->|Signup / Login| Auth
+    Auth <-->|JWT Token| D_Users
+
+    %% Onboarding & Payment
+    Photographer -->|Plan & Studio Setup| Onboard
+    Onboard -->|Stripe Checkout| D_Invoices
+    Onboard <-->|Profile Update| D_Users
+
+    %% Event Management
+    Photographer -->|Create / Update / Delete| EventMgmt
+    EventMgmt -->|QR Token / VIP Token / FTP Config| D_Events
+
+    %% Photo Upload → Processing → AI Pipeline
+    Photographer -->|Upload RAW / JPG| PhotoUpload
+    PhotoUpload --> D_Photos
+    PhotoUpload -->|Celery image_processing| ImgQueue
+    ImgQueue -->|RAW Convert / Thumbnail / High-Res Store| D_Photos
+    ImgQueue -->|Celery ai_processing| AIEngine
+    AIEngine -->|SCRFD / ArcFace Embedding| D_FaceIdx
+    AIEngine -->|DBSCAN Clustering| D_Clusters
+
+    %% Guest Verification & Gallery
+    Guest -->|OTP Send / Verify| GuestVerify
+    GuestVerify <--> D_Guests
+    GuestVerify -->|Selfie Embedding| AIEngine
+    AIEngine -->|pgvector Cosine Search| D_Matches
+    D_Matches --> GalleryGen
+    GalleryGen -->|Watermarked Photos| Guest
+
+    %% Booking System
+    Client -->|Search Photographers| BookSearch
+    BookSearch <--> D_Bookings
+    Client -->|Book / Dispute| BookingProc
+    BookingProc <--> D_Bookings
+    Photographer -->|Accept / Reject| BookingProc
+
+    %% Chat & Notifications
+    Client <-->|Send / Receive Messages| ChatProc
+    Photographer <-->|Send / Receive Messages| ChatProc
+    ChatProc <--> D_Chat
+    ChatProc --> D_Notif
+
+    %% Analytics
+    Photographer -->|View Stats| Analytics
+    Analytics <--> D_Analytics
+    Analytics <--> D_Photos
+
+    %% Admin Control
+    AdminUser -->|Verify / Suspend / Stats| AdminProc
+    AdminProc <--> D_Users
+    AdminProc <--> D_Invoices
+    AdminProc <--> D_Messages
+    AdminProc <--> D_Analytics
+
+    %% ── Styling ───────────────────────────────────
     style Auth fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style Core fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style Query fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style Search fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style AI fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style Queue fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style Admin fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style Cancel fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    style Gen fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
-    
-    style User fill:#006400,color:#fff,stroke:#004d00
-    style ReportOut fill:#006400,color:#fff,stroke:#004d00
-    style Output fill:#006400,color:#fff,stroke:#004d00
+    style Onboard fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style EventMgmt fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style PhotoUpload fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style ImgQueue fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style AIEngine fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style GuestVerify fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style BookSearch fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style BookingProc fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style ChatProc fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style Analytics fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style AdminProc fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style GalleryGen fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+
+    style Photographer fill:#006400,color:#fff,stroke:#004d00
+    style Client fill:#006400,color:#fff,stroke:#004d00
+    style Guest fill:#006400,color:#fff,stroke:#004d00
+    style AdminUser fill:#006400,color:#fff,stroke:#004d00
 ```
 
 ---
