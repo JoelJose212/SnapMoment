@@ -283,6 +283,387 @@ flowchart TD
 
 ---
 
+## Workflow Diagrams
+
+### Workflow 1 — Photographer Onboarding & Subscription
+
+```mermaid
+flowchart TD
+    subgraph Photographer
+        A1([Visit /onboarding]) --> A2[Signup as Photographer]
+    end
+
+    subgraph "Backend — Auth"
+        A2 -->|POST /api/auth/signup| B1{Role = Photographer?}
+        B1 -->|Yes| B2[Create User + Photographer Record]
+        B1 -->|No| B1X[Create Client Profile Instead]
+        B2 --> B3[Issue JWT Token]
+    end
+
+    subgraph "Onboarding Wizard — Frontend"
+        B3 --> C1["Step 1: Studio Profile\n(Name, Logo, Bio)"]
+        C1 -->|POST /api/onboarding/studio-logo| C1a[Upload Logo to S3/Local]
+        C1 --> C2["Step 2: Professional Details\n(Founded Year, Team Size, Gear, Services)"]
+        C2 -->|POST /api/onboarding/step2| C3["Step 3: Plan Selection\n(Starter ₹0 / Pro ₹1,499 / Business ₹4,999)"]
+        C3 -->|POST /api/onboarding/step3| C4{Billing Cycle?}
+        C4 -->|Monthly| C4a[Set billing_cycle = monthly]
+        C4 -->|Yearly — 25% Off| C4b[Set billing_cycle = yearly]
+        C4a & C4b --> C5["Step 4: Terms & Conditions"]
+    end
+
+    subgraph "Backend — Payment"
+        C5 -->|POST /api/onboarding/step4| D1{Plan = Starter?}
+        D1 -->|Yes — Free| D2[Activate Account\nExpiry = 10 Years]
+        D1 -->|No — Paid| D3[POST /api/onboarding/create-order]
+        D3 --> D4[Create Stripe Checkout Session]
+        D4 --> D5[Redirect to Stripe]
+        D5 --> D6{Payment Success?}
+        D6 -->|Yes| D7[POST /api/onboarding/verify-payment]
+        D6 -->|No| D5
+        D7 --> D8[Activate Account\nSet Expiry 30d/365d]
+        D8 --> D9[Generate Invoice PDF — FPDF]
+        D9 --> D10[Save Invoice to DB]
+        D10 --> D11[Send Invoice via Gmail SMTP]
+        D2 --> D12[onboarding_step = 6 ✅]
+        D11 --> D12
+    end
+
+    subgraph "Stripe — Webhook"
+        D5 -.->|POST /api/onboarding/webhook/stripe| W1[Verify Signature]
+        W1 --> W2[checkout.session.completed]
+        W2 --> D8
+    end
+
+    style A1 fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style D12 fill:#10b981,color:#fff,stroke:#059669,stroke-width:2px
+    style D1 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style D6 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style B1 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style C4 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+```
+
+---
+
+### Workflow 2 — Photo Upload & AI Processing Pipeline
+
+```mermaid
+flowchart TD
+    subgraph Photographer
+        P1([Select Event]) --> P2[Upload Photos\nJPG / CR2 / NEF / ARW]
+    end
+
+    subgraph "Backend — Photos Router"
+        P2 -->|POST /api/photos/upload| P3[Save Original to\nS3 / Local Storage]
+        P3 --> P4[Insert Photo Record\nstatus = processing]
+        P4 --> P5[Dispatch Celery Task]
+    end
+
+    subgraph "Celery Worker — image_processing Queue"
+        P5 -->|process_single_photo| Q1{Is RAW Format?}
+        Q1 -->|Yes .cr2/.nef/.arw| Q2[rawpy.postprocess\nhalf_size=True\nLinear Debayer]
+        Q1 -->|No .jpg/.png| Q3[PIL.Image.open]
+        Q2 & Q3 --> Q4[EXIF Transpose — Fix Rotation]
+        Q4 --> Q5[Generate High-Res JPG\n3600×3600 max, quality=85]
+        Q5 --> Q6[Generate Thumbnail\n1080×1080, quality=75]
+        Q6 --> Q7[Upload High-Res + Thumb\nto Storage]
+        Q7 --> Q8[Update DB: s3_key,\nthumbnail_url, status=ready]
+    end
+
+    subgraph "Celery Worker — ai_processing Queue"
+        Q8 -->|index_single_photo.delay| R1[Load Thumbnail Image\nvia cv2.imread]
+        R1 --> R2["SCRFD Face Detection\n(det_10g.onnx)\nConfidence > 0.35"]
+        R2 --> R3{Faces Found?}
+        R3 -->|No| R4[Log Warning\nMark face_indexed=True\nfaces_count=0]
+        R3 -->|Yes| R5["ArcFace Embedding\n(w600k_r100.onnx)\n512-D L2-Normalized Vector"]
+        R5 --> R6[Insert FaceIndex Records\ninto pgvector Table]
+        R6 --> R7["Smart Crop Generation\n1:1 Square + 9:16 Story"]
+        R7 --> R8[Update Photo:\nface_indexed=True\nfaces_count=N\nhas_social_crops=True]
+    end
+
+    subgraph "Batch Re-Index — Full Event"
+        R8 -.->|index_event_photos| S1[Fetch All Unindexed Photos]
+        S1 --> S2[Batch Process — 5 at a time]
+        S2 --> S3[Phase 2: DBSCAN Clustering\neps=0.42, metric=cosine]
+        S3 --> S4[Compute Cluster Centroids\nL2-Normalized Mean]
+        S4 --> S5[Save FaceCluster Records]
+        S5 --> S6[Status: complete ✅]
+    end
+
+    style P1 fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style R3 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style Q1 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style S6 fill:#10b981,color:#fff,stroke:#059669,stroke-width:2px
+    style R4 fill:#ef4444,color:#fff,stroke:#dc2626,stroke-width:2px
+```
+
+---
+
+### Workflow 3 — Guest Face-Match & Gallery Access
+
+```mermaid
+flowchart TD
+    subgraph "Guest — Mobile Browser"
+        G1([Scan QR Code\nor Open VIP Link]) --> G2{Access Type?}
+        G2 -->|QR Code| G3[Enter Phone + Name]
+        G2 -->|VIP Token| G14[Auto-Login as VIP\n48h Access Token]
+    end
+
+    subgraph "Backend — OTP Verification"
+        G3 -->|POST /api/guest/otp/send| H1[Rate Limit Check\nRedis TTL]
+        H1 --> H2{Allowed?}
+        H2 -->|No| H2X[429 Too Many Requests]
+        H2 -->|Yes| H3[Generate 6-Digit OTP]
+        H3 --> H4[Store in Redis\nTTL = 5 min]
+        H4 --> H5{DEV_MODE?}
+        H5 -->|Yes| H6[Log OTP to Console]
+        H5 -->|No| H7[Send via MSG91 SMS]
+        H6 & H7 --> H8[Guest Enters OTP]
+        H8 -->|POST /api/guest/otp/verify| H9{OTP Valid?}
+        H9 -->|No| H9X[400 Invalid OTP]
+        H9 -->|Yes| H10[Upsert Guest Record]
+        H10 --> H11[Issue Guest JWT\n24h Expiry]
+    end
+
+    subgraph "Guest — Selfie Capture"
+        H11 & G14 --> I1["MediaPipe Face Mesh\nGuided Alignment\n(Frontend)"]
+        I1 --> I2[Capture Selfie Photo]
+        I2 -->|POST /api/guest/selfie| I3[Save to Temp File]
+    end
+
+    subgraph "Backend — AI Matching"
+        I3 --> J1["extract_embedding()\nBuffalo_L Single-Face\nLargest Face, Score > 0.60"]
+        J1 --> J2{Face Detected?}
+        J2 -->|No| J2X[422 No Face Detected]
+        J2 -->|Yes| J3[Upload Selfie to Storage]
+        J3 --> J4[Save Embedding\nto Guest Record]
+        J4 --> J5["pgvector Cosine Search\nFaceIndex.embedding\n.cosine_distance(selfie)\nORDER BY distance\nLIMIT 200"]
+        J5 --> J6["Tiered Classification\n< 0.50 → Verified Match\n0.50-0.60 → Suggested"]
+        J6 --> J7["Confidence Mapping\n0.0 → 100%\n0.50 → 90%\n0.60 → 15%"]
+        J7 --> J8[Delete Old PhotoMatch\nRecords for Guest]
+        J8 --> J9[Insert New PhotoMatch\nRecords]
+    end
+
+    subgraph "Guest — Gallery"
+        J9 --> K1[GET /api/guest/gallery]
+        G14 --> K1a["VIP: SELECT ALL Photos\nWhere event_id = X"]
+        K1 --> K2["Display Matched Photos\nWith Confidence Scores"]
+        K1a --> K2
+        K2 --> K3{Download?}
+        K3 -->|Single| K4["Apply Text Watermark\n'Captured by Studio Name'\nGET /download?format=original/1x1/9:16"]
+        K3 -->|Bulk ZIP| K5["ZIP All Matched Photos\nEach Watermarked\nGET /gallery/download-all"]
+        K3 -->|Report| K6[POST /gallery/{id}/report\nis_reported = True]
+    end
+
+    style G1 fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style G2 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style H2 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style H9 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style J2 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style K3 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style K2 fill:#10b981,color:#fff,stroke:#059669,stroke-width:2px
+```
+
+---
+
+### Workflow 4 — Client Booking & Photographer Response
+
+```mermaid
+flowchart TD
+    subgraph "Client — Frontend"
+        C1([Browse Marketplace]) --> C2[Search Photographers\nFilter: State, District,\nCategory, Price, Date]
+        C2 --> C3[View Profile\nPortfolio, Packages,\nReviews, Rating]
+        C3 --> C4{Shortlist or Book?}
+        C4 -->|Shortlist| C4a[POST /api/shortlist/{id}\nSave to Favorites]
+        C4 -->|Book| C5[Select Event Details\nDate, Venue, Category]
+    end
+
+    subgraph "Backend — Booking Service"
+        C5 -->|POST /api/bookings/events| D1[Verify Photographer\nStatus = VERIFIED/PENDING]
+        D1 --> D2{Available on Date?}
+        D2 -->|No — Blocked| D2X[400 Not Available]
+        D2 -->|Yes| D3{Already Booked\non This Date?}
+        D3 -->|Yes| D3X[400 Already Booked]
+        D3 -->|No| D4[Generate Booking Ref\nSMB-2026-XXXXX]
+        D4 --> D5[Create ClientEvent\nstatus = DRAFT]
+        D5 --> D6[Create SubEventBooking\nstatus = PENDING]
+        D6 --> D7[Calculate Agreed Price\nfrom Package / Specialization]
+        D7 --> D8[Update Event Status\nto CONFIRMED]
+        D8 --> D9[Send Email Notifications]
+    end
+
+    subgraph "Email — Gmail SMTP"
+        D9 --> E1["Email to Client\n'Booking Requested — SMB-2026-XXXXX'\nDetails: Date, Photographer, Amount"]
+        D9 --> E2["Email to Photographer\n'Action Required: New Booking'\nDetails: Client, Venue, Date, Amount"]
+    end
+
+    subgraph "Photographer — Dashboard"
+        E2 --> F1[View Incoming Booking\nGET /photographer/bookings]
+        F1 --> F2{Accept or Reject?}
+        F2 -->|Accept| F3["PATCH /respond?action=accept\nStatus → CONFIRMED\nBlock Date in Availability"]
+        F2 -->|Reject| F4["PATCH /respond?action=reject\nStatus → REJECTED\nRelease Date"]
+        F3 --> F5["Email Client\n'✅ Booking Accepted!'"]
+        F4 --> F6["Email Client\n'❌ Booking Rejected'"]
+    end
+
+    subgraph "Client — Post-Booking"
+        F3 --> G1[View Booking Details\nGET /events/{id}]
+        G1 --> G2{Dispute?}
+        G2 -->|Yes| G3["POST /events/{id}/dispute\nStatus → DISPUTED\nEmail Photographer Warning"]
+        G2 -->|No — After Event| G4["POST /reviews\nRating + Comment"]
+    end
+
+    style C1 fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style C4 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style D2 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style D3 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style F2 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style G2 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style G4 fill:#10b981,color:#fff,stroke:#059669,stroke-width:2px
+```
+
+---
+
+### Workflow 5 — Real-Time Chat & Notification System
+
+```mermaid
+flowchart TD
+    subgraph "Client / Photographer — Frontend"
+        A1([Open Chat Page]) --> A2[GET /api/chat/conversations]
+        A2 --> A3[Display Conversation List\nName, Last Message,\nUnread Count, Timestamp]
+        A3 --> A4[Select Conversation]
+        A4 --> A5[GET /api/chat/history/{other_id}]
+        A5 --> A6[Display Message Thread\nMark Incoming as Read]
+        A6 --> A7[Type & Send Message]
+    end
+
+    subgraph "Backend — Chat Router"
+        A7 -->|POST /api/chat/send| B1[Create ChatMessage\nsender_id, receiver_id,\ncontent, booking_id]
+        B1 --> B2[Resolve Receiver Role\nPhotographer or Client?]
+        B2 --> B3[Create Notification\ntype=message\ntitle=New Message]
+        B3 --> B4[Set Notification Link\nPhotographer → /photographer/chat\nClient → /client/messages]
+        B4 --> B5[Save to DB & Return]
+    end
+
+    subgraph "ID Resolution — Cross-Profile"
+        A5 -.-> C1[Check: Is other_id\na User ID or Profile ID?]
+        C1 --> C2{PhotographerProfile\nwith user_id = other_id?}
+        C2 -->|Yes| C3[Add Profile ID\nto search list]
+        C2 -->|No| C4{PhotographerProfile\nwith id = other_id?}
+        C4 -->|Yes| C5[Add User ID\nto search list]
+        C3 & C5 --> C6[Fetch Messages\nMatching ALL resolved IDs]
+    end
+
+    subgraph "Notification — Frontend"
+        B5 -.-> D1[GET /api/notifications]
+        D1 --> D2[Display Badge Count\non Bell Icon]
+        D2 --> D3[Click Notification]
+        D3 --> D4[Navigate to Link]
+        D4 --> D5["PATCH /notifications/{id}\nis_read = True"]
+        D5 --> D6["POST /notifications/read-all\nMark All as Read"]
+    end
+
+    style A1 fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style C2 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style C4 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style B5 fill:#10b981,color:#fff,stroke:#059669,stroke-width:2px
+```
+
+---
+
+### Workflow 6 — Admin Control Panel
+
+```mermaid
+flowchart TD
+    subgraph "Admin — Frontend Dashboard"
+        A1([Login as Admin\nadmin@snapmoment.app]) --> A2[GET /api/admin/stats]
+        A2 --> A3["Dashboard Overview:\n• Total Photographers\n• Active Events\n• Total Photos\n• Photos Per Day Chart\n• Event Type Distribution\n• Top 5 Photographers"]
+    end
+
+    subgraph "Photographer Management"
+        A3 --> B1[GET /api/admin/photographers\n?search=&plan=&is_active=&page=]
+        B1 --> B2[View Photographer Table]
+        B2 --> B3{Action?}
+        B3 -->|Edit| B4["PATCH /photographers/{id}\nUpdate plan, is_active, etc."]
+        B3 -->|Suspend| B5["POST /photographers/{id}/suspend\nExpire subscription immediately"]
+        B3 -->|Delete| B6["DELETE /photographers/{id}\nSoft delete: is_deleted=True"]
+        B3 -->|Verify| B7["POST /api/bookings/admin/verify/{id}\nstatus → VERIFIED\nSend Congratulation Email"]
+    end
+
+    subgraph "Event Administration"
+        A3 --> C1[GET /api/admin/events\n?page=&limit=]
+        C1 --> C2[View All Events\nName, Type, Photographer,\nDate, QR Token]
+        C2 --> C3{Action?}
+        C3 -->|Force Delete| C4["DELETE /events/{id}\nDelete S3 Photos\nCascade Delete Records"]
+    end
+
+    subgraph "Invoice Management"
+        A3 --> D1[GET /api/admin/invoices]
+        D1 --> D2[View All Invoices\nPhotographer, Amount,\nPayment ID, Status]
+        D2 --> D3{Action?}
+        D3 -->|Download| D4["GET /invoices/{id}/download\nRe-generate PDF if missing\nReturn FileResponse"]
+    end
+
+    subgraph "Contact Messages"
+        A3 --> E1[GET /api/admin/messages]
+        E1 --> E2[View Contact Form\nSubmissions: Name, Email,\nSubject, Message]
+        E2 --> E3{Action?}
+        E3 -->|Resolve| E4["PATCH /messages/{id}/resolve\nis_resolved = True"]
+        E3 -->|Delete| E5["DELETE /messages/{id}"]
+    end
+
+    style A1 fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style B3 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style C3 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style D3 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style E3 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+```
+
+---
+
+### Workflow 7 — Event Collaboration & Analytics
+
+```mermaid
+flowchart TD
+    subgraph "Photographer — Event Owner"
+        A1([Open Event Dashboard]) --> A2[View Event Details\nPhotos, Guests, QR Code]
+        A2 --> A3{Invite Collaborator?}
+        A3 -->|Yes| A4["POST /api/collaborations/invite\nEmail + Role (contributor)"]
+        A4 --> A5{Photographer Found?}
+        A5 -->|No| A5X[404 Not Found]
+        A5 -->|Self| A5Y[400 Cannot Invite Self]
+        A5 -->|Yes| A6[Create EventCollaboration\nRecord with invited_by]
+    end
+
+    subgraph "Collaborator — Shared Access"
+        A6 --> B1["GET /api/collaborations/my-shared-events\nView Events Shared With Me"]
+        B1 --> B2[Upload Photos to\nShared Event]
+    end
+
+    subgraph "Analytics — Photographer Dashboard"
+        A2 --> C1["GET /api/analytics/photographer\nTotal Events, Photos, Guests"]
+        C1 --> C2["Photos Per Day Chart\n(Last 30 Days)"]
+        C1 --> C3["Event Type Distribution\n(Wedding, Birthday, Corporate)"]
+        C1 --> C4["Engagement Breakdown\n(VIEW, DOWNLOAD, SHARE, LIKE)"]
+    end
+
+    subgraph "Guest Engagement Analytics"
+        C4 --> D1["GET /api/analytics/engagement/guests\nGuest Name, Phone, Event,\nAccess Time, Interactions Count"]
+        C4 --> D2["GET /api/analytics/engagement/top-photos\nTop 10 Most Engaged Photos\nDownloads, Views, Likes"]
+    end
+
+    subgraph "Analytics Logging — Frontend"
+        D2 -.-> E1["POST /api/analytics/log\nevent_id, action_type,\nphoto_id (optional)"]
+        E1 --> E2[Insert AnalyticsEvent\nTimestamp + Metadata JSON]
+    end
+
+    style A1 fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
+    style A3 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style A5 fill:#f59e0b,color:#fff,stroke:#d97706,stroke-width:2px
+    style E2 fill:#10b981,color:#fff,stroke:#059669,stroke-width:2px
+```
+
+---
+
 ## Logical ER Diagram
 
 ```mermaid
