@@ -7,6 +7,7 @@ import { Upload, Trash2, Brain, CheckCircle, Image, X, Sparkles, CloudUpload, Za
 import { QRCodeSVG } from 'qrcode.react'
 import toast from 'react-hot-toast'
 import { photosApi } from '../../lib/api'
+import ConfirmModal from '../../components/shared/ConfirmModal'
 
 const SUPPORTED_EXTS = ['.jpeg', '.jpg', '.jpe', '.raw', '.cr3', '.webp', '.avif']
 
@@ -23,6 +24,11 @@ export default function PhotographerUpload() {
   const [tetherFolder, setTetherFolder] = useState<FileSystemDirectoryHandle | null>(null)
   const [syncingFiles, setSyncingFiles] = useState<{ [key: string]: 'pending' | 'success' | 'error' }>({})
   const seenFilesRef = useRef<Set<string>>(new Set())
+  const [confirmModal, setConfirmModal] = useState<{ 
+    isOpen: boolean, 
+    type: 'purge' | 'delete', 
+    photoId?: string 
+  }>({ isOpen: false, type: 'purge' })
 
   const { data: photos = [] } = useQuery({
     queryKey: ['event-photos', eventId],
@@ -299,7 +305,7 @@ export default function PhotographerUpload() {
             </div>
 
             <button
-              onClick={() => { if (confirm('Purge Entire Gallery: This action cannot be undone.')) deleteAllMutation.mutate() }}
+              onClick={() => setConfirmModal({ isOpen: true, type: 'purge' })}
               className="flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 border border-red-100 hover:bg-red-500 hover:text-white transition-all shadow-sm"
             >
               <Trash2 size={14} /> Purge Gallery
@@ -347,7 +353,7 @@ export default function PhotographerUpload() {
                       </span>
                     )}
                     <button
-                      onClick={() => { if (confirm('Delete this frame?')) deleteMutation.mutate(photo.id) }}
+                      onClick={() => setConfirmModal({ isOpen: true, type: 'delete', photoId: photo.id })}
                       className="w-8 h-8 rounded-lg bg-red-500/90 text-white flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
                     >
                       <Trash2 size={12} />
@@ -359,6 +365,28 @@ export default function PhotographerUpload() {
           </div>
         )}
       </section>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={() => {
+          if (confirmModal.type === 'purge') {
+            deleteAllMutation.mutate()
+          } else if (confirmModal.type === 'delete' && confirmModal.photoId) {
+            deleteMutation.mutate(confirmModal.photoId)
+          }
+          setConfirmModal({ ...confirmModal, isOpen: false })
+        }}
+        title={confirmModal.type === 'purge' ? 'Purge Gallery' : 'Delete Frame'}
+        message={
+          confirmModal.type === 'purge' 
+            ? 'Are you absolutely sure you want to purge the entire gallery? This action will permanently remove all frames and biometric data.' 
+            : 'Are you sure you want to delete this frame from the studio vault?'
+        }
+        confirmText={confirmModal.type === 'purge' ? 'Yes, Purge All' : 'Delete Frame'}
+        type="danger"
+        loading={deleteAllMutation.isPending || deleteMutation.isPending}
+      />
     </motion.div>
   )
 }

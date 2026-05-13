@@ -18,6 +18,7 @@ class Photographer(Base):
     studio_logo_url: Mapped[str] = mapped_column(String(500), nullable=True)
     watermark_url: Mapped[str] = mapped_column(String(500), nullable=True)
     plan: Mapped[str] = mapped_column(String(20), default="free")  # free/pro/studio
+    billing_cycle: Mapped[str] = mapped_column(String(20), default="monthly") # monthly/yearly
     
     # Onboarding & Studio Profile
     onboarding_step: Mapped[int] = mapped_column(Integer, default=1)

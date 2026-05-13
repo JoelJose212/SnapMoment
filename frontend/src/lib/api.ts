@@ -51,7 +51,7 @@ guestApi.interceptors.request.use((config) => {
 
 // Auth endpoints
 export const authApi = {
-  signup: (data: any) => api.post('/api/auth/signup', data),
+  signup: (data: any) => api.post('/api/auth/photographer/signup', data),
   clientSignup: (data: any) => api.post('/api/auth/client/signup', data),
   login: (data: any) => api.post('/api/auth/login', data),
   adminLogin: (data: any) => api.post('/api/auth/admin/login', data),

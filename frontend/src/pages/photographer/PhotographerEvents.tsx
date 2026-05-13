@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { eventsApi, api } from '../../lib/api'
 import { useAuthStore } from '../../store/authStore'
+import ConfirmModal from '../../components/shared/ConfirmModal'
 
 const EVENT_TYPES = ['wedding', 'birthday', 'college', 'corporate', 'anniversary', 'other']
 
@@ -29,6 +30,10 @@ export default function PhotographerEvents() {
   const [showCollabModal, setShowCollabModal] = useState<any>(null)
   const [collabEmail, setCollabEmail] = useState('')
   const [form, setForm] = useState({ name: '', type: 'wedding', event_date: '', location: '', description: '' })
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean, eventId: string | null }>({
+    isOpen: false,
+    eventId: null
+  })
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['photographer-events'],
@@ -260,7 +265,7 @@ export default function PhotographerEvents() {
                         <QrCode size={18} />
                       </Link>
                       <button 
-                        onClick={() => { if (confirm('Irreversible: Delete entire studio experience?')) deleteMutation.mutate(event.id) }} 
+                        onClick={() => setDeleteModal({ isOpen: true, eventId: event.id })} 
                         className="h-12 w-12 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all border border-slate-100"
                       >
                         <Trash2 size={18} />
@@ -342,6 +347,22 @@ export default function PhotographerEvents() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, eventId: null })}
+        onConfirm={() => {
+          if (deleteModal.eventId) {
+            deleteMutation.mutate(deleteModal.eventId)
+          }
+          setDeleteModal({ isOpen: false, eventId: null })
+        }}
+        title="Delete Event"
+        message="Are you sure you want to delete this entire studio experience? All photos, face data, and guest matches will be permanently removed. This action is irreversible."
+        confirmText="Yes, Delete Everything"
+        type="danger"
+        loading={deleteMutation.isPending}
+      />
     </div>
   )
 }

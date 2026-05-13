@@ -10,11 +10,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { bookingsApi } from '../../lib/api'
 import BookingStepper, { BookingPhase } from '../../components/client/BookingStepper'
 import toast from 'react-hot-toast'
+import ConfirmModal from '../../components/shared/ConfirmModal'
 
 export default function ClientEventDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [showAgreement, setShowAgreement] = useState(false)
+  const [disputeModalOpen, setDisputeModalOpen] = useState(false)
   const queryClient = useQueryClient()
 
   const { data: event, isLoading } = useQuery({
@@ -153,11 +155,7 @@ export default function ClientEventDetails() {
           </div>
           <button 
             disabled={disputeMutation.isPending}
-            onClick={() => {
-              if (window.confirm('Are you sure you want to raise a disagreement? Our support team will be notified to mediate.')) {
-                if (mainBooking?.id) disputeMutation.mutate(mainBooking.id)
-              }
-            }}
+            onClick={() => setDisputeModalOpen(true)}
             className="px-8 py-4 bg-white border border-amber-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-amber-600 hover:bg-amber-600 hover:text-white transition-all shadow-sm disabled:opacity-50"
           >
             {disputeMutation.isPending ? 'Notifying Support...' : 'Raise Disagreement'}
@@ -231,6 +229,22 @@ export default function ClientEventDetails() {
           </>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={disputeModalOpen}
+        onClose={() => setDisputeModalOpen(false)}
+        onConfirm={() => {
+          if (mainBooking?.id) {
+            disputeMutation.mutate(mainBooking.id)
+          }
+          setDisputeModalOpen(false)
+        }}
+        title="Raise Disagreement"
+        message="Are you sure you want to raise a disagreement for this booking? Our support team will be notified to mediate between you and the photographer. This process ensures a fair resolution for both parties."
+        confirmText="Yes, Raise Dispute"
+        type="warning"
+        loading={disputeMutation.isPending}
+      />
     </div>
   )
 }

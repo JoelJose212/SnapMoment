@@ -107,6 +107,7 @@ async def photographer_signup(data: SignupRequest, db: AsyncSession = Depends(ge
         role="photographer", 
         user_id=str(user.id), 
         full_name=user.full_name, 
+        email=user.email,
         onboarding_step=1,
         subscription_active=True
     )

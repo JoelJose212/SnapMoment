@@ -76,6 +76,7 @@ async def onboarding_step3(
         await db.flush()
     
     photographer.plan = data.get("plan", "free")
+    photographer.billing_cycle = data.get("billing_cycle", "monthly")
     photographer.onboarding_step = 4
     await db.commit()
     return {"message": "Step 3 completed", "onboarding_step": 4}
@@ -97,8 +98,12 @@ async def onboarding_step4(
         db.add(photographer)
         await db.flush()
     
-    photographer.onboarding_step = 5
-    # No plans are free anymore, so we don't skip Step 5 (Payment)
+    if photographer.plan == "starter":
+        photographer.onboarding_step = 6
+        photographer.is_active = True
+        photographer.subscription_expires_at = datetime.utcnow() + timedelta(days=3650) # Essentially forever for free tier
+    else:
+        photographer.onboarding_step = 5
         
     await db.commit()
     return {"message": "Step 4 completed", "onboarding_step": photographer.onboarding_step}
@@ -120,12 +125,15 @@ async def create_stripe_checkout(
         db.add(photographer)
         await db.flush()
     
-    if photographer.plan == "fresher":
-        amount = 50 * 100
+    if photographer.plan == "starter":
+        amount = 0
     elif photographer.plan == "pro":
         amount = 1499 * 100
     else:
         amount = 4999 * 100
+        
+    if photographer.billing_cycle == "yearly" and amount > 0:
+        amount = int(amount * 12 * 0.75) # 25% discount
         
     if not settings.STRIPE_SECRET_KEY or settings.STRIPE_SECRET_KEY == "sk_test_placeholder":
         # Mock session for dev environment without keys
@@ -146,7 +154,8 @@ async def create_stripe_checkout(
             }],
             metadata={
                 'photographer_id': str(photographer.id),
-                'plan': photographer.plan
+                'plan': photographer.plan,
+                'billing_cycle': photographer.billing_cycle
             },
             mode='payment',
             success_url=f"{settings.FRONTEND_URL}/onboarding?session_id={{CHECKOUT_SESSION_ID}}",
@@ -190,17 +199,21 @@ async def verify_stripe_payment(
     
     if photographer.onboarding_step < 6:
         photographer.onboarding_step = 6
-        photographer.subscription_expires_at = datetime.utcnow() + timedelta(days=30)
+        days = 365 if photographer.billing_cycle == "yearly" else 30
+        photographer.subscription_expires_at = datetime.utcnow() + timedelta(days=days)
         photographer.is_active = True
         await db.commit()
     
         try:
-            if photographer.plan == "fresher":
-                amount_inr = 50
+            if photographer.plan == "starter":
+                amount_inr = 0
             elif photographer.plan == "pro":
                 amount_inr = 1499
             else:
                 amount_inr = 4999
+            
+            if photographer.billing_cycle == "yearly" and amount_inr > 0:
+                amount_inr = int(amount_inr * 12 * 0.75)
             pdf_path = generate_invoice_pdf(
                 name=photographer.full_name,
                 studio_name=photographer.studio_name or "",

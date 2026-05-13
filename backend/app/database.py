@@ -38,6 +38,7 @@ async def init_db():
             await conn.execute(text("ALTER TABLE photographer_profiles ADD COLUMN IF NOT EXISTS starting_price INTEGER DEFAULT 0"))
             await conn.execute(text("ALTER TABLE photographer_profiles ADD COLUMN IF NOT EXISTS phone VARCHAR(20)"))
             await conn.execute(text("ALTER TABLE photographer_profiles ADD COLUMN IF NOT EXISTS website VARCHAR(200)"))
+            await conn.execute(text("ALTER TABLE photographers ADD COLUMN IF NOT EXISTS billing_cycle VARCHAR(20) DEFAULT 'monthly'"))
             
             # Sub-event booking migrations
             await conn.execute(text("ALTER TABLE sub_event_bookings ADD COLUMN IF NOT EXISTS specialization_id UUID"))

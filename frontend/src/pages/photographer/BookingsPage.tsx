@@ -10,10 +10,15 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
+import ConfirmModal from '../../components/shared/ConfirmModal'
 
 export default function PhotographerBookings() {
   const queryClient = useQueryClient()
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
+  const [cancelModal, setCancelModal] = useState<{ isOpen: boolean, bookingId: string | null }>({
+    isOpen: false,
+    bookingId: null
+  })
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['photographerBookings'],
@@ -225,11 +230,7 @@ export default function PhotographerBookings() {
 
                     <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between">
                        <button 
-                         onClick={() => {
-                           if (confirm('Are you sure you want to cancel this professional commitment? This action is irreversible.')) {
-                             respondMutation.mutate({ id: booking.id, action: 'reject' })
-                           }
-                         }}
+                         onClick={() => setCancelModal({ isOpen: true, bookingId: booking.id })}
                          className="text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-red-500 transition-colors"
                        >
                          Cancel Commitment
@@ -378,6 +379,22 @@ export default function PhotographerBookings() {
           </>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={cancelModal.isOpen}
+        onClose={() => setCancelModal({ isOpen: false, bookingId: null })}
+        onConfirm={() => {
+          if (cancelModal.bookingId) {
+            respondMutation.mutate({ id: cancelModal.bookingId, action: 'reject' })
+          }
+          setCancelModal({ isOpen: false, bookingId: null })
+        }}
+        title="Cancel Commitment"
+        message="Are you sure you want to cancel this professional commitment? This action is irreversible and may impact your studio rating."
+        confirmText="Yes, Cancel"
+        type="danger"
+        loading={respondMutation.isPending}
+      />
     </div>
   )
 }

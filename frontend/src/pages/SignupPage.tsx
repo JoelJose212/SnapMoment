@@ -104,7 +104,16 @@ export default function SignupPage() {
       setCurrentStep(3) 
       
       setTimeout(() => {
-        navigate(userRole === 'client' ? '/client/dashboard' : '/photographer/events')
+        if (userRole === 'client') {
+          navigate('/client/dashboard')
+        } else {
+          // If photographer is on step 1 (just signed up), send to onboarding
+          if (onboarding_step < 6) {
+            navigate('/onboarding')
+          } else {
+            navigate('/photographer/events')
+          }
+        }
       }, 2500)
     } catch (err: any) {
       toast.error(err.response?.data?.detail || 'Signup failed')

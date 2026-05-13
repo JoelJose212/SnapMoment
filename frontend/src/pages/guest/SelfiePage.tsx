@@ -253,8 +253,8 @@ export default function SelfiePage() {
 
         <div className="relative group">
           {/* Main Studio Frame */}
-          <div className="glass rounded-[4rem] p-4 border-white shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] relative overflow-hidden mb-12">
-            <div className="relative aspect-[3/4] rounded-[3.2rem] overflow-hidden bg-slate-950">
+          <div className="rounded-[4rem] p-4 bg-slate-900 border-4 border-[#FF9933]/20 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] relative overflow-hidden mb-12">
+            <div className="relative aspect-[3/4] rounded-[3.2rem] overflow-hidden bg-black">
               
               {/* Camera Loader */}
               <AnimatePresence>
@@ -275,19 +275,19 @@ export default function SelfiePage() {
                 autoPlay 
                 playsInline 
                 muted 
-                className="absolute inset-0 w-full h-full object-cover scale-x-[-1] z-0" 
+                className="absolute inset-0 w-full h-full object-cover scale-x-[-1] z-[100] opacity-100 block" 
               />
 
               {/* Intelligence Overlay */}
               <canvas
                 ref={overlayCanvasRef}
-                className="absolute inset-0 w-full h-full pointer-events-none scale-x-[-1] z-10"
+                className="absolute inset-0 w-full h-full pointer-events-none scale-x-[-1] z-[110]"
               />
 
               <canvas ref={canvasRef} className="hidden" />
 
               {/* Biometric Guide Oval */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[120]">
                 <motion.div
                   animate={{
                     scale: faceState === 'ready' ? [1, 1.02, 1] : 1,
@@ -302,7 +302,7 @@ export default function SelfiePage() {
               </div>
 
               {/* Shutter Command */}
-              <div className="absolute bottom-12 left-0 right-0 flex justify-center z-30">
+              <div className="absolute bottom-12 left-0 right-0 flex justify-center z-[130]">
                 <motion.button
                   whileHover={{ scale: faceState === 'ready' ? 1.1 : 1 }}
                   whileTap={{ scale: 0.9 }}
@@ -324,7 +324,7 @@ export default function SelfiePage() {
               </div>
 
               {/* Status Indicators */}
-              <div className="absolute top-8 inset-x-8 flex justify-between items-start z-30">
+              <div className="absolute top-8 inset-x-8 flex justify-between items-start z-[130]">
                 <div className="flex flex-col gap-2">
                   {[
                     { label: 'Neural Lock', ok: faceState !== 'none' },
@@ -373,6 +373,25 @@ export default function SelfiePage() {
                   {faceStateLabel}
                 </motion.span>
               </div>
+
+              {/* Retry Camera Helper */}
+              {faceState === 'none' && !cameraLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/10 backdrop-blur-sm z-[140]">
+                  <motion.button
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    onClick={startCamera}
+                    className="flex flex-col items-center gap-4 group"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-[#FF9933] flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <Camera size={24} />
+                    </div>
+                    <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] bg-slate-900 px-4 py-2 rounded-full">
+                      Camera Stuck? Click to Reset
+                    </span>
+                  </motion.button>
+                </div>
+              )}
 
               {/* Analysis Overlay */}
               <AnimatePresence>
