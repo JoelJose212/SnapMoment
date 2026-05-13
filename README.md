@@ -451,7 +451,7 @@ flowchart TD
         K2 --> K3{Download?}
         K3 -->|Single| K4["Apply Text Watermark\n'Captured by Studio Name'\nGET /download?format=original/1x1/9:16"]
         K3 -->|Bulk ZIP| K5["ZIP All Matched Photos\nEach Watermarked\nGET /gallery/download-all"]
-        K3 -->|Report| K6[POST /gallery/{id}/report\nis_reported = True]
+        K3 -->|Report| K6["POST /gallery/id/report\nis_reported = True"]
     end
 
     style G1 fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
@@ -473,7 +473,7 @@ flowchart TD
         C1([Browse Marketplace]) --> C2[Search Photographers\nFilter: State, District,\nCategory, Price, Date]
         C2 --> C3[View Profile\nPortfolio, Packages,\nReviews, Rating]
         C3 --> C4{Shortlist or Book?}
-        C4 -->|Shortlist| C4a[POST /api/shortlist/{id}\nSave to Favorites]
+        C4 -->|Shortlist| C4a["POST /api/shortlist/id\nSave to Favorites"]
         C4 -->|Book| C5[Select Event Details\nDate, Venue, Category]
     end
 
@@ -506,9 +506,9 @@ flowchart TD
     end
 
     subgraph "Client — Post-Booking"
-        F3 --> G1[View Booking Details\nGET /events/{id}]
+        F3 --> G1["View Booking Details\nGET /events/id"]
         G1 --> G2{Dispute?}
-        G2 -->|Yes| G3["POST /events/{id}/dispute\nStatus → DISPUTED\nEmail Photographer Warning"]
+        G2 -->|Yes| G3["POST /events/id/dispute\nStatus → DISPUTED\nEmail Photographer Warning"]
         G2 -->|No — After Event| G4["POST /reviews\nRating + Comment"]
     end
 
@@ -531,7 +531,7 @@ flowchart TD
         A1([Open Chat Page]) --> A2[GET /api/chat/conversations]
         A2 --> A3[Display Conversation List\nName, Last Message,\nUnread Count, Timestamp]
         A3 --> A4[Select Conversation]
-        A4 --> A5[GET /api/chat/history/{other_id}]
+        A4 --> A5["GET /api/chat/history/other_id"]
         A5 --> A6[Display Message Thread\nMark Incoming as Read]
         A6 --> A7[Type & Send Message]
     end
@@ -558,7 +558,7 @@ flowchart TD
         D1 --> D2[Display Badge Count\non Bell Icon]
         D2 --> D3[Click Notification]
         D3 --> D4[Navigate to Link]
-        D4 --> D5["PATCH /notifications/{id}\nis_read = True"]
+        D4 --> D5["PATCH /notifications/id\nis_read = True"]
         D5 --> D6["POST /notifications/read-all\nMark All as Read"]
     end
 
@@ -583,32 +583,32 @@ flowchart TD
         A3 --> B1[GET /api/admin/photographers\n?search=&plan=&is_active=&page=]
         B1 --> B2[View Photographer Table]
         B2 --> B3{Action?}
-        B3 -->|Edit| B4["PATCH /photographers/{id}\nUpdate plan, is_active, etc."]
-        B3 -->|Suspend| B5["POST /photographers/{id}/suspend\nExpire subscription immediately"]
-        B3 -->|Delete| B6["DELETE /photographers/{id}\nSoft delete: is_deleted=True"]
-        B3 -->|Verify| B7["POST /api/bookings/admin/verify/{id}\nstatus → VERIFIED\nSend Congratulation Email"]
+        B3 -->|Edit| B4["PATCH /photographers/id\nUpdate plan, is_active, etc."]
+        B3 -->|Suspend| B5["POST /photographers/id/suspend\nExpire subscription immediately"]
+        B3 -->|Delete| B6["DELETE /photographers/id\nSoft delete: is_deleted=True"]
+        B3 -->|Verify| B7["POST /api/bookings/admin/verify/id\nstatus → VERIFIED\nSend Congratulation Email"]
     end
 
     subgraph "Event Administration"
         A3 --> C1[GET /api/admin/events\n?page=&limit=]
         C1 --> C2[View All Events\nName, Type, Photographer,\nDate, QR Token]
         C2 --> C3{Action?}
-        C3 -->|Force Delete| C4["DELETE /events/{id}\nDelete S3 Photos\nCascade Delete Records"]
+        C3 -->|Force Delete| C4["DELETE /events/id\nDelete S3 Photos\nCascade Delete Records"]
     end
 
     subgraph "Invoice Management"
         A3 --> D1[GET /api/admin/invoices]
         D1 --> D2[View All Invoices\nPhotographer, Amount,\nPayment ID, Status]
         D2 --> D3{Action?}
-        D3 -->|Download| D4["GET /invoices/{id}/download\nRe-generate PDF if missing\nReturn FileResponse"]
+        D3 -->|Download| D4["GET /invoices/id/download\nRe-generate PDF if missing\nReturn FileResponse"]
     end
 
     subgraph "Contact Messages"
         A3 --> E1[GET /api/admin/messages]
         E1 --> E2[View Contact Form\nSubmissions: Name, Email,\nSubject, Message]
         E2 --> E3{Action?}
-        E3 -->|Resolve| E4["PATCH /messages/{id}/resolve\nis_resolved = True"]
-        E3 -->|Delete| E5["DELETE /messages/{id}"]
+        E3 -->|Resolve| E4["PATCH /messages/id/resolve\nis_resolved = True"]
+        E3 -->|Delete| E5["DELETE /messages/id"]
     end
 
     style A1 fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:2px
