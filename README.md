@@ -101,41 +101,65 @@ graph LR
 
 ```mermaid
 flowchart TD
+    %% Entities
+    Photographer([Photographer])
+    Client([Client])
+    Guest([Guest])
+    Admin([Admin])
+
+    %% Processes (Circles)
     P1((1.0 Authentication))
-    P2((2.0 Event Management))
-    P3((3.0 Photo Processing))
+    P2((2.0 Onboarding & Billing))
+    P3((3.0 Event & Photo Management))
     P4((4.0 AI Face Engine))
-    P5((5.0 Guest Verification))
-    P6((6.0 Booking System))
-    P7((7.0 Chat & Notifications))
+    P5((5.0 Guest Experience))
+    P6((6.0 Booking & Marketplace))
+    P7((7.0 Communication))
     P8((8.0 Admin Control))
 
-    D1[(Users)]
-    D2[(Events)]
-    D3[(Photos)]
-    D4[(Face Vectors)]
-    D5[(Bookings)]
-    D6[(Messages)]
-    D7[(Analytics)]
+    %% Data Stores
+    D1[(Users & Profiles)]
+    D2[(Events & Photos)]
+    D3[(Face Data)]
+    D4[(Bookings & Invoices)]
+    D5[(Messages & Logs)]
 
-    Photographer([Photographer]) -- Credentials --> P1 <--> D1
-    Client([Client]) -- Credentials --> P1
-
-    Photographer -- "Create Event" --> P2 <--> D2
-    Photographer -- "Upload Photos" --> P3 <--> D3
-    P3 -- "Trigger AI" --> P4 <--> D4
-
-    Guest([Guest]) -- "OTP + Selfie" --> P5 <--> D2
-    P5 -- "Embedding" --> P4
-    P4 -- "Matched Gallery" --> Guest
-
-    Client -- "Search & Book" --> P6 <--> D5
-    P6 -- "Notify" --> P7 <--> D6
-
-    Admin([Admin]) -- "Manage" --> P8
+    %% Flows
+    Photographer & Client -- "Credentials" --> P1 <--> D1
+    
+    Photographer -- "Stripe / Profile" --> P2 <--> D4
+    P2 <--> D1
+    
+    Photographer -- "Manage Content" --> P3 <--> D2
+    P3 -- "Raw Processing" --> P4 <--> D3
+    
+    Guest -- "OTP / Selfie" --> P5 <--> D2
+    P5 <--> D3
+    P4 -- "Matched Gallery" --> P5 --> Guest
+    
+    Client -- "Search & Book" --> P6 <--> D4
+    P6 -- "Notify" --> P7 <--> D5
+    
+    Admin -- "Monitor & Control" --> P8
     P8 <--> D1
     P8 <--> D2
-    P8 <--> D7
+    P8 <--> D4
+    P8 <--> D5
+
+    %% Styling
+    style P1 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style P2 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style P3 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style P4 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style P5 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style P6 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style P7 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    style P8 fill:#008000,color:#fff,stroke:#004d00,stroke-width:2px
+    
+    style Photographer fill:#006400,color:#fff,stroke:#004d00
+    style Client fill:#006400,color:#fff,stroke:#004d00
+    style Guest fill:#006400,color:#fff,stroke:#004d00
+    style Admin fill:#006400,color:#fff,stroke:#004d00
 ```
 
 ### 3. Internal Process Flow (Level 2 DFD)
